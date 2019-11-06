@@ -11,9 +11,214 @@
 @version 0.1.0.0
 
 
--- | Meant to be a place to include common functionality used across
---   different parts in the challenge.
+-- | Common functions for solutions
 module AOC.Common
+
+-- | Iterate until a <a>Nothing</a> is produced
+iterateMaybe :: (a -> Maybe a) -> a -> [a]
+
+-- | Apply function until <a>Nothing</a> is produced, and return last
+--   produced value.
+loopMaybe :: (a -> Maybe a) -> a -> a
+
+-- | Strict (!!)
+(!!!) :: [a] -> Int -> a
+
+-- | A tuple of the same item twice
+dup :: a -> (a, a)
+
+-- | <a>scanl</a> generalized to all <a>Traversable</a>.
+scanlT :: Traversable t => (b -> a -> b) -> b -> t a -> t b
+
+-- | <a>scanr</a> generalized to all <a>Traversable</a>.
+scanrT :: Traversable t => (a -> b -> b) -> b -> t a -> t b
+
+-- | Lazily find the first repeated item.
+firstRepeated :: Ord a => [a] -> Maybe a
+
+-- | Repeat a function until you get the same result twice.
+fixedPoint :: Eq a => (a -> a) -> a -> a
+
+-- | Build a frequency map
+freqs :: (Foldable f, Ord a) => f a -> Map a Int
+
+-- | Collect all possible single-item perturbations from a given perturbing
+--   function.
+--   
+--   <pre>
+--   perturbations (\i -&gt; [i - 1, i + 1]) [0,10,100]
+--   </pre>
+--   
+--   <h2>[ [-1,10,100]</h2>
+--   
+--   , [ 1,10,100] , [ 0, 9,100] , [ 0,11,100] , [ 0,10, 99] , [ 0,10,101]
+--   ]
+perturbations :: (a -> [a]) -> [a] -> [[a]]
+
+-- | Clear out characters not matching a predicate
+clearOut :: (Char -> Bool) -> String -> String
+
+-- | Get the key-value pair corresponding to the maximum value in the map
+maximumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the maximum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'maximumVal' == 'maximumValBy' 'compare'
+--   </pre>
+maximumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map
+minimumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'minimumVal' == 'minimumValBy' 'compare'
+--   </pre>
+minimumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Version of <a>maximumVal</a> for nonempty maps.
+maximumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Version of <a>maximumValBy</a> for nonempty maps.
+maximumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Version of <a>minimumVal</a> for nonempty maps.
+minimumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Version of <a>minimumValBy</a> for nonempty maps.
+minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Delete a potential value from a <a>Finite</a>.
+deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
+
+-- | <a>foldMap</a>, but in parallel.
+foldMapPar :: Monoid b => (a -> b) -> [a] -> b
+
+-- | <a>foldMap1</a>, but in parallel.
+foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
+
+-- | <a>Fold</a> for computing mean and variance
+meanVar :: Fractional a => Fold a (a, a)
+eitherItem :: Lens' (Either a a) a
+getDown :: Down a -> a
+
+-- | Flood fill from a starting set
+floodFill :: Ord a => (a -> Set a) -> Set a -> Set a
+
+-- | 2D Coordinate
+type Point = V2 Int
+cardinalNeighbs :: Point -> [Point]
+fullNeighbs :: Point -> [Point]
+mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
+memoPoint :: Memo Point
+
+-- | Find the minimum and maximum x and y from a collection of points.
+--   
+--   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
+boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
+
+-- | A version of <a>boundingBox</a> that works for normal possibly-empty
+--   lists.
+boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
+parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
+asciiGrid :: IndexedFold Point String Char
+
+-- | It's <a>Point</a>, but with a newtype wrapper so we have an <a>Ord</a>
+--   that sorts by y first, then x
+newtype ScanPoint
+SP :: Point -> ScanPoint
+[_getSP] :: ScanPoint -> Point
+displayAsciiMap :: Char -> Map Point Char -> String
+instance GHC.Generics.Generic AOC.Common.ScanPoint
+instance GHC.Num.Num AOC.Common.ScanPoint
+instance GHC.Show.Show AOC.Common.ScanPoint
+instance GHC.Classes.Eq AOC.Common.ScanPoint
+instance Data.Hashable.Class.Hashable AOC.Common.ScanPoint
+instance GHC.Classes.Ord AOC.Common.ScanPoint
+instance (Control.Lens.At.Ixed (v a), Control.Lens.At.Index (v a) Data.Type.Equality.~ GHC.Types.Int, Control.Lens.At.IxValue (v a) Data.Type.Equality.~ a) => Control.Lens.At.Ixed (Data.Vector.Generic.Sized.Internal.Vector v n a)
+instance (GHC.Classes.Ord k, GHC.Classes.Ord p) => Control.Lens.At.Ixed (Data.OrdPSQ.Internal.OrdPSQ k p v)
+
+module AOC.Common.Elfcode
+type Mem s = MVector 6 s Int
+type IMem = Vector 6 Int
+type ECProg = Vector Instr
+data Instr
+I :: OpCode -> Int -> Int -> Finite 6 -> Instr
+[_iOp] :: Instr -> OpCode
+[_iInA] :: Instr -> Int
+[_iInB] :: Instr -> Int
+[_iOut] :: Instr -> Finite 6
+data OpCode
+OAddR :: OpCode
+OAddI :: OpCode
+OMulR :: OpCode
+OMulI :: OpCode
+OBanR :: OpCode
+OBanI :: OpCode
+OBorR :: OpCode
+OBorI :: OpCode
+OSetR :: OpCode
+OSetI :: OpCode
+OGtIR :: OpCode
+OGtRI :: OpCode
+OGtRR :: OpCode
+OEqIR :: OpCode
+OEqRI :: OpCode
+OEqRR :: OpCode
+ODivR :: OpCode
+ODivI :: OpCode
+OModR :: OpCode
+ONoOp :: OpCode
+OOutR :: OpCode
+OOutI :: OpCode
+runOp :: Instr -> IMem -> (Maybe Int, IMem)
+execOp :: (PrimMonad m, PrimState m ~ s) => Instr -> Mem s -> m (Maybe Int)
+runECProg :: Finite 6 -> ECProg -> IMem -> ([Int], IMem)
+evalECProg :: Finite 6 -> ECProg -> IMem -> [Int]
+execECProg :: Finite 6 -> ECProg -> IMem -> IMem
+traceECProg :: Finite 6 -> ECProg -> IMem -> [(Maybe Int, IMem)]
+traceECProg_ :: Finite 6 -> ECProg -> IMem -> [IMem]
+optimizeEC :: [Peephole [Instr]] -> ECProg -> ECProg
+type Peephole = Parsec [Instr] ()
+peep :: Maybe Int -> Maybe Int -> Maybe (Finite 6) -> Peephole Instr
+currPeepPos :: Peephole Int
+parseElfcode :: String -> Maybe (Finite 6, ECProg)
+elfcodeParser :: Parser (Finite 6, ECProg)
+instance GHC.Classes.Ord AOC.Common.Elfcode.Instr
+instance GHC.Classes.Eq AOC.Common.Elfcode.Instr
+instance GHC.Show.Show AOC.Common.Elfcode.Instr
+instance GHC.Enum.Bounded AOC.Common.Elfcode.OpCode
+instance GHC.Enum.Enum AOC.Common.Elfcode.OpCode
+instance GHC.Classes.Ord AOC.Common.Elfcode.OpCode
+instance GHC.Classes.Eq AOC.Common.Elfcode.OpCode
+instance GHC.Show.Show AOC.Common.Elfcode.OpCode
+
+module AOC.Common.Search
+
+-- | A* Search
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
+exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied within the
+--   given bounds.
+binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied above a given
+--   bound.
+exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is <a>Just</a> within the
+--   given bounds.
+binaryFindMin :: (Int -> Maybe a) -> Int -> Int -> Maybe a
+
+-- | Find the lowest value where the predicate is <a>Just</a> above a given
+--   bound.
+exponentialFindMin :: (Int -> Maybe a) -> Int -> Maybe a
 
 
 -- | Utilities for loading configuration file.
@@ -2639,95 +2844,6 @@ UTCTime :: Day -> DiffTime -> UTCTime
 --   leap-seconds)
 [utctDayTime] :: UTCTime -> DiffTime
 
--- | If <a>Void</a> is uninhabited then any <a>Functor</a> that holds only
---   values of type <a>Void</a> is holding no values.
-vacuous :: Functor f => f Void -> f a
-
--- | Since <a>Void</a> values logically don't exist, this witnesses the
---   logical reasoning tool of "ex falso quodlibet".
---   
---   <pre>
---   &gt;&gt;&gt; let x :: Either Void Int; x = Right 5
---   
---   &gt;&gt;&gt; :{
---   case x of
---       Right r -&gt; r
---       Left l  -&gt; absurd l
---   :}
---   5
---   </pre>
-absurd :: () => Void -> a
-
--- | Uninhabited data type
-data Void
-
--- | Fold an <a>Option</a> case-wise, just like <a>maybe</a>.
-option :: () => b -> (a -> b) -> Option a -> b
-
--- | Repeat a value <tt>n</tt> times.
---   
---   <pre>
---   mtimesDefault n a = a &lt;&gt; a &lt;&gt; ... &lt;&gt; a  -- using &lt;&gt; (n-1) times
---   </pre>
---   
---   Implemented using <a>stimes</a> and <a>mempty</a>.
---   
---   This is a suitable definition for an <tt>mtimes</tt> member of
---   <a>Monoid</a>.
-mtimesDefault :: (Integral b, Monoid a) => b -> a -> a
-
--- | This lets you use a difference list of a <a>Semigroup</a> as a
---   <a>Monoid</a>.
-diff :: Semigroup m => m -> Endo m
-
--- | A generalization of <a>cycle</a> to an arbitrary <a>Semigroup</a>. May
---   fail to terminate for some values in some semigroups.
-cycle1 :: Semigroup m => m -> m
-newtype Min a
-Min :: a -> Min a
-[getMin] :: Min a -> a
-newtype Max a
-Max :: a -> Max a
-[getMax] :: Max a -> a
-
--- | <a>Arg</a> isn't itself a <a>Semigroup</a> in its own right, but it
---   can be placed inside <a>Min</a> and <a>Max</a> to compute an arg min
---   or arg max.
-data Arg a b
-Arg :: a -> b -> Arg a b
-type ArgMin a b = Min Arg a b
-type ArgMax a b = Max Arg a b
-
--- | Use <tt><a>Option</a> (<a>First</a> a)</tt> to get the behavior of
---   <a>First</a> from <a>Data.Monoid</a>.
-newtype First a
-First :: a -> First a
-[getFirst] :: First a -> a
-
--- | Provide a Semigroup for an arbitrary Monoid.
---   
---   <b>NOTE</b>: This is not needed anymore since <a>Semigroup</a> became
---   a superclass of <a>Monoid</a> in <i>base-4.11</i> and this newtype be
---   deprecated at some point in the future.
-newtype WrappedMonoid m
-WrapMonoid :: m -> WrappedMonoid m
-[unwrapMonoid] :: WrappedMonoid m -> m
-
--- | <a>Option</a> is effectively <a>Maybe</a> with a better instance of
---   <a>Monoid</a>, built off of an underlying <a>Semigroup</a> instead of
---   an underlying <a>Monoid</a>.
---   
---   Ideally, this type would not exist at all and we would just fix the
---   <a>Monoid</a> instance of <a>Maybe</a>.
---   
---   In GHC 8.4 and higher, the <a>Monoid</a> instance for <a>Maybe</a> has
---   been corrected to lift a <a>Semigroup</a> instance instead of a
---   <a>Monoid</a> instance. Consequently, this type is no longer useful.
---   It will be marked deprecated in GHC 8.8 and removed in GHC 8.10.
-newtype Option a
-Option :: Maybe a -> Option a
-[getOption] :: Option a -> Maybe a
-
 -- | A bifunctor is a type constructor that takes two type arguments and is
 --   a functor in <i>both</i> arguments. That is, unlike with
 --   <a>Functor</a>, a type constructor such as <a>Either</a> does not need
@@ -2833,6 +2949,95 @@ first :: Bifunctor p => (a -> b) -> p a c -> p b c
 --   Right 4
 --   </pre>
 second :: Bifunctor p => (b -> c) -> p a b -> p a c
+
+-- | If <a>Void</a> is uninhabited then any <a>Functor</a> that holds only
+--   values of type <a>Void</a> is holding no values.
+vacuous :: Functor f => f Void -> f a
+
+-- | Since <a>Void</a> values logically don't exist, this witnesses the
+--   logical reasoning tool of "ex falso quodlibet".
+--   
+--   <pre>
+--   &gt;&gt;&gt; let x :: Either Void Int; x = Right 5
+--   
+--   &gt;&gt;&gt; :{
+--   case x of
+--       Right r -&gt; r
+--       Left l  -&gt; absurd l
+--   :}
+--   5
+--   </pre>
+absurd :: () => Void -> a
+
+-- | Uninhabited data type
+data Void
+
+-- | Fold an <a>Option</a> case-wise, just like <a>maybe</a>.
+option :: () => b -> (a -> b) -> Option a -> b
+
+-- | Repeat a value <tt>n</tt> times.
+--   
+--   <pre>
+--   mtimesDefault n a = a &lt;&gt; a &lt;&gt; ... &lt;&gt; a  -- using &lt;&gt; (n-1) times
+--   </pre>
+--   
+--   Implemented using <a>stimes</a> and <a>mempty</a>.
+--   
+--   This is a suitable definition for an <tt>mtimes</tt> member of
+--   <a>Monoid</a>.
+mtimesDefault :: (Integral b, Monoid a) => b -> a -> a
+
+-- | This lets you use a difference list of a <a>Semigroup</a> as a
+--   <a>Monoid</a>.
+diff :: Semigroup m => m -> Endo m
+
+-- | A generalization of <a>cycle</a> to an arbitrary <a>Semigroup</a>. May
+--   fail to terminate for some values in some semigroups.
+cycle1 :: Semigroup m => m -> m
+newtype Min a
+Min :: a -> Min a
+[getMin] :: Min a -> a
+newtype Max a
+Max :: a -> Max a
+[getMax] :: Max a -> a
+
+-- | <a>Arg</a> isn't itself a <a>Semigroup</a> in its own right, but it
+--   can be placed inside <a>Min</a> and <a>Max</a> to compute an arg min
+--   or arg max.
+data Arg a b
+Arg :: a -> b -> Arg a b
+type ArgMin a b = Min Arg a b
+type ArgMax a b = Max Arg a b
+
+-- | Use <tt><a>Option</a> (<a>First</a> a)</tt> to get the behavior of
+--   <a>First</a> from <a>Data.Monoid</a>.
+newtype First a
+First :: a -> First a
+[getFirst] :: First a -> a
+
+-- | Provide a Semigroup for an arbitrary Monoid.
+--   
+--   <b>NOTE</b>: This is not needed anymore since <a>Semigroup</a> became
+--   a superclass of <a>Monoid</a> in <i>base-4.11</i> and this newtype be
+--   deprecated at some point in the future.
+newtype WrappedMonoid m
+WrapMonoid :: m -> WrappedMonoid m
+[unwrapMonoid] :: WrappedMonoid m -> m
+
+-- | <a>Option</a> is effectively <a>Maybe</a> with a better instance of
+--   <a>Monoid</a>, built off of an underlying <a>Semigroup</a> instead of
+--   an underlying <a>Monoid</a>.
+--   
+--   Ideally, this type would not exist at all and we would just fix the
+--   <a>Monoid</a> instance of <a>Maybe</a>.
+--   
+--   In GHC 8.4 and higher, the <a>Monoid</a> instance for <a>Maybe</a> has
+--   been corrected to lift a <a>Semigroup</a> instance instead of a
+--   <a>Monoid</a> instance. Consequently, this type is no longer useful.
+--   It will be marked deprecated in GHC 8.8 and removed in GHC 8.10.
+newtype Option a
+Option :: Maybe a -> Option a
+[getOption] :: Option a -> Maybe a
 
 -- | <a>nonEmpty</a> efficiently turns a normal list into a <a>NonEmpty</a>
 --   stream, producing <a>Nothing</a> if the input is empty.
@@ -4999,28 +5204,6 @@ lmap :: Profunctor p => (a -> b) -> p b c -> p a c
 --   </pre>
 rmap :: Profunctor p => (b -> c) -> p a b -> p a c
 
--- | Gets specific component of the state, using a projection function
---   supplied.
-gets :: MonadState s m => (s -> a) -> m a
-
--- | A variant of <a>modify</a> in which the computation is strict in the
---   new state.
-modify' :: MonadState s m => (s -> s) -> m ()
-
--- | Monadic state transformer.
---   
---   Maps an old state to a new state inside a state monad. The old state
---   is thrown away.
---   
---   <pre>
---   Main&gt; :t modify ((+1) :: Int -&gt; Int)
---   modify (...) :: (MonadState Int a) =&gt; a ()
---   </pre>
---   
---   This says that <tt>modify (+1)</tt> acts over any Monad that is a
---   member of the <tt>MonadState</tt> class, with an <tt>Int</tt> state.
-modify :: MonadState s m => (s -> s) -> m ()
-
 -- | The strategy of combining computations that can throw exceptions by
 --   bypassing bound functions from the point an exception is thrown to the
 --   point that it is handled.
@@ -5052,6 +5235,40 @@ throwError :: MonadError e m => e -> m a
 --   where the <tt>action</tt> functions can call <a>throwError</a>. Note
 --   that <tt>handler</tt> and the do-block must have the same return type.
 catchError :: MonadError e m => m a -> (e -> m a) -> m a
+
+-- | Unwrap a state monad computation as a function. (The inverse of
+--   <a>state</a>.)
+runState :: () => State s a -> s -> (a, s)
+
+-- | A state monad parameterized by the type <tt>s</tt> of the state to
+--   carry.
+--   
+--   The <a>return</a> function leaves the state unchanged, while
+--   <tt>&gt;&gt;=</tt> uses the final state of the first computation as
+--   the initial state of the second.
+type State s = StateT s Identity
+
+-- | Gets specific component of the state, using a projection function
+--   supplied.
+gets :: MonadState s m => (s -> a) -> m a
+
+-- | A variant of <a>modify</a> in which the computation is strict in the
+--   new state.
+modify' :: MonadState s m => (s -> s) -> m ()
+
+-- | Monadic state transformer.
+--   
+--   Maps an old state to a new state inside a state monad. The old state
+--   is thrown away.
+--   
+--   <pre>
+--   Main&gt; :t modify ((+1) :: Int -&gt; Int)
+--   modify (...) :: (MonadState Int a) =&gt; a ()
+--   </pre>
+--   
+--   This says that <tt>modify (+1)</tt> acts over any Monad that is a
+--   member of the <tt>MonadState</tt> class, with an <tt>Int</tt> state.
+modify :: MonadState s m => (s -> s) -> m ()
 
 -- | The parameterizable exception monad.
 --   
@@ -5093,18 +5310,6 @@ mapExceptT :: () => (m (Either e a) -> n (Either e' b)) -> ExceptT e m a -> Exce
 -- | Transform any exceptions thrown by the computation using the given
 --   function.
 withExceptT :: Functor m => (e -> e') -> ExceptT e m a -> ExceptT e' m a
-
--- | A state monad parameterized by the type <tt>s</tt> of the state to
---   carry.
---   
---   The <a>return</a> function leaves the state unchanged, while
---   <tt>&gt;&gt;=</tt> uses the final state of the first computation as
---   the initial state of the second.
-type State s = StateT s Identity
-
--- | Unwrap a state monad computation as a function. (The inverse of
---   <a>state</a>.)
-runState :: () => State s a -> s -> (a, s)
 
 -- | Evaluate a state computation with the given initial state and return
 --   the final value, discarding the final state.
@@ -5635,6 +5840,126 @@ diffDays :: Day -> Day -> Integer
 addDays :: Integer -> Day -> Day
 pattern ModifiedJulianDay :: () => () => Integer -> Day
 toModifiedJulianDay :: Day -> Integer
+
+-- | It's <a>Point</a>, but with a newtype wrapper so we have an <a>Ord</a>
+--   that sorts by y first, then x
+newtype ScanPoint
+SP :: Point -> ScanPoint
+[_getSP] :: ScanPoint -> Point
+
+-- | 2D Coordinate
+type Point = V2 Int
+
+-- | Strict (!!)
+(!!!) :: [a] -> Int -> a
+
+-- | Iterate until a <a>Nothing</a> is produced
+iterateMaybe :: (a -> Maybe a) -> a -> [a]
+
+-- | Apply function until <a>Nothing</a> is produced, and return last
+--   produced value.
+loopMaybe :: (a -> Maybe a) -> a -> a
+
+-- | A tuple of the same item twice
+dup :: a -> (a, a)
+
+-- | <a>scanl</a> generalized to all <a>Traversable</a>.
+scanlT :: Traversable t => (b -> a -> b) -> b -> t a -> t b
+
+-- | <a>scanr</a> generalized to all <a>Traversable</a>.
+scanrT :: Traversable t => (a -> b -> b) -> b -> t a -> t b
+
+-- | Lazily find the first repeated item.
+firstRepeated :: Ord a => [a] -> Maybe a
+
+-- | Repeat a function until you get the same result twice.
+fixedPoint :: Eq a => (a -> a) -> a -> a
+
+-- | Build a frequency map
+freqs :: (Foldable f, Ord a) => f a -> Map a Int
+eitherItem :: Lens' (Either a a) a
+getDown :: Down a -> a
+
+-- | Collect all possible single-item perturbations from a given perturbing
+--   function.
+--   
+--   <pre>
+--   perturbations (\i -&gt; [i - 1, i + 1]) [0,10,100]
+--   </pre>
+--   
+--   <h2>[ [-1,10,100]</h2>
+--   
+--   , [ 1,10,100] , [ 0, 9,100] , [ 0,11,100] , [ 0,10, 99] , [ 0,10,101]
+--   ]
+perturbations :: (a -> [a]) -> [a] -> [[a]]
+
+-- | Clear out characters not matching a predicate
+clearOut :: (Char -> Bool) -> String -> String
+
+-- | Get the key-value pair corresponding to the maximum value in the map
+maximumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the maximum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'maximumVal' == 'maximumValBy' 'compare'
+--   </pre>
+maximumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map,
+--   with a custom comparing function.
+--   
+--   <pre>
+--   'minimumVal' == 'minimumValBy' 'compare'
+--   </pre>
+minimumValBy :: (b -> b -> Ordering) -> Map a b -> Maybe (a, b)
+
+-- | Get the key-value pair corresponding to the minimum value in the map
+minimumVal :: Ord b => Map a b -> Maybe (a, b)
+
+-- | Version of <a>maximumValBy</a> for nonempty maps.
+maximumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Version of <a>maximumVal</a> for nonempty maps.
+maximumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Version of <a>minimumValBy</a> for nonempty maps.
+minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+
+-- | Version of <a>minimumVal</a> for nonempty maps.
+minimumValNE :: Ord b => NEMap a b -> (a, b)
+
+-- | Delete a potential value from a <a>Finite</a>.
+deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
+
+-- | <a>foldMap</a>, but in parallel.
+foldMapPar :: Monoid b => (a -> b) -> [a] -> b
+
+-- | <a>foldMap1</a>, but in parallel.
+foldMapPar1 :: Semigroup b => (a -> b) -> NonEmpty a -> b
+
+-- | <a>Fold</a> for computing mean and variance
+meanVar :: Fractional a => Fold a (a, a)
+
+-- | Flood fill from a starting set
+floodFill :: Ord a => (a -> Set a) -> Set a -> Set a
+
+-- | Find the minimum and maximum x and y from a collection of points.
+--   
+--   Returns <tt><a>V2</a> (V2 xMin yMin) (V2 xMax yMax)</tt>.
+boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
+
+-- | A version of <a>boundingBox</a> that works for normal possibly-empty
+--   lists.
+boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
+cardinalNeighbs :: Point -> [Point]
+fullNeighbs :: Point -> [Point]
+memoPoint :: Memo Point
+mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
+parseAsciiMap :: (Char -> Maybe a) -> String -> Map Point a
+asciiGrid :: IndexedFold Point String Char
+displayAsciiMap :: Char -> Map Point Char -> String
 
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
@@ -6388,13 +6713,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1ivH
-mainRunOpts :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH MainRunOpts
-mroBench :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH Bool
-mroInput :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH Bool
-mroSpec :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH TestSpec
-mroTest :: HasMainRunOpts c_a1ivH => Lens' c_a1ivH Bool
+class HasMainRunOpts c_a1Bqi
+mainRunOpts :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi MainRunOpts
+mroBench :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi Bool
+mroInput :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi Bool
+mroSpec :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi TestSpec
+mroTest :: HasMainRunOpts c_a1Bqi => Lens' c_a1Bqi Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -6407,10 +6732,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1iCJ
-mainViewOpts :: HasMainViewOpts c_a1iCJ => Lens' c_a1iCJ MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1iCJ => Lens' c_a1iCJ TestSpec
-mvoWait :: HasMainViewOpts c_a1iCJ => Lens' c_a1iCJ Bool
+class HasMainViewOpts c_a1Bxk
+mainViewOpts :: HasMainViewOpts c_a1Bxk => Lens' c_a1Bxk MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Bxk => Lens' c_a1Bxk TestSpec
+mvoWait :: HasMainViewOpts c_a1Bxk => Lens' c_a1Bxk Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -6431,12 +6756,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1iH2
-mainSubmitOpts :: HasMainSubmitOpts c_a1iH2 => Lens' c_a1iH2 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1iH2 => Lens' c_a1iH2 Bool
-msoLock :: HasMainSubmitOpts c_a1iH2 => Lens' c_a1iH2 Bool
-msoSpec :: HasMainSubmitOpts c_a1iH2 => Lens' c_a1iH2 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1iH2 => Lens' c_a1iH2 Bool
+class HasMainSubmitOpts c_a1BBD
+mainSubmitOpts :: HasMainSubmitOpts c_a1BBD => Lens' c_a1BBD MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1BBD => Lens' c_a1BBD Bool
+msoLock :: HasMainSubmitOpts c_a1BBD => Lens' c_a1BBD Bool
+msoSpec :: HasMainSubmitOpts c_a1BBD => Lens' c_a1BBD ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1BBD => Lens' c_a1BBD Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

@@ -14,17 +14,26 @@
 --
 
 module AOC.Common (
+  -- * Loops and searches
     iterateMaybe
   , loopMaybe
+  , firstJust
   , (!!!)
   , dup
   , scanlT
   , scanrT
   , firstRepeated
   , fixedPoint
+  , floodFill
+  -- * Lists
   , freqs
+  , freqList
+  , revFreq
   , perturbations
   , clearOut
+  , foldMapPar
+  , foldMapPar1
+  , meanVar
   , maximumVal
   , maximumValBy
   , minimumVal
@@ -33,13 +42,13 @@ module AOC.Common (
   , maximumValByNE
   , minimumValNE
   , minimumValByNE
+  -- * Simple type util
   , deleteFinite
-  , foldMapPar
-  , foldMapPar1
-  , meanVar
+  , charFinite
+  , _CharFinite
+  , caeser
   , eitherItem
   , getDown
-  , floodFill
   -- * Points
   , Point
   , cardinalNeighbs
@@ -63,12 +72,14 @@ module AOC.Common (
 
 import           Control.Lens
 import           Control.Parallel.Strategies
+import           Data.Bifunctor
 import           Data.Char
 import           Data.Finite
 import           Data.Foldable
 import           Data.Function
 import           Data.Group
 import           Data.Hashable
+import           Data.IntMap                        (IntMap)
 import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
@@ -79,16 +90,20 @@ import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
 import           Data.Set                           (Set)
+import           Data.Set.NonEmpty                  (NESet)
+import           Data.Tuple
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
 import qualified Control.Foldl                      as F
+import qualified Data.IntMap                        as IM
 import qualified Data.List.NonEmpty                 as NE
 import qualified Data.Map                           as M
 import qualified Data.Map.NonEmpty                  as NEM
 import qualified Data.MemoCombinators               as Memo
 import qualified Data.OrdPSQ                        as OrdPSQ
 import qualified Data.Set                           as S
+import qualified Data.Set.NonEmpty                  as NES
 import qualified Data.Vector.Generic.Sized.Internal as SVG
 
 -- | Strict (!!)
@@ -113,6 +128,9 @@ loopMaybe f = go
       Nothing -> x
       Just !y -> go y
 
+-- | Find the first value where the function is 'Just'.
+firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+firstJust f = fmap getFirst . foldMap (fmap First . f)
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
@@ -149,12 +167,48 @@ fixedPoint f = go
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
 freqs = M.fromListWith (+) . map (,1) . toList
 
+-- | Build a reverse frequency map
+revFreq :: (Foldable f, Ord a) => f a -> IntMap (NESet a)
+revFreq = IM.fromListWith (<>)
+        . map (swap . first NES.singleton)
+        . M.toList
+        . freqs
+
+-- | Build a list of /descending/ frequencies.  Ties are sorted.
+freqList :: (Foldable f, Ord a) => f a -> [(Int, a)]
+freqList = concatMap (traverse toList) . IM.toDescList . revFreq
+
 eitherItem :: Lens' (Either a a) a
 eitherItem f (Left x) = Left <$> f x
 eitherItem f (Right x) = Right <$> f x
 
 getDown :: Down a -> a
 getDown (Down x) = x
+
+-- | Parse a letter into a number 0 to 25.  Returns 'False' if lowercase
+-- and 'True' if uppercase.
+charFinite :: Char -> Maybe (Bool, Finite 26)
+charFinite (ord->c) = asum
+    [ (False,) <$> packFinite (fromIntegral (c - ord 'a'))
+    , (True ,) <$> packFinite (fromIntegral (c - ord 'A'))
+    ]
+
+-- | Prism for a 'Char' as @('Bool', 'Finite' 26)@, where the 'Finite' is
+-- the letter parsed as a number from 0 to 25, and the 'Bool' is lowercase
+-- ('False') or uppercase ('True').
+_CharFinite :: Prism' Char (Bool, Finite 26)
+_CharFinite = prism' fromcf charFinite
+  where
+    fromcf (c, x) = chr $ fromIntegral x + ord b
+      where
+        b | c         = 'A'
+          | otherwise = 'a'
+
+-- | Caeser shift, preserving case.  If you have an 'Int' or 'Integer',
+-- convert into 'Finite' using 'modulo'.
+caeser :: Finite 26 -> Char -> Char
+caeser i = over (_CharFinite . _2) (+ i)
+
 
 -- | Collect all possible single-item perturbations from a given
 -- perturbing function.

@@ -40,11 +40,18 @@ module AOC.Common (
   , eitherItem
   , getDown
   , floodFill
-  -- * 2D Maps
+  -- * Points
   , Point
   , cardinalNeighbs
   , fullNeighbs
   , mannDist
+  , mulPoint
+  -- * Directions
+  , Dir(..)
+  , parseDir
+  , dirPoint
+  , mulDir
+  -- * 2D Maps
   , memoPoint
   , boundingBox
   , boundingBox'
@@ -56,9 +63,11 @@ module AOC.Common (
 
 import           Control.Lens
 import           Control.Parallel.Strategies
+import           Data.Char
 import           Data.Finite
 import           Data.Foldable
 import           Data.Function
+import           Data.Group
 import           Data.Hashable
 import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
@@ -289,6 +298,64 @@ memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $
 
 mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 mannDist x y = sum . abs $ x - y
+
+-- | Treat as complex number multiplication. useful for rotations
+mulPoint :: Point -> Point -> Point
+mulPoint (V2 x y) (V2 u v) = V2 (x*u - y*v) (x*v + y*u)
+
+data Dir = North | East | South | West
+  deriving (Show, Eq, Ord, Generic)
+
+dirPoint :: Dir -> Point
+dirPoint = \case
+    North -> V2   0   1
+    East  -> V2   1   0
+    South -> V2   0 (-1)
+    West  -> V2 (-1)  0
+
+parseDir :: Char -> Maybe Dir
+parseDir = flip M.lookup dirMap . toUpper
+  where
+    dirMap = M.fromList [
+        ('N', North) , ('E', East) , ('S', South) , ('W', West)
+      , ('U', North) , ('R', East) , ('D', South) , ('L', West)
+      ]
+
+-- | Multiply headings, taking North as straight, East as clockwise turn,
+-- West as counter-clockwise turn, and South as reverse.
+--
+-- Should be a commutative group; it's essentially complex number
+-- multiplication like 'mulPoint', with North = 1, West = i.  The identity
+-- is 'North' and the inverse is the opposite direction.
+mulDir :: Dir -> Dir -> Dir
+mulDir North = id
+mulDir East  = \case North -> East
+                     East  -> South
+                     South -> West
+                     West  -> North
+mulDir South = \case North -> South
+                     East  -> West
+                     South -> North
+                     West  -> East
+mulDir West  = \case North -> West
+                     East  -> North
+                     South -> East
+                     West  -> South
+
+-- | '<>' is 'mulDir'.
+instance Semigroup Dir where
+    (<>) = mulDir
+
+instance Monoid Dir where
+    mempty = North
+
+instance Group Dir where
+    invert = \case North -> South
+                   East  -> West
+                   South -> North
+                   West  -> East
+
+instance Abelian Dir
 
 
 -- | It's 'Point', but with a newtype wrapper so we have an 'Ord' that

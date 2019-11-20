@@ -82,6 +82,7 @@ library:
   - filepath
   - finite-typelits
   - foldl
+  - groups
   - hashable
   - haskeline
   - haskell-names

@@ -102,6 +102,7 @@ library:
   - profunctors
   - psqueues
   - semigroupoids
+  - split
   - template-haskell
   - text
   - time

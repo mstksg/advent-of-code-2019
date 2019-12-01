@@ -38,16 +38,17 @@ cooldown.  Teaches me to remember to test all my answers next time :)
 ```
 >> Day 01a
 benchmarking...
-time                 2.937 ms   (2.916 ms .. 2.962 ms)
-                     0.999 R²   (0.999 R² .. 1.000 R²)
-mean                 2.941 ms   (2.923 ms .. 2.964 ms)
-std dev              65.38 μs   (52.82 μs .. 82.12 μs)
+time                 250.2 μs   (248.4 μs .. 252.2 μs)
+                     0.997 R²   (0.992 R² .. 1.000 R²)
+mean                 261.8 μs   (251.5 μs .. 284.5 μs)
+std dev              46.74 μs   (6.059 μs .. 85.85 μs)
+variance introduced by outliers: 92% (severely inflated)
 
 >> Day 01b
 benchmarking...
-time                 143.4 ms   (138.3 ms .. 148.1 ms)
-                     0.999 R²   (0.996 R² .. 1.000 R²)
-mean                 149.6 ms   (147.0 ms .. 158.3 ms)
-std dev              5.845 ms   (987.7 μs .. 8.857 ms)
-variance introduced by outliers: 12% (moderately inflated)
+time                 267.4 μs   (265.4 μs .. 272.1 μs)
+                     0.995 R²   (0.982 R² .. 1.000 R²)
+mean                 268.0 μs   (265.0 μs .. 281.7 μs)
+std dev              18.41 μs   (1.174 μs .. 42.16 μs)
+variance introduced by outliers: 64% (severely inflated)
 ```

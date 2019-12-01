@@ -20,33 +20,33 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 [Reflections and Benchmarks][reflections]
 -----------------------------------------
 
-| Challenge | Reflections | Rendered | Benchmarks |
-| --------- | ----------- | -------- | ---------- |
-| Day 1     |             |          |            |
-| Day 2     |             |          |            |
-| Day 3     |             |          |            |
-| Day 4     |             |          |            |
-| Day 5     |             |          |            |
-| Day 6     |             |          |            |
-| Day 7     |             |          |            |
-| Day 8     |             |          |            |
-| Day 9     |             |          |            |
-| Day 10    |             |          |            |
-| Day 11    |             |          |            |
-| Day 12    |             |          |            |
-| Day 13    |             |          |            |
-| Day 14    |             |          |            |
-| Day 15    |             |          |            |
-| Day 16    |             |          |            |
-| Day 17    |             |          |            |
-| Day 18    |             |          |            |
-| Day 19    |             |          |            |
-| Day 20    |             |          |            |
-| Day 21    |             |          |            |
-| Day 22    |             |          |            |
-| Day 23    |             |          |            |
-| Day 24    |             |          |            |
-| Day 25    |             |          |            |
+| Challenge | Reflections | Code      | Rendered   | Benchmarks |
+| --------- | ----------- | --------- | ---------- | ---------- |
+| Day 1     | [x][d01r]   | [x][d01g] | [x][d01h]  | [x][d01b]  |
+| Day 2     |             |           |            |            |
+| Day 3     |             |           |            |            |
+| Day 4     |             |           |            |            |
+| Day 5     |             |           |            |            |
+| Day 6     |             |           |            |            |
+| Day 7     |             |           |            |            |
+| Day 8     |             |           |            |            |
+| Day 9     |             |           |            |            |
+| Day 10    |             |           |            |            |
+| Day 11    |             |           |            |            |
+| Day 12    |             |           |            |            |
+| Day 13    |             |           |            |            |
+| Day 14    |             |           |            |            |
+| Day 15    |             |           |            |            |
+| Day 16    |             |           |            |            |
+| Day 17    |             |           |            |            |
+| Day 18    |             |           |            |            |
+| Day 19    |             |           |            |            |
+| Day 20    |             |           |            |            |
+| Day 21    |             |           |            |            |
+| Day 22    |             |           |            |            |
+| Day 23    |             |           |            |            |
+| Day 24    |             |           |            |            |
+| Day 25    |             |           |            |            |
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -278,3 +278,9 @@ confirmed correct will be locked in and saved for future testing against, in
 case you change your solution.
 
 All networking features are powered by *[advent-of-code-api][]*.
+
+[d01g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day01.hs
+[d01h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day01.html
+[d01r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-1
+[d01b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-1-benchmarks
+

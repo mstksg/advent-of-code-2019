@@ -25,10 +25,6 @@ module AOC.Common (
   , firstRepeated
   , fixedPoint
   , floodFill
-  -- * Parsing
-  , TokStream(..)
-  , parseTokStream
-  , parseTokStream_
   -- * Lists
   , freqs
   , freqList
@@ -53,6 +49,13 @@ module AOC.Common (
   , caeser
   , eitherItem
   , getDown
+  -- * Parsers
+  , TokStream(..)
+  , parseTokStream
+  , parseTokStream_
+  , parseTokStreamT
+  , parseTokStreamT_
+  , nextMatch
   -- * Points
   , Point
   , cardinalNeighbs
@@ -106,6 +109,7 @@ import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
 import qualified Control.Foldl                      as F
+import qualified Control.Monad.Combinators          as P
 import qualified Data.IntMap                        as IM
 import qualified Data.List.NonEmpty                 as NE
 import qualified Data.Map                           as M
@@ -477,6 +481,8 @@ instance (Ord k, Ord p) => Ixed (OrdPSQ.OrdPSQ k p v) where
       Nothing    -> pure q
       Just (p,x) -> flip (OrdPSQ.insert i p) q <$> f x
 
+-- | Use a stream of tokens @a@ as the underlying parser stream.  Note that
+-- error messages for parser errors are going necessarily to be wonky.
 newtype TokStream a = TokStream { getTokStream :: [a] }
   deriving (Ord, Eq, Show, Generic, Functor)
 
@@ -506,16 +512,38 @@ instance (Ord a, Show a) => P.Stream (TokStream a) where
                  }
         ys = drop step (getTokStream (P.pstateInput ps))
 
+-- | Parse a stream of tokens @s@ purely, returning 'Either'
 parseTokStream
     :: Foldable t
     => P.Parsec e (TokStream s) a
     -> t s
     -> Either (P.ParseErrorBundle (TokStream s) e) a
-parseTokStream p = P.parse p "" . TokStream . toList
+parseTokStream p = runIdentity . parseTokStreamT p
 
+-- | Parse a stream of tokens @s@ purely
 parseTokStream_
     :: (Alternative m, Foldable t)
     => P.Parsec e (TokStream s) a
     -> t s
     -> m a
-parseTokStream_ p = eitherToMaybe . parseTokStream p
+parseTokStream_ p = runIdentity . parseTokStreamT_ p
+
+-- | Parse a stream of tokens @s@ over an underlying monad, returning 'Either'
+parseTokStreamT
+    :: (Foldable t, Monad m)
+    => P.ParsecT e (TokStream s) m a
+    -> t s
+    -> m (Either (P.ParseErrorBundle (TokStream s) e) a)
+parseTokStreamT p = P.runParserT p "" . TokStream . toList
+
+-- | Parse a stream of tokens @s@ over an underlying monad
+parseTokStreamT_
+    :: (Alternative f, Foldable t, Monad m)
+    => P.ParsecT e (TokStream s) m a
+    -> t s
+    -> m (f a)
+parseTokStreamT_ p = fmap eitherToMaybe . parseTokStreamT p
+
+-- | Skip every result until this token matches
+nextMatch :: P.MonadParsec e s m => m a -> m a
+nextMatch = P.try . fmap snd . P.manyTill_ (P.try P.anySingle)

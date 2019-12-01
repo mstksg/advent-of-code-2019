@@ -96,7 +96,7 @@ library:
   - pandoc
   - parallel
   - parsec
-  - parser-combinators
+  - parser-combinators >= 1.2.0
   - primitive
   - profunctors
   - psqueues

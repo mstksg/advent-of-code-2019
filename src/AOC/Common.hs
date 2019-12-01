@@ -17,7 +17,7 @@ module AOC.Common (
   -- * Loops and searches
     iterateMaybe
   , loopMaybe
-  , firstJust
+  , findJust
   , (!!!)
   , dup
   , scanlT
@@ -71,9 +71,11 @@ module AOC.Common (
   ) where
 
 import           Control.Lens
+import           Control.Monad
 import           Control.Parallel.Strategies
 import           Data.Bifunctor
 import           Data.Char
+import           Data.Coerce
 import           Data.Finite
 import           Data.Foldable
 import           Data.Function
@@ -84,11 +86,13 @@ import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
 import           Data.Map.NonEmpty                  (NEMap)
+import           Data.Maybe
 import           Data.MemoCombinators               (Memo)
 import           Data.Monoid                        (Ap(..))
 import           Data.Ord
 import           Data.Semigroup
 import           Data.Semigroup.Foldable
+import           Data.Sequence                      (Seq(..))
 import           Data.Set                           (Set)
 import           Data.Set.NonEmpty                  (NESet)
 import           Data.Tuple
@@ -102,9 +106,12 @@ import qualified Data.Map                           as M
 import qualified Data.Map.NonEmpty                  as NEM
 import qualified Data.MemoCombinators               as Memo
 import qualified Data.OrdPSQ                        as OrdPSQ
+import qualified Data.Sequence                      as Seq
 import qualified Data.Set                           as S
 import qualified Data.Set.NonEmpty                  as NES
 import qualified Data.Vector.Generic.Sized.Internal as SVG
+import qualified Text.Megaparsec                    as P
+import qualified Text.Megaparsec.Stream             as P
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -129,8 +136,8 @@ loopMaybe f = go
       Just !y -> go y
 
 -- | Find the first value where the function is 'Just'.
-firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
-firstJust f = fmap getFirst . foldMap (fmap First . f)
+findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+findJust f = listToMaybe . mapMaybe f . toList
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
@@ -360,6 +367,8 @@ mulPoint (V2 x y) (V2 u v) = V2 (x*u - y*v) (x*v + y*u)
 data Dir = North | East | South | West
   deriving (Show, Eq, Ord, Generic)
 
+instance Hashable Dir
+
 dirPoint :: Dir -> Point
 dirPoint = \case
     North -> V2   0   1
@@ -462,3 +471,33 @@ instance (Ord k, Ord p) => Ixed (OrdPSQ.OrdPSQ k p v) where
     ix i f q = case OrdPSQ.lookup i q of
       Nothing    -> pure q
       Just (p,x) -> flip (OrdPSQ.insert i p) q <$> f x
+
+newtype TokStream a = TokStream { getTokStream :: [a] }
+  deriving (Ord, Eq, Show, Generic, Functor)
+
+instance Hashable a => Hashable (TokStream a)
+
+instance (Ord a, Show a) => P.Stream (TokStream a) where
+    type Token  (TokStream a) = a
+    type Tokens (TokStream a) = Seq a
+
+    tokensToChunk _ = Seq.fromList
+    chunkToTokens _ = toList
+    chunkLength   _ = Seq.length
+    take1_          = coerce . Data.List.uncons . getTokStream
+    takeN_        n (TokStream xs) = bimap Seq.fromList TokStream (splitAt n xs)
+                                  <$ guard (not (null xs))
+    takeWhile_ p = bimap Seq.fromList TokStream . span p . getTokStream
+    showTokens _ = show
+    reachOffset o ps = ("<token stream>", ps')
+      where
+        step = o - P.pstateOffset ps
+        ps' = ps { P.pstateOffset    = o
+                 , P.pstateInput     = TokStream ys
+                 , P.pstateSourcePos = (P.pstateSourcePos ps) {
+                      P.sourceColumn = P.sourceColumn (P.pstateSourcePos ps)
+                                    <> P.mkPos step
+                    }
+                 }
+        ys = drop step (getTokStream (P.pstateInput ps))
+

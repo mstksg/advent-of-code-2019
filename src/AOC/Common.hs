@@ -25,8 +25,10 @@ module AOC.Common (
   , firstRepeated
   , fixedPoint
   , floodFill
-  -- * Instances
+  -- * Parsing
   , TokStream(..)
+  , parseTokStream
+  , parseTokStream_
   -- * Lists
   , freqs
   , freqList
@@ -72,6 +74,8 @@ module AOC.Common (
   , displayAsciiMap
   ) where
 
+import           AOC.Util
+import           Control.Applicative
 import           Control.Lens
 import           Control.Monad
 import           Control.Parallel.Strategies
@@ -502,3 +506,16 @@ instance (Ord a, Show a) => P.Stream (TokStream a) where
                  }
         ys = drop step (getTokStream (P.pstateInput ps))
 
+parseTokStream
+    :: Foldable t
+    => P.Parsec e (TokStream s) a
+    -> t s
+    -> Either (P.ParseErrorBundle (TokStream s) e) a
+parseTokStream p = P.parse p "" . TokStream . toList
+
+parseTokStream_
+    :: (Alternative m, Foldable t)
+    => P.Parsec e (TokStream s) a
+    -> t s
+    -> m a
+parseTokStream_ p = eitherToMaybe . parseTokStream p

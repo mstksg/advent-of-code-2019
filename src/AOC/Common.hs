@@ -25,6 +25,8 @@ module AOC.Common (
   , firstRepeated
   , fixedPoint
   , floodFill
+  -- * Instances
+  , TokStream(..)
   -- * Lists
   , freqs
   , freqList
@@ -111,7 +113,6 @@ import qualified Data.Set                           as S
 import qualified Data.Set.NonEmpty                  as NES
 import qualified Data.Vector.Generic.Sized.Internal as SVG
 import qualified Text.Megaparsec                    as P
-import qualified Text.Megaparsec.Stream             as P
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a

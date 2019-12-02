@@ -69,6 +69,12 @@ to use `Data.IntMap` or `Data.Sequence` for the memory, since they both have
 *O(log n)* indexing.  `Data.Sequence` is the better choice here because it's
 basically `IntMap` with the indices (0, 1, 2 ...) automatically given for us :)
 
+I usually use `Data.Sequence` instead of `Data.Vector` because it has a better
+story when you want to change the length (by adding or removing elements):
+`Data.Vector` is very bad, unless you have some sort of amortized abstraction.
+However, in this case we don't ever change the length, so `Data.Vector` is
+technically just as good here :)
+
 So parsing:
 
 ```haskell
@@ -133,6 +139,56 @@ little, so by doing an exponential search on `noun`, then an exponential search
 on `verb`, you can get a good answer pretty quickly.  My part 2 time (580 μs)
 is only twice as long as my part 1 time (260 μs) with the exponential search.
 Happy that some prep time paid off :)
+
+```haskell
+part2' :: String -> Maybe (Int, Int)
+part2' str =  do
+    noun <- flip exponentialMinSearch 1 $ \i ->
+      runProg (p, Seq.update 1 (i + 1) r) > Just moon
+    let r' = Seq.update 1 noun r
+    verb <- flip exponentialMinSearch 1 $ \i ->
+      runProg (p, Seq.update 2 (i + 1) r') > Just moon
+    pure (noun, verb)
+  where
+    moon = 19690720
+```
+
+This gets us an O(log n) search instead of an O(n^2) search, cutting down times
+pretty nicely.
+
+Just for the same of completion, I'm including my implementation of
+`exponentialMinSearch` here.  It's tucked away in my utilities/common
+functionality file normally!
+
+```haskell
+-- | Find the lowest value where the predicate is satisfied within the
+-- given bounds.
+binaryMinSearch
+    :: (Int -> Bool)
+    -> Int
+    -> Int
+    -> Maybe Int
+binaryMinSearch p = go
+  where
+    go !x !y
+        | x == mid || y == mid = Just (x + 1)
+        | p mid                = go x mid
+        | otherwise            = go mid y
+      where
+        mid = ((y - x) `div` 2) + x
+
+-- | Find the lowest value where the predicate is satisfied above a given
+-- bound.
+exponentialMinSearch
+    :: (Int -> Bool)
+    -> Int
+    -> Maybe Int
+exponentialMinSearch p = go
+  where
+    go !x
+      | p x       = binaryMinSearch p (x `div` 2) x
+      | otherwise = go (x * 2)
+```
 
 ### Day 2 Benchmarks
 

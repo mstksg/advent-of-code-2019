@@ -151,6 +151,7 @@ part2' str =  do
     pure (noun, verb)
   where
     moon = 19690720
+    (p, r) = parse str
 ```
 
 This gets us an O(log n) search instead of an O(n^2) search, cutting down times

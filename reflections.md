@@ -126,7 +126,7 @@ part2 str = listToMaybe
     | noun <- [0..99]
     , verb <- [0..99]
     , let r' = Seq.update 1 noun . Seq.update 2 verb $ r
-    , Just 19690720 <- [runProg (p, r')]
+    , runProg (p, r') == Just 19690720
     ]
   where
     (p, r) = parse str

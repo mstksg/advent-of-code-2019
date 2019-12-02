@@ -133,21 +133,23 @@ part2 str = listToMaybe
 ```
 
 This doesn't take too long on my machine!  But for my [actual solution][d02g],
-I actually used an exponential search (that I had coded up for last year): I
+I actually used a binary search (that I had coded up for last year). I
 noticed that `noun` increases the answer by a lot, and `verb` increases it by a
-little, so by doing an exponential search on `noun`, then an exponential search
-on `verb`, you can get a good answer pretty quickly.  My part 2 time (580 μs)
-is only twice as long as my part 1 time (260 μs) with the exponential search.
-Happy that some prep time paid off :)
+little, so by doing an binary search on `noun`, then an binary search
+on `verb`, you can get a good answer pretty quickly.  My part 2 time (470 μs)
+is only twice as long as my part 1 time (260 μs) with the binary search. Happy
+that some prep time paid off :)
 
 ```haskell
 part2' :: String -> Maybe (Int, Int)
 part2' str =  do
-    noun <- flip exponentialMinSearch 1 $ \i ->
-      runProg (p, Seq.update 1 (i + 1) r) > Just moon
+    noun <- binaryMinSearch (\i ->
+        runProg (p, Seq.update 1 (i + 1) r) > Just moon
+      ) 0 99
     let r' = Seq.update 1 noun r
-    verb <- flip exponentialMinSearch 1 $ \i ->
-      runProg (p, Seq.update 2 (i + 1) r') > Just moon
+    verb <- binaryMinSearch (\i ->
+        runProg (p, Seq.update 2 (i + 1) r) > Just moon
+      ) 0 99
     pure (noun, verb)
   where
     moon = 19690720
@@ -158,22 +160,10 @@ This gets us an O(log n) search instead of an O(n^2) search, cutting down times
 pretty nicely.
 
 Just for the same of completion, I'm including my implementation of
-`exponentialMinSearch` here.  It's tucked away in my utilities/common
+`binaryMinSearch` here.  It's tucked away in my utilities/common
 functionality file normally!
 
 ```haskell
--- | Find the lowest value where the predicate is satisfied above a given
--- bound.
-exponentialMinSearch
-    :: (Int -> Bool)
-    -> Int                  -- ^ start
-    -> Maybe Int
-exponentialMinSearch p = go
-  where
-    go !x
-      | p x       = binaryMinSearch p (x `div` 2) x
-      | otherwise = go (x * 2)
-
 -- | Find the lowest value where the predicate is satisfied within the
 -- given bounds.
 binaryMinSearch
@@ -196,17 +186,17 @@ binaryMinSearch p = go
 ```
 >> Day 02a
 benchmarking...
-time                 261.1 μs   (257.7 μs .. 264.7 μs)
-                     0.999 R²   (0.997 R² .. 1.000 R²)
-mean                 260.6 μs   (258.7 μs .. 264.8 μs)
-std dev              9.899 μs   (3.906 μs .. 17.63 μs)
-variance introduced by outliers: 34% (moderately inflated)
+time                 262.3 μs   (260.9 μs .. 264.6 μs)
+                     0.997 R²   (0.992 R² .. 1.000 R²)
+mean                 271.3 μs   (265.2 μs .. 287.0 μs)
+std dev              33.42 μs   (6.732 μs .. 62.73 μs)
+variance introduced by outliers: 85% (severely inflated)
 
 >> Day 02b
 benchmarking...
-time                 577.1 μs   (573.2 μs .. 583.4 μs)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 576.3 μs   (573.5 μs .. 583.8 μs)
-std dev              13.63 μs   (5.723 μs .. 26.78 μs)
-variance introduced by outliers: 14% (moderately inflated)
+time                 473.4 μs   (459.7 μs .. 501.7 μs)
+                     0.977 R²   (0.942 R² .. 1.000 R²)
+mean                 467.1 μs   (460.3 μs .. 491.3 μs)
+std dev              41.96 μs   (3.293 μs .. 89.40 μs)
+variance introduced by outliers: 72% (severely inflated)
 ```

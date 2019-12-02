@@ -16,7 +16,7 @@ module AOC.Challenge.Day02 (
   ) where
 
 import           AOC.Common          (loopMaybe)
-import           AOC.Common.Search   (exponentialMinSearch)
+import           AOC.Common.Search   (exponentialMinSearch, binaryMinSearch)
 import           AOC.Solver          ((:~>)(..), dyno_)
 import           Control.Applicative (empty)
 import           Data.List.Split     (splitOn)
@@ -66,12 +66,14 @@ day02b = MkSol
     , sSolve = \m -> do
         -- for my code, noun makes big jumps and verb makes small ones
         -- search for noun first
-        noun <- flip exponentialMinSearch 1 $ \i ->
+        noun <- binaryMinSearch (\i ->
             (> Just moon) . runProg . setMem (Just (i + 1)) Nothing $ m
+          ) 0 99
         let m' = setMem (Just noun) Nothing m
         -- search for verb next
-        verb <- flip exponentialMinSearch 1 $ \j ->
+        verb <- binaryMinSearch (\j ->
             (> Just moon) . runProg . setMem Nothing (Just (j + 1)) $ m'
+          ) 0 99
         pure (noun, verb)
     }
   where

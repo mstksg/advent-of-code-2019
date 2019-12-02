@@ -87,8 +87,7 @@ We write our stepping function:
 ```haskell
 step :: Memory -> Maybe Memory
 step (p, r) = do
-    x  <- Seq.lookup p r
-    o <- case x of
+    o <- Seq.lookup p r >>= \case
       1 -> pure (+)
       2 -> pure (*)
       _ -> empty

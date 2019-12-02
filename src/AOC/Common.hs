@@ -18,6 +18,7 @@ module AOC.Common (
     iterateMaybe
   , loopMaybe
   , findJust
+  , lastMaybe
   , (!!!)
   , dup
   , scanlT
@@ -143,6 +144,9 @@ loopMaybe f = go
     go !x = case f x of
       Nothing -> x
       Just !y -> go y
+
+lastMaybe :: Foldable f => f a -> Maybe a
+lastMaybe = fmap getLast . foldMap (Just . Last)
 
 -- | Find the first value where the function is 'Just'.
 findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b

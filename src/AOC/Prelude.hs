@@ -18,11 +18,12 @@ module AOC.Prelude (
   ) where
 
 import           AOC.Common                as P
+import           AOC.Common.Search         as P
 import           AOC.Solver                as P
 import           AOC.Util                  as P
 import           Control.Applicative       as P
 import           Control.DeepSeq           as P
-import           Control.Lens              as P hiding (uncons)
+import           Control.Lens              as P hiding (uncons, Empty)
 import           Control.Monad             as P
 import           Control.Monad.Except      as P
 import           Control.Monad.State       as P
@@ -48,6 +49,8 @@ import           Data.Maybe                as P
 import           Data.Ord                  as P
 import           Data.Profunctor           as P (Profunctor(..))
 import           Data.Semigroup            as P
+import           Data.Sequence             as P (Seq(..))
+import           Data.Sequence.NonEmpty    as P (NESeq(..))
 import           Data.Set                  as P (Set)
 import           Data.Set.NonEmpty         as P (NESet)
 import           Data.Text                 as P (Text)
@@ -58,6 +61,7 @@ import           Data.Tuple                as P
 import           Data.Void                 as P
 import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
+import           Linear                    as P (V1(..), V2(..), V3(..), V4(..))
 import           Numeric.Natural           as P
 import           Text.Printf               as P
 import           Text.Read                 as P (readMaybe)

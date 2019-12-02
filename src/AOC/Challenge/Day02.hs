@@ -16,7 +16,7 @@ module AOC.Challenge.Day02 (
   ) where
 
 import           AOC.Common          (loopMaybe)
-import           AOC.Common.Search   (exponentialMinSearch, binaryMinSearch)
+import           AOC.Common.Search   (binaryMinSearch)
 import           AOC.Solver          ((:~>)(..), dyno_)
 import           Control.Applicative (empty)
 import           Data.List.Split     (splitOn)

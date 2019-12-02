@@ -63,7 +63,7 @@ in the library.
 
 ### `:~>` type
 
-If you're looking at my actual github solutions, you'll notice thattThis year
+If you're looking at my actual github solutions, you'll notice that this year
 I'm implementing my solutions in terms of a `:~>` record type:
 
 ```haskell

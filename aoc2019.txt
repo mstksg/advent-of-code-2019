@@ -93,6 +93,7 @@ loopMaybe :: (a -> Maybe a) -> a -> a
 
 -- | Find the first value where the function is <a>Just</a>.
 findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+lastMaybe :: Foldable f => f a -> Maybe a
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -5116,6 +5117,22 @@ nubOrd :: Ord a => [a] -> [a]
 -- | A set of integers.
 data IntSet
 
+-- | General-purpose finite sequences.
+data Seq a
+
+-- | A bidirectional pattern synonym matching an empty sequence.
+pattern Empty :: forall a. () => () => Seq a
+
+-- | A bidirectional pattern synonym viewing the rear of a non-empty
+--   sequence.
+pattern (:|>) :: forall a. () => () => Seq a -> a -> Seq a
+
+-- | A bidirectional pattern synonym viewing the front of a non-empty
+--   sequence.
+pattern (:<|) :: forall a. () => () => a -> Seq a -> Seq a
+infixl 5 :|>
+infixr 5 :<|
+
 -- | This is a length of time, as measured by a clock. Conversion functions
 --   will treat it as seconds. It has a precision of 10^-12 s.
 data DiffTime
@@ -7148,7 +7165,6 @@ class Snoc s t a b | s -> a, t -> b, s b -> t, t a -> s
 --   <a>_Snoc</a> :: <a>Prism'</a> <a>ByteString</a> (<a>ByteString</a>, <a>Word8</a>)
 --   </pre>
 _Snoc :: Snoc s t a b => Prism s t (s, a) (t, b)
-pattern Empty :: forall s. AsEmpty s => () => s
 class AsEmpty a
 
 -- | <pre>
@@ -16384,6 +16400,62 @@ left' :: Choice p => p a b -> p (Either a c) (Either b c)
 --   </pre>
 right' :: Choice p => p a b -> p (Either c a) (Either c b)
 
+-- | A 4-dimensional vector.
+data V4 a
+V4 :: !a -> !a -> !a -> !a -> V4 a
+
+-- | A 3-dimensional vector
+data V3 a
+V3 :: !a -> !a -> !a -> V3 a
+
+-- | A 2-dimensional vector
+--   
+--   <pre>
+--   &gt;&gt;&gt; pure 1 :: V2 Int
+--   V2 1 1
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; V2 1 2 + V2 3 4
+--   V2 4 6
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; V2 1 2 * V2 3 4
+--   V2 3 8
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; sum (V2 1 2)
+--   3
+--   </pre>
+data V2 a
+V2 :: !a -> !a -> V2 a
+
+-- | A 1-dimensional vector
+--   
+--   <pre>
+--   &gt;&gt;&gt; pure 1 :: V1 Int
+--   V1 1
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; V1 2 + V1 3
+--   V1 5
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; V1 2 * V1 3
+--   V1 6
+--   </pre>
+--   
+--   <pre>
+--   &gt;&gt;&gt; sum (V1 2)
+--   2
+--   </pre>
+newtype V1 a
+V1 :: a -> V1 a
+
 -- | A variant of <a>modify</a> in which the computation is strict in the
 --   new state.
 modify' :: MonadState s m => (s -> s) -> m ()
@@ -16552,6 +16624,72 @@ withStateT :: () => (s -> s) -> StateT s m a -> StateT s m a
 --   <a>IsNonEmpty</a>, essentially "obscuring" the non-empty property from
 --   the type.
 data NESet a
+
+-- | A general-purpose non-empty (by construction) finite sequence type.
+--   
+--   Non-emptiness means that:
+--   
+--   <ul>
+--   <li>Functions that <i>take</i> an <a>NESeq</a> can safely operate on
+--   it with the assumption that it has at least value.</li>
+--   <li>Functions that <i>return</i> an <a>NESeq</a> provide an assurance
+--   that the result has at least one value.</li>
+--   </ul>
+--   
+--   <a>Data.Sequence.NonEmpty</a> re-exports the API of
+--   <a>Data.Sequence</a>, faithfully reproducing asymptotics, typeclass
+--   constraints, and semantics. Functions that ensure that input and
+--   output maps are both non-empty (like <a>&lt;|</a>) return
+--   <a>NESeq</a>, but functions that might potentially return an empty map
+--   (like <a>tail</a>) return a <a>Seq</a> instead.
+--   
+--   You can directly construct an <a>NESeq</a> with the API from
+--   <a>Data.Sequence.NonEmpty</a>; it's more or less the same as
+--   constructing a normal <a>Seq</a>, except you don't have access to
+--   <a>empty</a>. There are also a few ways to construct an <a>NESeq</a>
+--   from a <a>Seq</a>:
+--   
+--   <ol>
+--   <li>The <a>nonEmptySeq</a> smart constructor will convert a
+--   <tt><a>Seq</a> a</tt> into a <tt><a>Maybe</a> (<a>NESeq</a> a)</tt>,
+--   returning <a>Nothing</a> if the original <a>Seq</a> was empty.</li>
+--   <li>You can use <a>:&lt;||</a>, <a>:||&gt;</a>, and <a>insertSeqAt</a>
+--   to insert a value into a <a>Seq</a> to create a guaranteed
+--   <a>NESeq</a>.</li>
+--   <li>You can use the <a>IsNonEmpty</a> and <a>IsEmpty</a> patterns to
+--   "pattern match" on a <a>Seq</a> to reveal it as either containing a
+--   <a>NESeq</a> or an empty sequence.</li>
+--   <li><a>withNonEmpty</a> offers a continuation-based interface for
+--   deconstructing a <a>Seq</a> and treating it as if it were an
+--   <a>NESeq</a>.</li>
+--   </ol>
+--   
+--   You can convert an <a>NESeq</a> into a <a>Seq</a> with <a>toSeq</a> or
+--   <a>IsNonEmpty</a>, essentially "obscuring" the non-empty property from
+--   the type.
+data NESeq a
+
+-- | <i>O(1)</i>. An abstract constructor for an <a>NESeq</a> that consists
+--   of a "head" <tt>a</tt> and a "tail" <tt><a>Seq</a> a</tt>. Similar to
+--   <a>:|</a> for <a>NonEmpty</a>.
+--   
+--   Can be used to match on the head and tail of an <a>NESeq</a>, and also
+--   used to <i>construct</i> an <a>NESeq</a> by consing an item to the
+--   beginnong of a <a>Seq</a>, ensuring that the result is non-empty.
+pattern (:<||) :: forall a. () => () => a -> Seq a -> NESeq a
+
+-- | <i>O(1)</i>. An abstract constructor for an <a>NESeq</a> that consists
+--   of a "init" <tt><a>Seq</a> a</tt> and a "last" <tt>a</tt>. Similar to
+--   <a>:|</a> for <a>NonEmpty</a>, but at the end of the list instead of
+--   at the beginning.
+--   
+--   Can be used to match on the init and last of an <a>NESeq</a>, and also
+--   used to <i>construct</i> an <a>NESeq</a> by snocing an item to the end
+--   of a <a>Seq</a>, ensuring that the result is non-empty.
+pattern (:||>) :: forall a. () => () => Seq a -> a -> NESeq a
+infixr 5 `NESeq`
+infixr 5 :<||
+infixl 5 :||>
 
 -- | A non-empty (by construction) map from keys <tt>k</tt> to values
 --   <tt>a</tt>. At least one key-value pair exists in an <tt><a>NEMap</a>
@@ -17512,6 +17650,27 @@ addDays :: Integer -> Day -> Day
 pattern ModifiedJulianDay :: () => () => Integer -> Day
 toModifiedJulianDay :: Day -> Integer
 
+-- | A* Search
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
+exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied within the
+--   given bounds.
+binaryMinSearch :: (Int -> Bool) -> Int -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is satisfied above a given
+--   bound.
+exponentialMinSearch :: (Int -> Bool) -> Int -> Maybe Int
+
+-- | Find the lowest value where the predicate is <a>Just</a> within the
+--   given bounds.
+binaryFindMin :: (Int -> Maybe a) -> Int -> Int -> Maybe a
+
+-- | Find the lowest value where the predicate is <a>Just</a> above a given
+--   bound.
+exponentialFindMin :: (Int -> Maybe a) -> Int -> Maybe a
+
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
 
@@ -17558,6 +17717,7 @@ iterateMaybe :: (a -> Maybe a) -> a -> [a]
 -- | Apply function until <a>Nothing</a> is produced, and return last
 --   produced value.
 loopMaybe :: (a -> Maybe a) -> a -> a
+lastMaybe :: Foldable f => f a -> Maybe a
 
 -- | Find the first value where the function is <a>Just</a>.
 findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
@@ -18193,23 +18353,6 @@ module AOC.Challenge.Day04
 module AOC.Challenge.Day03
 
 
--- | Day 2. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day02
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18256,6 +18399,13 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 2. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day02
+day02a :: Memory :~> Int
+day02b :: Memory :~> (Int, Int)
+instance GHC.Show.Show AOC.Challenge.Day02.Memory
 
 
 -- | Day 1. See <a>AOC.Solver</a> for the types used in this module!
@@ -18441,13 +18591,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1CfU
-mainRunOpts :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU MainRunOpts
-mroBench :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU Bool
-mroInput :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU Bool
-mroSpec :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU TestSpec
-mroTest :: HasMainRunOpts c_a1CfU => Lens' c_a1CfU Bool
+class HasMainRunOpts c_a1DsT
+mainRunOpts :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT MainRunOpts
+mroBench :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT Bool
+mroInput :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT Bool
+mroSpec :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT TestSpec
+mroTest :: HasMainRunOpts c_a1DsT => Lens' c_a1DsT Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18460,10 +18610,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Cms
-mainViewOpts :: HasMainViewOpts c_a1Cms => Lens' c_a1Cms MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Cms => Lens' c_a1Cms TestSpec
-mvoWait :: HasMainViewOpts c_a1Cms => Lens' c_a1Cms Bool
+class HasMainViewOpts c_a1Dzr
+mainViewOpts :: HasMainViewOpts c_a1Dzr => Lens' c_a1Dzr MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Dzr => Lens' c_a1Dzr TestSpec
+mvoWait :: HasMainViewOpts c_a1Dzr => Lens' c_a1Dzr Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18484,12 +18634,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1CqL
-mainSubmitOpts :: HasMainSubmitOpts c_a1CqL => Lens' c_a1CqL MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1CqL => Lens' c_a1CqL Bool
-msoLock :: HasMainSubmitOpts c_a1CqL => Lens' c_a1CqL Bool
-msoSpec :: HasMainSubmitOpts c_a1CqL => Lens' c_a1CqL ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1CqL => Lens' c_a1CqL Bool
+class HasMainSubmitOpts c_a1DDK
+mainSubmitOpts :: HasMainSubmitOpts c_a1DDK => Lens' c_a1DDK MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1DDK => Lens' c_a1DDK Bool
+msoLock :: HasMainSubmitOpts c_a1DDK => Lens' c_a1DDK Bool
+msoSpec :: HasMainSubmitOpts c_a1DDK => Lens' c_a1DDK ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1DDK => Lens' c_a1DDK Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

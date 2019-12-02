@@ -162,12 +162,24 @@ Just for the same of completion, I'm including my implementation of
 functionality file normally!
 
 ```haskell
+-- | Find the lowest value where the predicate is satisfied above a given
+-- bound.
+exponentialMinSearch
+    :: (Int -> Bool)
+    -> Int                  -- ^ start
+    -> Maybe Int
+exponentialMinSearch p = go
+  where
+    go !x
+      | p x       = binaryMinSearch p (x `div` 2) x
+      | otherwise = go (x * 2)
+
 -- | Find the lowest value where the predicate is satisfied within the
 -- given bounds.
 binaryMinSearch
     :: (Int -> Bool)
-    -> Int
-    -> Int
+    -> Int                  -- ^ min
+    -> Int                  -- ^ max
     -> Maybe Int
 binaryMinSearch p = go
   where
@@ -177,18 +189,6 @@ binaryMinSearch p = go
         | otherwise            = go mid y
       where
         mid = ((y - x) `div` 2) + x
-
--- | Find the lowest value where the predicate is satisfied above a given
--- bound.
-exponentialMinSearch
-    :: (Int -> Bool)
-    -> Int
-    -> Maybe Int
-exponentialMinSearch p = go
-  where
-    go !x
-      | p x       = binaryMinSearch p (x `div` 2) x
-      | otherwise = go (x * 2)
 ```
 
 ### Day 2 Benchmarks

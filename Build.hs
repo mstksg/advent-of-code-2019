@@ -4,6 +4,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
+-- | Assemble README and Reflections
+
 import           Data.Char
 import           Data.Foldable
 import           Data.String.AnsiEscapeCodes.Strip.Text
@@ -20,6 +22,10 @@ import qualified Data.Set                               as S
 import qualified Data.Text                              as T
 import qualified Data.Text.Lazy                         as TL
 
+-- CONSTANTS
+year :: Integer
+year = 2019
+
 opts = shakeOptions { shakeFiles     = "_build"
                     , shakeVersion   = "1.0"
                     , shakeVerbosity = Loud
@@ -29,16 +35,22 @@ opts = shakeOptions { shakeFiles     = "_build"
 parseDayFp :: FilePath -> Maybe Int
 parseDayFp = readMaybe . filter isDigit . takeBaseName
 
--- | Assemble README and Reflections
+mkLinks :: Integer -> Int -> [String]
+mkLinks year d = [
+    printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
+      d year d
+  , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
+      d year d
+  , printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
+      d year d
+  , printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
+      d year d
+  ]
 
 main :: IO ()
 main = do
     Just days <- fmap S.fromList . traverse parseDayFp
         <$> listDirectory "reflections"
-
-    let year :: Integer
-        year = 2019
-        ctx0 = M.fromList [("year", T.pack (show year))]
 
     shakeArgs opts $ do
       want ["README.md", "reflections.md"]
@@ -55,8 +67,13 @@ main = do
                 ]
           flip substitute (ctx M.!) . T.pack <$> readFile' "template/reflection.md.template"
 
-        let ctx = ctx0 <> M.fromList
-                [("body", TL.toStrict $ TL.intercalate "\n\n\n" bodies)]
+        let toc = flip map (toList days) $ \d ->
+                    printf "* [Day %d](#day-%d)" d d
+                    
+            ctx = ctx0 <> M.fromList
+              [ ("toc" , T.pack $ unlines toc                        )
+              , ("body", TL.toStrict $ TL.intercalate "\n\n\n" bodies)
+              ]
 
         out <- flip substitute (ctx M.!) . T.pack <$> readFile' "template/reflections.md.template"
 
@@ -80,23 +97,10 @@ main = do
              : "| --------- | ----------- | --------- | ---------- | ---------- |"
              : map mkRow [1..25]
 
-            links = unlines
-              [ r
-              | d <- toList days
-              , r <- 
-                  [ printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
-                      d year d
-                  , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
-                      d year d
-                  , printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
-                      d year d
-                  , printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
-                      d year d
-                  ]
-              ]
-        let ctx = ctx0 <> M.fromList
-                [ ("table", T.pack table)
-                , ("links", T.pack links)
+            links = concatMap (mkLinks year) days
+            ctx = ctx0 <> M.fromList
+                [ ("table", T.pack table          )
+                , ("links", T.pack (unlines links))
                 ]
 
         out <- flip substitute (ctx M.!) . T.pack <$> readFile' "template/README.md.template"
@@ -106,3 +110,6 @@ main = do
       "clean" ~> do
         removeFilesAfter "_build" ["//*"]
         removeFilesAfter "bench-out" ["//*"]
+  where
+    ctx0 = M.fromList [("year", T.pack (show year))]
+

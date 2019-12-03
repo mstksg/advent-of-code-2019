@@ -1,9 +1,12 @@
 Reflections
 ===========
 
-[Table of Contents][]
+Table of Contents
+-----------------
 
-[Table of Contents]: https://github.com/mstksg/advent-of-code-2019#reflections-and-benchmarks
+* [Day 1](#day-1)
+* [Day 2](#day-2)
+
 
 Day 1
 ------

@@ -256,7 +256,7 @@ the direction pieces, and get the set of all points.
 
 ```haskell
 visited :: [V2 Int] -> Set (V2 Int)
-visited = S.fromList . scanl1 (+) (V2 0 0)
+visited = S.fromList . scanl1 (+)
 ```
 
 Now Part 1 is:

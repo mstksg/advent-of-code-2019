@@ -222,10 +222,9 @@ Day 3
 [d03h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day03.html
 
 As another data processing one, I feel like this might be another win for
-Haskell as well :)  I got stuck in a silly bug for my part 1, but for part 2 my
-leaderboard position jumped up considerably in comparison --- my suspicion is
-that the new twist made it difficult for imperative coders, but the twist was
-naturally handled in the Haskell case.
+Haskell as well :)  My part 2 leaderboard position was much higher than my
+part1 position --- my suspicion is that the new twist made it difficult for
+imperative coders, but the twist was naturally handled in the Haskell case.
 
 First off, I'm going to parse the path not as a series of directions and
 numbers, but rather as a list of each individual step to take.  This was

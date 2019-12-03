@@ -92,7 +92,7 @@ iterateMaybe :: (a -> Maybe a) -> a -> [a]
 loopMaybe :: (a -> Maybe a) -> a -> a
 
 -- | Find the first value where the function is <a>Just</a>.
-findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
 lastMaybe :: Foldable f => f a -> Maybe a
 
 -- | Strict (!!)
@@ -3129,10 +3129,6 @@ WrapMonoid :: m -> WrappedMonoid m
 newtype Option a
 Option :: Maybe a -> Option a
 [getOption] :: Option a -> Maybe a
-
--- | <a>nonEmpty</a> efficiently turns a normal list into a <a>NonEmpty</a>
---   stream, producing <a>Nothing</a> if the input is empty.
-nonEmpty :: () => [a] -> Maybe (NonEmpty a)
 
 -- | Monads in which <a>IO</a> computations may be embedded. Any monad
 --   built by applying a sequence of monad transformers to the <a>IO</a>
@@ -16585,6 +16581,22 @@ mapStateT :: () => (m (a, s) -> n (b, s)) -> StateT s m a -> StateT s n b
 --   </ul>
 withStateT :: () => (s -> s) -> StateT s m a -> StateT s m a
 
+-- | "Smart constructor" for <tt><a>NE</a> s</tt> given a (potentailly
+--   empty) <tt>s</tt>. Will return <a>Nothing</a> if the <tt>s</tt> was
+--   empty, and <tt><a>Just</a> n</tt> if the <tt>s</tt> was not empty,
+--   with <tt>n :: <a>NE</a> s</tt>.
+--   
+--   Should form an isomorphism with <tt><a>maybe</a> <a>empty</a>
+--   <a>fromNonEmpty</a></tt>.
+nonEmpty :: HasNonEmpty s => s -> Maybe (NE s)
+
+-- | Continuation-based version of <a>nonEmpty</a>, which can be more
+--   efficient in certain situations.
+--   
+--   <tt><a>withNonEmpty</a> <a>empty</a> <a>fromNonEmpty</a></tt> should
+--   be <tt>id</tt>.
+withNonEmpty :: HasNonEmpty s => r -> (NE s -> r) -> s -> r
+
 -- | A non-empty (by construction) set of values <tt>a</tt>. At least one
 --   value exists in an <tt><a>NESet</a> a</tt> at all times.
 --   
@@ -16819,6 +16831,141 @@ data NEIntSet
 --   <a>toMap</a> or <a>IsNonEmpty</a>, essentially "obscuring" the
 --   non-empty property from the type.
 data NEIntMap a
+indexNote :: (Partial, Ix a) => String -> (a, a) -> a -> Int
+indexDef :: Ix a => Int -> (a, a) -> a -> Int
+indexMay :: Ix a => (a, a) -> a -> Maybe Int
+predSafe :: (Enum a, Eq a, Bounded a) => a -> a
+predNote :: (Partial, Enum a, Eq a, Bounded a) => String -> a -> a
+predDef :: (Enum a, Eq a, Bounded a) => a -> a -> a
+predMay :: (Enum a, Eq a, Bounded a) => a -> Maybe a
+succSafe :: (Enum a, Eq a, Bounded a) => a -> a
+succNote :: (Partial, Enum a, Eq a, Bounded a) => String -> a -> a
+succDef :: (Enum a, Eq a, Bounded a) => a -> a -> a
+succMay :: (Enum a, Eq a, Bounded a) => a -> Maybe a
+toEnumSafe :: (Enum a, Bounded a) => Int -> a
+toEnumNote :: (Partial, Enum a, Bounded a) => String -> Int -> a
+toEnumDef :: (Enum a, Bounded a) => a -> Int -> a
+toEnumMay :: (Enum a, Bounded a) => Int -> Maybe a
+findIndexJustNote :: Partial => String -> (a -> Bool) -> [a] -> Int
+findIndexJustDef :: () => Int -> (a -> Bool) -> [a] -> Int
+
+-- | <pre>
+--   findIndexJust op = fromJust . findIndex op
+--   </pre>
+findIndexJust :: () => (a -> Bool) -> [a] -> Int
+elemIndexJustNote :: (Partial, Eq a) => String -> a -> [a] -> Int
+elemIndexJustDef :: Eq a => Int -> a -> [a] -> Int
+
+-- | <pre>
+--   elemIndexJust op = fromJust . elemIndex op
+--   </pre>
+elemIndexJust :: (Partial, Eq a) => a -> [a] -> Int
+lookupJustNote :: (Partial, Eq a) => String -> a -> [(a, b)] -> b
+lookupJustDef :: Eq a => b -> a -> [(a, b)] -> b
+
+-- | <pre>
+--   lookupJust key = fromJust . lookup key
+--   </pre>
+lookupJust :: (Eq a, Partial) => a -> [(a, b)] -> b
+
+-- | <a>readNote</a> uses <a>readEitherSafe</a> for the error message.
+readNote :: (Partial, Read a) => String -> String -> a
+readDef :: Read a => a -> String -> a
+readMay :: Read a => String -> Maybe a
+
+-- | This function provides a more precise error message than
+--   <tt>readEither</tt> from <tt>base</tt>.
+readEitherSafe :: Read a => String -> Either String a
+atNote :: Partial => String -> [a] -> Int -> a
+atDef :: () => a -> [a] -> Int -> a
+atMay :: () => [a] -> Int -> Maybe a
+assertNote :: Partial => String -> Bool -> a -> a
+fromJustNote :: Partial => String -> Maybe a -> a
+
+-- | An alternative name for <a>fromMaybe</a>, to fit the naming scheme of
+--   this package. Generally using <a>fromMaybe</a> directly would be
+--   considered better style.
+fromJustDef :: () => a -> Maybe a -> a
+cycleNote :: Partial => String -> [a] -> [a]
+cycleDef :: () => [a] -> [a] -> [a]
+cycleMay :: () => [a] -> Maybe [a]
+scanl1Note :: Partial => String -> (a -> a -> a) -> [a] -> [a]
+scanr1Note :: Partial => String -> (a -> a -> a) -> [a] -> [a]
+scanl1Def :: () => [a] -> (a -> a -> a) -> [a] -> [a]
+scanr1Def :: () => [a] -> (a -> a -> a) -> [a] -> [a]
+scanl1May :: () => (a -> a -> a) -> [a] -> Maybe [a]
+scanr1May :: () => (a -> a -> a) -> [a] -> Maybe [a]
+foldl1Note' :: Partial => String -> (a -> a -> a) -> [a] -> a
+foldl1Def' :: () => a -> (a -> a -> a) -> [a] -> a
+foldl1May' :: () => (a -> a -> a) -> [a] -> Maybe a
+lastNote :: Partial => String -> [a] -> a
+headNote :: Partial => String -> [a] -> a
+lastDef :: () => a -> [a] -> a
+headDef :: () => a -> [a] -> a
+lastMay :: () => [a] -> Maybe a
+headMay :: () => [a] -> Maybe a
+initSafe :: () => [a] -> [a]
+initNote :: Partial => String -> [a] -> [a]
+initDef :: () => [a] -> [a] -> [a]
+initMay :: () => [a] -> Maybe [a]
+
+-- | <pre>
+--   tailSafe [] = []
+--   tailSafe [1,3,4] = [3,4]
+--   </pre>
+tailSafe :: () => [a] -> [a]
+
+-- | <pre>
+--   tailNote "help me" [] = error "Safe.tailNote [], help me"
+--   tailNote "help me" [1,3,4] = [3,4]
+--   </pre>
+tailNote :: Partial => String -> [a] -> [a]
+
+-- | <pre>
+--   tailDef [12] [] = [12]
+--   tailDef [12] [1,3,4] = [3,4]
+--   </pre>
+tailDef :: () => [a] -> [a] -> [a]
+
+-- | <pre>
+--   tailMay [] = Nothing
+--   tailMay [1,3,4] = Just [3,4]
+--   </pre>
+tailMay :: () => [a] -> Maybe [a]
+
+-- | Synonym for <a>error</a>. Used for instances where the program has
+--   decided to exit because of invalid user input, or the user pressed
+--   quit etc. This function allows <a>error</a> to be reserved for
+--   programmer errors.
+abort :: Partial => String -> a
+findJustSafe :: (Monoid m, Foldable t) => (m -> Bool) -> t m -> m
+foldr1Safe :: (Monoid m, Foldable t) => (m -> m -> m) -> t m -> m
+foldl1Safe :: (Monoid m, Foldable t) => (m -> m -> m) -> t m -> m
+findJustNote :: (Partial, Foldable t) => String -> (a -> Bool) -> t a -> a
+findJustDef :: Foldable t => a -> (a -> Bool) -> t a -> a
+
+-- | <pre>
+--   findJust op = fromJust . find op
+--   </pre>
+findJust :: (Partial, Foldable t) => (a -> Bool) -> t a -> a
+maximumByNote :: (Partial, Foldable t) => String -> (a -> a -> Ordering) -> t a -> a
+minimumByNote :: (Partial, Foldable t) => String -> (a -> a -> Ordering) -> t a -> a
+maximumByDef :: Foldable t => a -> (a -> a -> Ordering) -> t a -> a
+minimumByDef :: Foldable t => a -> (a -> a -> Ordering) -> t a -> a
+maximumByMay :: Foldable t => (a -> a -> Ordering) -> t a -> Maybe a
+minimumByMay :: Foldable t => (a -> a -> Ordering) -> t a -> Maybe a
+maximumNote :: (Partial, Foldable t, Ord a) => String -> t a -> a
+minimumNote :: (Partial, Foldable t, Ord a) => String -> t a -> a
+maximumDef :: (Foldable t, Ord a) => a -> t a -> a
+minimumDef :: (Foldable t, Ord a) => a -> t a -> a
+maximumMay :: (Foldable t, Ord a) => t a -> Maybe a
+minimumMay :: (Foldable t, Ord a) => t a -> Maybe a
+foldr1Def :: Foldable t => a -> (a -> a -> a) -> t a -> a
+foldl1Def :: Foldable t => a -> (a -> a -> a) -> t a -> a
+foldr1Note :: (Partial, Foldable t) => String -> (a -> a -> a) -> t a -> a
+foldl1Note :: (Partial, Foldable t) => String -> (a -> a -> a) -> t a -> a
+foldr1May :: Foldable t => (a -> a -> a) -> t a -> Maybe a
+foldl1May :: Foldable t => (a -> a -> a) -> t a -> Maybe a
 
 -- | Divides up an input list into a set of sublists, according to
 --   <tt>n</tt> and <tt>m</tt> input specifications you provide. Each
@@ -17720,7 +17867,7 @@ loopMaybe :: (a -> Maybe a) -> a -> a
 lastMaybe :: Foldable f => f a -> Maybe a
 
 -- | Find the first value where the function is <a>Just</a>.
-findJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
@@ -18336,23 +18483,6 @@ module AOC.Challenge.Day05
 module AOC.Challenge.Day04
 
 
--- | Day 3. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day03
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18399,6 +18529,12 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 3. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day03
+day03a :: NonEmpty Path :~> Int
+day03b :: NonEmpty Path :~> Int
 
 
 -- | Day 2. See <a>AOC.Solver</a> for the types used in this module!
@@ -18591,13 +18727,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1DrZ
-mainRunOpts :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ MainRunOpts
-mroBench :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ Bool
-mroInput :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ Bool
-mroSpec :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ TestSpec
-mroTest :: HasMainRunOpts c_a1DrZ => Lens' c_a1DrZ Bool
+class HasMainRunOpts c_a1Esa
+mainRunOpts :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa MainRunOpts
+mroBench :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
+mroInput :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
+mroSpec :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa TestSpec
+mroTest :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18610,10 +18746,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1Dyx
-mainViewOpts :: HasMainViewOpts c_a1Dyx => Lens' c_a1Dyx MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1Dyx => Lens' c_a1Dyx TestSpec
-mvoWait :: HasMainViewOpts c_a1Dyx => Lens' c_a1Dyx Bool
+class HasMainViewOpts c_a1EyI
+mainViewOpts :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI TestSpec
+mvoWait :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18634,12 +18770,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1DCQ
-mainSubmitOpts :: HasMainSubmitOpts c_a1DCQ => Lens' c_a1DCQ MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1DCQ => Lens' c_a1DCQ Bool
-msoLock :: HasMainSubmitOpts c_a1DCQ => Lens' c_a1DCQ Bool
-msoSpec :: HasMainSubmitOpts c_a1DCQ => Lens' c_a1DCQ ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1DCQ => Lens' c_a1DCQ Bool
+class HasMainSubmitOpts c_a1ED1
+mainSubmitOpts :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
+msoLock :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
+msoSpec :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

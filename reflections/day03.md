@@ -7,11 +7,11 @@ naturally handled in the Haskell case.
 First off, I'm going to parse the path not as a series of directions and
 numbers, but rather as a list of each individual step to take.  This was
 similar to my approach for [2016 Day 1][y16d1].  I'm using my favorite type for
-describing points, [V2][v2], because it has a really useful `Num` instance to
+describing points, [V2][], because it has a really useful `Num` instance to
 support addition of points.
 
-[y17d1]: https://adventofcode.com/2016/day/1
-[v2]: https://hackage.haskell.org/package/linear/docs/Linear-V2.html
+[y16d1]: https://adventofcode.com/2016/day/1
+[V2]: https://hackage.haskell.org/package/linear/docs/Linear-V2.html
 
 ```haskell
 import           Data.List.Split

@@ -1,0 +1,16 @@
+Day ${dayshort}
+------
+
+*[Prompt][d${daylong}p]* / *[Code][d${daylong}g]* / *[Rendered][d${daylong}h]*
+
+[d${daylong}p]: https://adventofcode.com/${year}/day/${dayshort}
+[d${daylong}g]: https://github.com/mstksg/advent-of-code-${year}/blob/master/src/AOC/Challenge/Day${daylong}.hs
+[d${daylong}h]: https://mstksg.github.io/advent-of-code-${year}/src/AOC.Challenge.Day${daylong}.html
+
+${body}
+
+### Day ${dayshort} Benchmarks
+
+```
+${benchmarks}
+```

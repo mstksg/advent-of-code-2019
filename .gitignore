@@ -5,3 +5,5 @@
 /prompt
 /aoc-conf.yaml
 /logs
+/bench-out
+_build

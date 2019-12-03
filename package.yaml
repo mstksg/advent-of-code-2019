@@ -92,7 +92,7 @@ library:
   - linear
   - megaparsec >= 8.0
   - mtl
-  - nonempty-containers
+  - nonempty-containers >= 0.3.3.0
   - pandoc
   - parallel
   - parsec
@@ -100,6 +100,7 @@ library:
   - primitive
   - profunctors
   - psqueues
+  - safe
   - semigroupoids
   - split
   - template-haskell

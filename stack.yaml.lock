@@ -25,6 +25,20 @@ packages:
       sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
   original:
     hackage: parser-combinators-1.2.1
+- completed:
+    hackage: nonempty-containers-0.3.3.0@sha256:f306bdbb271fb43057e0205293915bbfafc92f9960d89c0ea457625aad752eca,2717
+    pantry-tree:
+      size: 1480
+      sha256: 36b68ccc26d582dfdcd363ee6e88f283274fbf344907c38de5b678ffe0a3888e
+  original:
+    hackage: nonempty-containers-0.3.3.0
+- completed:
+    hackage: nonempty-vector-0.2.0.1@sha256:332f8d48b5de02c1ab4e52c99973d4ca42dcbce21a073ffd1b5b2da1221e113f,1753
+    pantry-tree:
+      size: 460
+      sha256: 58c456615aa904f3513db86f5931f048b11a1b19e6c39ca77aef5b25195adb26
+  original:
+    hackage: nonempty-vector-0.2.0.1
 snapshots:
 - completed:
     size: 524804

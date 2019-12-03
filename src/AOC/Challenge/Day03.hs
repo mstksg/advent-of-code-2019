@@ -20,10 +20,12 @@ import           AOC.Solver         ((:~>)(..))
 import           Control.Monad      ((<=<))
 import           Data.Foldable      (toList)
 import           Data.List          (scanl')
-import           Data.List.NonEmpty (NonEmpty (..))
+import           Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import           Data.List.Split    (splitOn)
 import           Data.Map           (Map)
 import           Data.Semigroup     (Min(..))
+import           Safe               (scanl1Def)
+import           Safe.Foldable      (minimumMay)
 import           Text.Read          (readMaybe)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map           as M
@@ -46,8 +48,7 @@ crossings = foldr1 (M.intersectionWith (+)) . fmap follow
     follow :: Path -> Map Point Int
     follow = M.fromListWith min
            . flip zip [1..]
-           . foldMap (toList . NE.scanl1 (+))
-           . NE.nonEmpty                -- we use NonEmpty to make scanl1 safe
+           . scanl1Def [] (+)
            . concatMap (uncurry expandDir)
     expandDir d ns = replicate ns (dirPoint d)
 
@@ -65,5 +66,5 @@ day03b :: NonEmpty Path :~> Int
 day03b = MkSol
     { sParse = NE.nonEmpty <=< traverse parsePath . lines
     , sShow  = show
-    , sSolve = fmap minimum . NE.nonEmpty . toList . crossings
+    , sSolve = minimumMay . crossings
     }

@@ -30,6 +30,7 @@ import           Control.Monad.State       as P
 import           Data.Bifunctor            as P
 import           Data.Char                 as P
 import           Data.Containers.ListUtils as P
+import           Data.Containers.NonEmpty  as P (withNonEmpty, nonEmpty)
 import           Data.Either               as P
 import           Data.Finite               as P (Finite, packFinite, getFinite, modulo, finites)
 import           Data.Foldable             as P
@@ -41,7 +42,7 @@ import           Data.IntSet               as P (IntSet)
 import           Data.IntSet.NonEmpty      as P (NEIntSet)
 import           Data.Kind                 as P
 import           Data.List                 as P
-import           Data.List.NonEmpty        as P (NonEmpty(..), nonEmpty)
+import           Data.List.NonEmpty        as P (NonEmpty(..))
 import           Data.List.Split           as P
 import           Data.Map                  as P (Map)
 import           Data.Map.NonEmpty         as P (NEMap)
@@ -63,5 +64,7 @@ import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
 import           Linear                    as P (V1(..), V2(..), V3(..), V4(..))
 import           Numeric.Natural           as P
+import           Safe                      as P hiding (at, maximumDef, maximumNote, maximumMay, maximumByDef, maximumByNote, maximumByMay, minimumDef, minimumNote, minimumMay, minimumByDef, minimumByNote, minimumByMay, foldr1Def, foldr1May, foldr1Note, foldl1Def, foldl1May, foldl1Note, findJust, findJustDef, findJustNote)
+import           Safe.Foldable             as P
 import           Text.Printf               as P
 import           Text.Read                 as P (readMaybe)

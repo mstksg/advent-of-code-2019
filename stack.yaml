@@ -41,6 +41,8 @@ extra-deps:
 - advent-of-code-api-0.2.2.1
 - megaparsec-8.0.0
 - parser-combinators-1.2.1
+- nonempty-containers-0.3.3.0
+- nonempty-vector-0.2.0.1
 
 allow-newer: true
 

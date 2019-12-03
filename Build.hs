@@ -25,6 +25,14 @@ import qualified Data.Text.Lazy                         as TL
 -- CONSTANTS
 year :: Integer
 year = 2019
+github :: String
+github = "mstksg"
+
+ctx0 :: M.Map T.Text T.Text
+ctx0 = M.fromList [
+    ("year"  , T.pack (show year))
+  , ("github", T.pack github     )
+  ]
 
 opts = shakeOptions { shakeFiles     = "_build"
                     , shakeVersion   = "1.0"
@@ -35,8 +43,8 @@ opts = shakeOptions { shakeFiles     = "_build"
 parseDayFp :: FilePath -> Maybe Int
 parseDayFp = readMaybe . filter isDigit . takeBaseName
 
-mkLinks :: Integer -> Int -> [String]
-mkLinks year d = [
+mkLinks :: Int -> [String]
+mkLinks d = [
     printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
       d year d
   , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
@@ -69,7 +77,7 @@ main = do
 
         let toc = flip map (toList days) $ \d ->
                     printf "* [Day %d](#day-%d)" d d
-                    
+
             ctx = ctx0 <> M.fromList
               [ ("toc" , T.pack $ unlines toc                        )
               , ("body", TL.toStrict $ TL.intercalate "\n\n\n" bodies)
@@ -97,7 +105,7 @@ main = do
              : "| --------- | ----------- | --------- | ---------- | ---------- |"
              : map mkRow [1..25]
 
-            links = concatMap (mkLinks year) days
+            links = concatMap mkLinks days
             ctx = ctx0 <> M.fromList
                 [ ("table", T.pack table          )
                 , ("links", T.pack (unlines links))
@@ -110,6 +118,4 @@ main = do
       "clean" ~> do
         removeFilesAfter "_build" ["//*"]
         removeFilesAfter "bench-out" ["//*"]
-  where
-    ctx0 = M.fromList [("year", T.pack (show year))]
 

@@ -3,10 +3,10 @@ Advent of Code ${year}
 
 *[2016][]* / *[2017][]* / *[2018][]* / *[2019][]*
 
-[2016]: https://github.com/mstksg/advent-of-code-2016
-[2017]: https://github.com/mstksg/advent-of-code-2017
-[2018]: https://github.com/mstksg/advent-of-code-2018
-[2019]: https://github.com/mstksg/advent-of-code-2019
+[2016]: https://github.com/${github}/advent-of-code-2016
+[2017]: https://github.com/${github}/advent-of-code-2017
+[2018]: https://github.com/${github}/advent-of-code-2018
+[2019]: https://github.com/${github}/advent-of-code-2019
 
 It's the most wonderful time of the year!
 
@@ -20,9 +20,9 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 (individual links down below)
 
 [aoc]: https://adventofcode.com/${year}
-[haddock]: https://mstksg.github.io/advent-of-code-${year}/
+[haddock]: https://${github}.github.io/advent-of-code-${year}/
 [advent-of-code-api]: https://hackage.haskell.org/package/advent-of-code-api
-[dev]: https://github.com/mstksg/advent-of-code-dev
+[dev]: https://github.com/${github}/advent-of-code-dev
 
 [Reflections and Benchmarks][reflections]
 -----------------------------------------
@@ -34,7 +34,7 @@ documentation.  Haddock source renders have hyperlinked identifiers,
 so you can follow any unrecognized identifiers to see where I have defined them
 in the library.
 
-[reflections]: https://github.com/mstksg/advent-of-code-${year}/blob/master/reflections.md
+[reflections]: https://github.com/${github}/advent-of-code-${year}/blob/master/reflections.md
 
 ### `:~>` type
 
@@ -80,7 +80,7 @@ had a total distance of less than 32.  So, I have a system that lets me write
 `10000` would be replaced by `32` when running with test data (which is parsed
 from [this file][7btest])
 
-[7btest]: https://github.com/mstksg/advent-of-code-2018/blob/master/test-data/06b.txt
+[7btest]: https://github.com/${github}/advent-of-code-2018/blob/master/test-data/06b.txt
 
 Interactive
 -----------
@@ -90,7 +90,7 @@ The *[AOC.Run.Interactive][interactive]* module has code (powered by
 GHCI, so you don't have to re-compile. If you edit your solution programs, they
 are automatically updated when you hit `:r` in ghci.
 
-[interactive]: https://mstksg.github.io/advent-of-code-${year}/AOC${year}-Run-Interactive.html
+[interactive]: https://${github}.github.io/advent-of-code-${year}/AOC${year}-Run-Interactive.html
 
 ```haskell
 ghci> execSolution_   $$ solSpec 'day02a   -- get answer for challenge based on solution
@@ -111,7 +111,7 @@ Comes with test examples given in problems.
 You can install using `stack`:
 
 ```bash
-$$ git clone https://github.com/mstksg/advent-of-code-${year}
+$$ git clone https://github.com/${github}/advent-of-code-${year}
 $$ cd advent-of-code-${year}
 $$ stack setup
 $$ stack install

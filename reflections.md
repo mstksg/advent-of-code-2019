@@ -251,12 +251,12 @@ parsePath = concatMap parsePoint . splitOn ","
 ```
 
 Now, our list of points is simply a cumulative sum, which comes from our best
-friend `scanl'`.  We use `scanl'` to get the running sum of all the direction
-pieces, drop the first point (at `V2 0 0`), and get the set of all points.
+friend `scanl'` (and family).  We use `scanl1` to get the running sum of all
+the direction pieces, and get the set of all points.
 
 ```haskell
 visited :: [V2 Int] -> Set (V2 Int)
-visited = S.fromList . drop 1 . scanl' (+) (V2 0 0)
+visited = S.fromList . scanl1 (+) (V2 0 0)
 ```
 
 Now Part 1 is:
@@ -280,9 +280,8 @@ time it takes to reach each point.  This requires only a small tweak to
 ```haskell
 visited2 :: [V2 Int] -> Map (V2 Int) Int
 visited2 = M.fromListWith min        -- turn it into a map, keeping first seen
-         . drop 1                    -- drop the first item
-         . flip zip [0..]            -- list of (sum, time taken)
-         . scanl' (+) (V2 0 0)       -- running sum
+         . flip zip [1..]            -- list of (sum, time taken)
+         . scanl1 (+)                -- running sum
 ```
 
 We pair each item in the running sum with the time taken, and so get a map of

@@ -44,19 +44,19 @@ cooldown.  Teaches me to remember to test all my answers next time :)
 ```
 >> Day 01a
 benchmarking...
-time                 242.6 μs   (239.5 μs .. 246.9 μs)
-                     0.987 R²   (0.969 R² .. 0.999 R²)
-mean                 249.2 μs   (240.2 μs .. 267.0 μs)
-std dev              40.28 μs   (11.10 μs .. 64.54 μs)
-variance introduced by outliers: 91% (severely inflated)
+time                 250.6 μs   (242.6 μs .. 269.2 μs)
+                     0.963 R²   (0.904 R² .. 1.000 R²)
+mean                 247.8 μs   (242.5 μs .. 268.6 μs)
+std dev              33.39 μs   (1.410 μs .. 70.89 μs)
+variance introduced by outliers: 87% (severely inflated)
 
 >> Day 01b
 benchmarking...
-time                 267.4 μs   (265.7 μs .. 270.5 μs)
-                     0.999 R²   (0.996 R² .. 1.000 R²)
-mean                 267.9 μs   (266.1 μs .. 271.6 μs)
-std dev              8.434 μs   (3.973 μs .. 14.26 μs)
-variance introduced by outliers: 27% (moderately inflated)
+time                 264.3 μs   (261.9 μs .. 268.9 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 265.4 μs   (263.5 μs .. 270.6 μs)
+std dev              9.985 μs   (3.934 μs .. 19.53 μs)
+variance introduced by outliers: 34% (moderately inflated)
 ```
 
 
@@ -195,19 +195,19 @@ binaryMinSearch p = go
 ```
 >> Day 02a
 benchmarking...
-time                 293.8 μs   (268.6 μs .. 340.0 μs)
-                     0.944 R²   (0.905 R² .. 0.999 R²)
-mean                 270.1 μs   (264.8 μs .. 291.0 μs)
-std dev              32.13 μs   (6.392 μs .. 66.74 μs)
-variance introduced by outliers: 84% (severely inflated)
+time                 272.9 μs   (257.7 μs .. 296.2 μs)
+                     0.974 R²   (0.953 R² .. 1.000 R²)
+mean                 265.9 μs   (259.3 μs .. 285.0 μs)
+std dev              32.76 μs   (5.613 μs .. 60.80 μs)
+variance introduced by outliers: 85% (severely inflated)
 
 >> Day 02b
 benchmarking...
-time                 463.7 μs   (457.6 μs .. 470.7 μs)
-                     0.986 R²   (0.961 R² .. 0.999 R²)
-mean                 493.8 μs   (472.7 μs .. 543.4 μs)
-std dev              104.8 μs   (43.20 μs .. 189.6 μs)
-variance introduced by outliers: 94% (severely inflated)
+time                 464.2 μs   (450.5 μs .. 501.3 μs)
+                     0.961 R²   (0.892 R² .. 1.000 R²)
+mean                 462.9 μs   (452.3 μs .. 494.3 μs)
+std dev              63.73 μs   (6.510 μs .. 122.1 μs)
+variance introduced by outliers: 86% (severely inflated)
 ```
 
 
@@ -311,18 +311,18 @@ Note that we can actually solve `part1` using `visited2` instead of
 ```
 >> Day 03a
 benchmarking...
-time                 291.0 ms   (287.4 ms .. 294.8 ms)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 297.5 ms   (294.2 ms .. 302.8 ms)
-std dev              5.715 ms   (157.2 μs .. 7.317 ms)
+time                 298.0 ms   (276.8 ms .. 322.1 ms)
+                     0.998 R²   (0.991 R² .. 1.000 R²)
+mean                 303.0 ms   (297.7 ms .. 307.2 ms)
+std dev              6.642 ms   (5.044 ms .. 7.689 ms)
 variance introduced by outliers: 16% (moderately inflated)
 
 >> Day 03b
 benchmarking...
-time                 313.0 ms   (271.7 ms .. 371.5 ms)
-                     0.992 R²   (0.985 R² .. 1.000 R²)
-mean                 296.8 ms   (286.7 ms .. 306.8 ms)
-std dev              12.28 ms   (6.226 ms .. 18.30 ms)
+time                 296.3 ms   (283.1 ms .. 314.1 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 291.8 ms   (284.5 ms .. 295.8 ms)
+std dev              6.753 ms   (2.482 ms .. 8.958 ms)
 variance introduced by outliers: 16% (moderately inflated)
 ```
 

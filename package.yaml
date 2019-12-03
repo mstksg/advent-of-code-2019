@@ -89,6 +89,7 @@ library:
   - haskell-src-exts
   - hpack
   - lens
+  - lens-regex-pcre
   - linear
   - megaparsec >= 8.0
   - mtl

@@ -3,6 +3,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# OPTIONS_GHC -Wall          #-}
 
 -- | Assemble README and Reflections
 
@@ -14,7 +15,7 @@ import           Data.Traversable
 import           Development.Shake
 import           Development.Shake.FilePath
 import           System.Directory
-import           System.FilePath
+-- import           System.FilePath
 import           Text.Printf
 import           Text.Read
 import qualified Data.Map                               as M
@@ -34,10 +35,11 @@ ctx0 = M.fromList [
   , ("github", T.pack github     )
   ]
 
+opts :: ShakeOptions
 opts = shakeOptions { shakeFiles     = "_build"
                     , shakeVersion   = "1.0"
                     , shakeVerbosity = Loud
-                    , shakeThreads   = 0
+                    , shakeThreads   = 1    -- for benchmarks to work properly
                     }
 
 parseDayFp :: FilePath -> Maybe Int
@@ -57,6 +59,8 @@ mkLinks d = [
 
 reflPath :: Int -> FilePath
 reflPath d = "reflections" </> printf "day%02d.md" d
+reflOutPath :: Int -> FilePath
+reflOutPath d = "_reflections" </> printf "day%02d.md" d
 benchPath :: Int -> FilePath
 benchPath d = "bench-out" </> printf "day%02d.txt" d
 
@@ -70,30 +74,35 @@ main = do
       want ["README.md", "reflections.md"]
 
       "reflections.md" %> \fp -> do
-        need $ (reflPath  <$> toList days)
-            ++ (benchPath <$> toList days)
+        -- need $ (reflPath  <$> toList days)
+        --     ++ (benchPath <$> toList days)
 
-        bodies <- forM (toList days) $ \d -> do
-          refl   <- T.pack <$> readFile' (reflPath  d)
-          bench  <- T.pack <$> readFile' (benchPath d)
-          let ctx = ctx0 <> M.fromList
-                [ ("daylong"   , T.pack $ printf "%02d" d)
-                , ("dayshort"  , T.pack $ printf "%d" d  )
-                , ("body"      , refl                    )
-                , ("benchmarks", bench                   )
-                ]
-          flip substitute (ctx M.!) . T.pack <$> readFile' "template/reflection.md.template"
+        bodies <- forM (toList days) $ \d ->
+          T.pack <$> readFile' (reflOutPath d)
 
         let toc = flip map (toList days) $ \d ->
                     printf "* [Day %d](#day-%d)" d d
 
             ctx = ctx0 <> M.fromList
-              [ ("toc" , T.pack $ unlines toc                        )
-              , ("body", TL.toStrict $ TL.intercalate "\n\n\n" bodies)
+              [ ("toc" , T.pack $ unlines toc         )
+              , ("body", T.intercalate "\n\n\n" bodies)
               ]
 
         out <- flip substitute (ctx M.!) . T.pack <$> readFile' "template/reflections.md.template"
 
+        writeFileChanged fp (TL.unpack out)
+
+      "_reflections/*.md" %> \fp -> do
+        let Just d = parseDayFp fp
+        refl   <- T.pack <$> readFile' (reflPath  d)
+        bench  <- T.pack <$> readFile' (benchPath d)
+        let ctx = ctx0 <> M.fromList
+              [ ("daylong"   , T.pack $ printf "%02d" d)
+              , ("dayshort"  , T.pack $ printf "%d" d  )
+              , ("body"      , refl                    )
+              , ("benchmarks", bench                   )
+              ]
+        out <- flip substitute (ctx M.!) . T.pack <$> readFile' "template/reflection.md.template"
         writeFileChanged fp (TL.unpack out)
 
       "bench-out/*.txt" %> \fp -> do

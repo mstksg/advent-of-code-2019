@@ -55,18 +55,27 @@ mkLinks d = [
       d year d
   ]
 
+reflPath :: Int -> FilePath
+reflPath d = "reflections" </> printf "day%02d.md" d
+benchPath :: Int -> FilePath
+benchPath d = "bench-out" </> printf "day%02d.txt" d
+
 main :: IO ()
 main = do
     Just days <- fmap S.fromList . traverse parseDayFp
         <$> listDirectory "reflections"
+    -- print days
 
     shakeArgs opts $ do
       want ["README.md", "reflections.md"]
 
       "reflections.md" %> \fp -> do
+        need $ (reflPath  <$> toList days)
+            ++ (benchPath <$> toList days)
+
         bodies <- forM (toList days) $ \d -> do
-          refl   <- T.pack <$> readFile' ("reflections" </> printf "day%02d.md" d)
-          bench  <- T.pack <$> readFile' ("bench-out" </> printf "day%02d.txt" d)
+          refl   <- T.pack <$> readFile' (reflPath  d)
+          bench  <- T.pack <$> readFile' (benchPath d)
           let ctx = ctx0 <> M.fromList
                 [ ("daylong"   , T.pack $ printf "%02d" d)
                 , ("dayshort"  , T.pack $ printf "%d" d  )

@@ -23,6 +23,7 @@ import           Data.List          (scanl')
 import           Data.List.NonEmpty (NonEmpty (..))
 import           Data.List.Split    (splitOn)
 import           Data.Map           (Map)
+import           Data.Semigroup     (Min(..))
 import           Text.Read          (readMaybe)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map           as M
@@ -44,9 +45,9 @@ crossings = foldr1 (M.intersectionWith (+)) . fmap follow
     -- a map of every point visted to the steps taken to visit it
     follow :: Path -> Map Point Int
     follow = M.fromListWith min
-           . drop 1
-           . flip zip [0..]
-           . scanl' (+) 0
+           . flip zip [1..]
+           . foldMap (toList . NE.scanl1 (+))
+           . NE.nonEmpty                -- we use NonEmpty to make scanl1 safe
            . concatMap (uncurry expandDir)
     expandDir d ns = replicate ns (dirPoint d)
 
@@ -54,9 +55,9 @@ day03a :: NonEmpty Path :~> Int
 day03a = MkSol
     { sParse = NE.nonEmpty <=< traverse parsePath . lines
     , sShow  = show
-    , sSolve = S.lookupMin
-             . S.map (mannDist 0)
-             . M.keysSet
+    , sSolve = fmap getMin
+             . foldMap (Just . Min . mannDist 0)
+             . M.keys
              . crossings
     }
 

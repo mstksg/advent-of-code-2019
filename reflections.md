@@ -311,18 +311,18 @@ Note that we can actually solve `part1` using `visited2` instead of
 ```
 >> Day 03a
 benchmarking...
-time                 289.2 ms   (274.2 ms .. 318.3 ms)
-                     0.996 R²   (0.981 R² .. 1.000 R²)
-mean                 284.2 ms   (280.0 ms .. 294.6 ms)
-std dev              7.920 ms   (1.564 ms .. 11.13 ms)
-variance introduced by outliers: 16% (moderately inflated)
+time                 264.8 ms   (196.4 ms .. 312.8 ms)
+                     0.976 R²   (0.942 R² .. 1.000 R²)
+mean                 330.1 ms   (292.8 ms .. 437.0 ms)
+std dev              79.53 ms   (3.539 ms .. 99.65 ms)
+variance introduced by outliers: 58% (severely inflated)
 
 >> Day 03b
 benchmarking...
-time                 277.7 ms   (260.8 ms .. 296.3 ms)
-                     0.998 R²   (0.994 R² .. 1.000 R²)
-mean                 276.1 ms   (272.8 ms .. 281.8 ms)
-std dev              5.127 ms   (2.220 ms .. 6.482 ms)
+time                 293.6 ms   (283.4 ms .. 298.4 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 293.2 ms   (290.1 ms .. 294.6 ms)
+std dev              2.538 ms   (516.0 μs .. 3.649 ms)
 variance introduced by outliers: 16% (moderately inflated)
 ```
 

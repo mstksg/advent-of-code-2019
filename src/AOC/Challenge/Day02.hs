@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day02
 -- License     : BSD3
@@ -24,8 +21,6 @@ import           Data.List.Split          (splitOn)
 import           Data.Sequence.NonEmpty   (NESeq)
 import           Linear                   (V2(..), V3(..))
 import           Text.Read                (readMaybe)
-import qualified Data.Map                 as M
-import qualified Data.Sequence            as Seq
 import qualified Data.Sequence.NonEmpty   as NESeq
 
 data Memory = Mem
@@ -83,7 +78,7 @@ day02b = MkSol
     moon = 19690720
 
 parseMem :: String -> Maybe Memory
-parseMem = (onNonEmpty (Mem 0) . Seq.fromList =<<)
+parseMem = (onNonEmpty (Mem 0 . NESeq.fromList) =<<)
          . traverse readMaybe
          . splitOn ","
 

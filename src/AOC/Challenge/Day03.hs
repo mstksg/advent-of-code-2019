@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day03
 -- License     : BSD3
@@ -18,9 +15,7 @@ module AOC.Challenge.Day03 (
 import           AOC.Common         (Point, mannDist, Dir, dirPoint, parseDir)
 import           AOC.Solver         ((:~>)(..))
 import           Control.Monad      ((<=<))
-import           Data.Foldable      (toList)
-import           Data.List          (scanl')
-import           Data.List.NonEmpty (NonEmpty(..), nonEmpty)
+import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.List.Split    (splitOn)
 import           Data.Map           (Map)
 import           Data.Semigroup     (Min(..))
@@ -29,7 +24,6 @@ import           Safe.Foldable      (minimumMay)
 import           Text.Read          (readMaybe)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map           as M
-import qualified Data.Set           as S
 
 type Path = [(Dir, Int)]
 

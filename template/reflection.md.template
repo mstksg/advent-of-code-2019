@@ -1,6 +1,12 @@
 Day ${dayshort}
 ------
 
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day${daylong}.md`.  If you want to edit this, edit
+that file instead!
+-->
+
 *[Prompt][d${daylong}p]* / *[Code][d${daylong}g]* / *[Rendered][d${daylong}h]*
 
 [d${daylong}p]: https://adventofcode.com/${year}/day/${dayshort}

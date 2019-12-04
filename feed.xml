@@ -7,14 +7,19 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Wed,  4 Dec 2019 04:50:24 EST</lastBuildDate>
+    <lastBuildDate>Wed,  4 Dec 2019 05:11:01 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Wed,  4 Dec 2019 04:50:24 EST</pubDate>
+    <pubDate>Wed,  4 Dec 2019 05:11:01 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
       <title>Day 4</title>
       <description>&lt;h2 id=&quot;day-4&quot;&gt;Day 4&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day04.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
 &lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/4&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day04.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day04.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;I should probably appreciate these Haskell freebies while they still last :) I have a feeling they’re not going to be this frictionless for long!&lt;/p&gt;
 &lt;p&gt;Parsing in the range we can use &lt;code&gt;splitOn&lt;/code&gt; again:&lt;/p&gt;
@@ -63,6 +68,11 @@ std dev              551.8 μs   (199.9 μs .. 1.001 ms)&lt;/code&gt;&lt;/pre&gt
     <item>
       <title>Day 3</title>
       <description>&lt;h2 id=&quot;day-3&quot;&gt;Day 3&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day03.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
 &lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/3&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day03.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day03.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;As another data processing one, I feel like this might be another win for Haskell as well :) My part 2 leaderboard position was much higher than my part1 position — my suspicion is that the new twist made it difficult for imperative coders, but the twist was naturally handled in the Haskell case.&lt;/p&gt;
 &lt;p&gt;First off, I’m going to parse the path not as a series of directions and numbers, but rather as a list of each individual step to take. This was similar to my approach for &lt;a href=&quot;https://adventofcode.com/2016/day/1&quot;&gt;2016 Day 1&lt;/a&gt;. I’m using my favorite type for describing points, &lt;a href=&quot;https://hackage.haskell.org/package/linear/docs/Linear-V2.html&quot;&gt;V2&lt;/a&gt;, because it has a really useful &lt;code&gt;Num&lt;/code&gt; instance to support addition of points.&lt;/p&gt;
@@ -125,6 +135,11 @@ variance introduced by outliers: 16% (moderately inflated)&lt;/code&gt;&lt;/pre&
     <item>
       <title>Day 2</title>
       <description>&lt;h2 id=&quot;day-2&quot;&gt;Day 2&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day02.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
 &lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/2&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day02.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day02.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;So the bytecode/VM problems start day 2 this year, eh?&lt;/p&gt;
 &lt;p&gt;This one was also pretty straightforward. For these types of problems, I like to use &lt;code&gt;Data.IntMap&lt;/code&gt; or &lt;code&gt;Data.Sequence&lt;/code&gt; for the memory, since they both have &lt;em&gt;O(log n)&lt;/em&gt; indexing. &lt;code&gt;Data.Sequence&lt;/code&gt; is the better choice here because it’s basically &lt;code&gt;IntMap&lt;/code&gt; with the indices (0, 1, 2 …) automatically given for us :)&lt;/p&gt;
@@ -225,6 +240,11 @@ variance introduced by outliers: 86% (severely inflated)&lt;/code&gt;&lt;/pre&gt
     <item>
       <title>Day 1</title>
       <description>&lt;h2 id=&quot;day-1&quot;&gt;Day 1&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day01.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
 &lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/1&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day01.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day01.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Haskell has a history of making Day 1’s seem trivial :) In this case it’s a straightforward map:&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;fuel ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;

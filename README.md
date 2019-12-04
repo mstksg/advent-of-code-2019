@@ -21,8 +21,8 @@ fetching, testing, running environment (powered by the
 runner/bench marker/viewer/tester has been pulled out [here][dev], so this is
 implemented as "fork" of it with my own solutions and reflections.
 
-Check out reflections and commentary at the [package haddocks][haddock]!
-(individual links down below)
+Check out the [reflections][] (with [rss feed][]) and [package
+haddocks][haddock] --- more info below!
 
 [aoc]: https://adventofcode.com/2019
 [haddock]: https://mstksg.github.io/advent-of-code-2019/
@@ -31,6 +31,10 @@ Check out reflections and commentary at the [package haddocks][haddock]!
 
 [Reflections and Benchmarks][reflections]
 -----------------------------------------
+
+[Available as RSS Feed][rss]
+
+[rss]: http://feeds.feedburner.com/jle-advent-of-code-2019
 
 | Challenge | Reflections | Code      | Rendered   | Benchmarks |
 | --------- | ----------- | --------- | ---------- | ---------- |

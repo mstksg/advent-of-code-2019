@@ -46,8 +46,8 @@ items:
 part1 :: String -> Int
 part1 = length . filter (\x -> all ($ show x) [mono, dups      ]) . range
 
-part1 :: String -> Int
-part1 = length . filter (\x -> all ($ show x) [mono, strictDups]) . range
+part2 :: String -> Int
+part2 = length . filter (\x -> all ($ show x) [mono, strictDups]) . range
 ```
 
 (Also, note to self next time ... if going for time, if you just have two

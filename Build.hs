@@ -15,7 +15,6 @@ import           Data.Traversable
 import           Development.Shake
 import           Development.Shake.FilePath
 import           System.Directory
--- import           System.FilePath
 import           Text.Printf
 import           Text.Read
 import qualified Data.Map                               as M
@@ -38,7 +37,7 @@ ctx0 = M.fromList [
 opts :: ShakeOptions
 opts = shakeOptions { shakeFiles     = "_build"
                     , shakeVersion   = "1.0"
-                    , shakeVerbosity = Loud
+                    , shakeVerbosity = Chatty
                     , shakeThreads   = 1    -- for benchmarks to work properly
                     }
 

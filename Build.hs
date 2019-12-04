@@ -30,10 +30,11 @@ year = 2019
 
 ctx0 :: M.Map T.Text T.Text
 ctx0 = M.fromList [
-    ("year"  , T.pack (show year))
-  , ("github", "mstksg"          )
-  , ("name"  , "Justin Le"       )
-  , ("email" , "justin@jle.im"   )
+    ("year"  , T.pack (show year)                                   )
+  , ("github", "mstksg"                                             )
+  , ("name"  , "Justin Le"                                          )
+  , ("email" , "justin@jle.im"                                      )
+  , ("rss"   , "http://feeds.feedburner.com/jle-advent-of-code-2019")
   ]
 
 opts :: ShakeOptions
@@ -106,7 +107,7 @@ main = shakeArgs opts $ do
 
     "feed.xml" %> \fp -> do
         days <- getDays
-        bodies <- forM (toList days) $ \d ->
+        bodies <- forM (reverse (toList days)) $ \d ->
           T.pack <$> readFile' (reflXmlPath d)
         time <- utcToZonedTime (read "EST") <$> liftIO getCurrentTime
         let ctx = ctx0 <> M.fromList

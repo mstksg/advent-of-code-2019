@@ -26,6 +26,7 @@ module AOC.Common (
   , firstRepeated
   , fixedPoint
   , floodFill
+  , countTrue
   -- * Lists
   , freqs
   , freqList
@@ -182,6 +183,10 @@ fixedPoint f = go
         | otherwise = go y
       where
         y = f x
+
+-- | Count the number of items in a container where the predicate is true.
+countTrue :: Foldable f => (a -> Bool) -> f a -> Int
+countTrue p = length . filter p . toList
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int

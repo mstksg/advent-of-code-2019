@@ -73,7 +73,8 @@ main = do
       want ["README.md", "reflections.md"]
 
       "reflections.md" %> \fp -> do
-        -- need $ (reflOutPath  <$> toList days)
+        need $ (reflOutPath  <$> toList days)
+            ++ (reflPath     <$> toList days)
 
         bodies <- forM (toList days) $ \d ->
           T.pack <$> readFile' (reflOutPath d)

@@ -13,16 +13,14 @@ module AOC.Challenge.Day04 (
   ) where
 
 import           AOC.Solver      ((:~>)(..))
-import           Data.Char       (digitToInt)
 import           Data.List       (group)
 import           Data.List.Split (splitOn)
+import           Text.Read       (readMaybe)
 
 range :: String -> Maybe [Int]
-range (map read . splitOn "-"->[x,y]) = Just [x..y]
-range _                               = Nothing
-
-digits :: Int -> [Int]
-digits = map digitToInt . show
+range str = do
+    [x,y] <- traverse readMaybe . splitOn "-" $ str
+    pure [x..y]
 
 consecs :: [a] -> [(a,a)]
 consecs xs = zip xs (drop 1 xs)
@@ -42,7 +40,7 @@ day04a = MkSol
     , sShow  = show
     , sSolve = Just
              . length
-             . filter (\x -> all ($ digits x) [monotonic, doubles])
+             . filter (\x -> all ($ show x) [monotonic, doubles])
     }
 
 day04b :: [Int] :~> Int
@@ -51,5 +49,5 @@ day04b = MkSol
     , sShow  = show
     , sSolve = Just
              . length
-             . filter (\x -> all ($ digits x) [monotonic, strictDoubles])
+             . filter (\x -> all ($ show x) [monotonic, strictDoubles])
     }

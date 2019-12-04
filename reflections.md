@@ -12,6 +12,7 @@ Table of Contents
 * [Day 1](#day-1)
 * [Day 2](#day-2)
 * [Day 3](#day-3)
+* [Day 4](#day-4)
 
 
 Day 1
@@ -329,5 +330,87 @@ time                 296.3 ms   (283.1 ms .. 314.1 ms)
 mean                 291.8 ms   (284.5 ms .. 295.8 ms)
 std dev              6.753 ms   (2.482 ms .. 8.958 ms)
 variance introduced by outliers: 16% (moderately inflated)
+```
+
+
+
+Day 4
+------
+
+*[Prompt][d04p]* / *[Code][d04g]* / *[Rendered][d04h]*
+
+[d04p]: https://adventofcode.com/2019/day/4
+[d04g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day04.hs
+[d04h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day04.html
+
+I should probably appreciate these Haskell freebies while they still last :)  I
+have a feeling they're not going to be this frictionless for long!
+
+Parsing in the range we can use `splitOn` again:
+
+```haskell
+range :: String -> [Int]
+range str = [x..y]
+  where
+    [x, y] =  read <$> splitOn "-" str
+```
+
+It's also handy to have a function for giving us consecutive pairs of items:
+
+```haskell
+consecs :: [a] -> [(a,a)]
+consecs xs = zip xs (tail xs)
+```
+
+Now for the fun part: making our filters!  For part 1, we have two filters on
+the digits: first, that the digits are monotonic, and second, that at least one
+pair of consecutive digits matches:
+
+```haskell
+mono :: Ord a => [a] -> Bool
+mono = all (\(x,y) -> x >= y) . consecs
+
+dups :: Eq a => [a] -> Bool
+dups = any (\(x,y) -> x == y) . consecs
+```
+
+For part 2, we have two filters: the same `mono` filter, but also that we have
+a group that is *exactly* length two.  For that we can use `group`, which
+groups a list into chunks of equal items: `group "abbbcc" == ["a","bbb","cc"]`.
+We then check if any of the chunks have a length of exactly two:
+
+```haskell
+strictDups :: Eq a => [a] -> Bool
+strictDups = any ((== 2) . length) . group
+```
+
+And from here, we just run our filters on the range and count the number of
+items:
+
+```haskell
+part1 :: String -> Int
+part1 = length . filter (\x -> all ($ show x) [mono, dups      ]) . range
+
+part1 :: String -> Int
+part1 = length . filter (\x -> all ($ show x) [mono, strictDups]) . range
+```
+
+
+### Day 4 Benchmarks
+
+```
+>> Day 04a
+benchmarking...
+time                 43.74 ms   (43.45 ms .. 44.29 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 43.58 ms   (43.49 ms .. 43.90 ms)
+std dev              317.6 μs   (129.3 μs .. 563.4 μs)
+
+>> Day 04b
+benchmarking...
+time                 44.23 ms   (43.64 ms .. 44.81 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 44.19 ms   (43.99 ms .. 44.76 ms)
+std dev              551.8 μs   (199.9 μs .. 1.001 ms)
 ```
 

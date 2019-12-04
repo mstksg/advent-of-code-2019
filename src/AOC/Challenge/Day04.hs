@@ -34,6 +34,8 @@ doubles = any (uncurry (==)) . consecs
 strictDoubles :: Eq a => [a] -> Bool
 strictDoubles = any ((== 2) . length) . group
 
+-- NOTE TO SELF: next time just literally type in the numbers here, heh, no
+-- need to parse
 day04a :: [Int] :~> Int
 day04a = MkSol
     { sParse = range

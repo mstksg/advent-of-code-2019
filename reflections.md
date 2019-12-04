@@ -396,7 +396,7 @@ pair of consecutive digits matches:
 
 ```haskell
 mono :: Ord a => [a] -> Bool
-mono = all (\(x,y) -> x >= y) . consecs
+mono = all (\(x,y) -> y >= x) . consecs
 
 dups :: Eq a => [a] -> Bool
 dups = any (\(x,y) -> x == y) . consecs

@@ -21,7 +21,7 @@ fetching, testing, running environment (powered by the
 runner/bench marker/viewer/tester has been pulled out [here][dev], so this is
 implemented as "fork" of it with my own solutions and reflections.
 
-Check out the [reflections][] (with [rss feed][]) and [package
+Check out the [reflections][] (with [rss feed][rss]) and [package
 haddocks][haddock] --- more info below!
 
 [aoc]: https://adventofcode.com/2019

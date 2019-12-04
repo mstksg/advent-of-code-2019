@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="windows-1252"?>
+<?xml version="1.0" encoding="UTF-16"?>
 <rss version="2.0">
   <channel>
     <title>Justin Le's Advent of Code 2019 Reflections</title>
@@ -6,9 +6,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Wed,  4 Dec 2019 02:55:39 EST</lastBuildDate>
+    <lastBuildDate>Wed,  4 Dec 2019 02:58:28 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Wed,  4 Dec 2019 02:55:39 EST</pubDate>
+    <pubDate>Wed,  4 Dec 2019 02:58:28 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>

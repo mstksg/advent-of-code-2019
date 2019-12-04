@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<rss version="2.0">
+  <channel>
+    <title>Justin Le's Advent of Code 2019 Reflections</title>
+    <description>Reflections for my Advent of Code solutions as I try to solve them all in fun ways using Haskell!</description>
+    <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
+    <copyright>Copyright 2019 Justin Le</copyright>
+    <language>en-us</language>
+    <lastBuildDate>Wed,  4 Dec 2019 02:55:39 EST</lastBuildDate>
+    <managingEditor>justin@jle.im</managingEditor>
+    <pubDate>Wed,  4 Dec 2019 02:55:39 EST</pubDate>
+    <webMaster>justin@jle.im</webMaster>
+    <generator>Shake + Template</generator>
+    <item>
+      <title>Day 1</title>
+      <description>&lt;h2 id=&quot;day-1&quot;&gt;Day 1&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/1&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day01.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day01.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Haskell has a history of making Day 1’s seem trivial :) In this case it’s a straightforward map:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;fuel ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;fuel &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;subtract&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`div`&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;3&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;part1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; fuel&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;part2 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;sum&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;drop&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;takeWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;iterate&lt;/span&gt; fuel)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;These can be parsed with &lt;code&gt;map read . lines&lt;/code&gt;!&lt;/p&gt;
+&lt;p&gt;I accidentally forgot the &lt;code&gt;drop 1&lt;/code&gt; the first time I submitted, so I hit the cooldown. Teaches me to remember to test all my answers next time :)&lt;/p&gt;
+&lt;h3 id=&quot;day-1-benchmarks&quot;&gt;Day 1 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 01a
+benchmarking...
+time                 250.6 μs   (242.6 μs .. 269.2 μs)
+                     0.963 R²   (0.904 R² .. 1.000 R²)
+mean                 247.8 μs   (242.5 μs .. 268.6 μs)
+std dev              33.39 μs   (1.410 μs .. 70.89 μs)
+variance introduced by outliers: 87% (severely inflated)
+
+&amp;gt;&amp;gt; Day 01b
+benchmarking...
+time                 264.3 μs   (261.9 μs .. 268.9 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 265.4 μs   (263.5 μs .. 270.6 μs)
+std dev              9.985 μs   (3.934 μs .. 19.53 μs)
+variance introduced by outliers: 34% (moderately inflated)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-1</link>
+      <pubDate>Sun,  1 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
+    <item>
+      <title>Day 2</title>
+      <description>&lt;h2 id=&quot;day-2&quot;&gt;Day 2&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/2&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day02.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day02.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;So the bytecode/VM problems start day 2 this year, eh?&lt;/p&gt;
+&lt;p&gt;This one was also pretty straightforward. For these types of problems, I like to use &lt;code&gt;Data.IntMap&lt;/code&gt; or &lt;code&gt;Data.Sequence&lt;/code&gt; for the memory, since they both have &lt;em&gt;O(log n)&lt;/em&gt; indexing. &lt;code&gt;Data.Sequence&lt;/code&gt; is the better choice here because it’s basically &lt;code&gt;IntMap&lt;/code&gt; with the indices (0, 1, 2 …) automatically given for us :)&lt;/p&gt;
+&lt;p&gt;I usually use &lt;code&gt;Data.Sequence&lt;/code&gt; instead of &lt;code&gt;Data.Vector&lt;/code&gt; because it has a better story when you want to change the length (by adding or removing elements): &lt;code&gt;Data.Vector&lt;/code&gt; is very bad, unless you have some sort of amortized abstraction. However, in this case we don’t ever change the length, so &lt;code&gt;Data.Vector&lt;/code&gt; is technically just as good here :)&lt;/p&gt;
+&lt;p&gt;So parsing:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt;           &lt;span class=&quot;dt&quot;&gt;Data.List.Split&lt;/span&gt; (splitOn)&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt;           &lt;span class=&quot;dt&quot;&gt;Data.Sequence&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Seq&lt;/span&gt;(..))&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;qualified&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Data.Sequence&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Seq&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Seq&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parse ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;parse &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; (&lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;,) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; Seq.fromList &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; splitOn &lt;span class=&quot;st&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We write our stepping function:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;step ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;step (p, r) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;    o &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; Seq.lookup p r &lt;span class=&quot;op&quot;&gt;&amp;gt;&amp;gt;=&lt;/span&gt; \&lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;*&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;      _ &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; empty&lt;/span&gt;
+&lt;span id=&quot;cb2-7&quot;&gt;&lt;a href=&quot;#cb2-7&quot;&gt;&lt;/a&gt;    [a, b, c] &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;traverse&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`Seq.lookup`&lt;/span&gt; r) [p&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;3&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb2-8&quot;&gt;&lt;a href=&quot;#cb2-8&quot;&gt;&lt;/a&gt;    [y, z]    &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;traverse&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`Seq.lookup`&lt;/span&gt; r) [a,b]&lt;/span&gt;
+&lt;span id=&quot;cb2-9&quot;&gt;&lt;a href=&quot;#cb2-9&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; (p &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;4&lt;/span&gt;, Seq.update c (o y z) r)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And away we go!&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;runProg ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-2&quot;&gt;&lt;a href=&quot;#cb3-2&quot;&gt;&lt;/a&gt;runProg m&lt;span class=&quot;op&quot;&gt;@&lt;/span&gt;(_,r) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; step m &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-3&quot;&gt;&lt;a href=&quot;#cb3-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; Seq.lookup &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; r&lt;/span&gt;
+&lt;span id=&quot;cb3-4&quot;&gt;&lt;a href=&quot;#cb3-4&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; m&amp;#39; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; runProg m&amp;#39;&lt;/span&gt;
+&lt;span id=&quot;cb3-5&quot;&gt;&lt;a href=&quot;#cb3-5&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-6&quot;&gt;&lt;a href=&quot;#cb3-6&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-7&quot;&gt;&lt;a href=&quot;#cb3-7&quot;&gt;&lt;/a&gt;part1 str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; runProg (p, r&amp;#39;)&lt;/span&gt;
+&lt;span id=&quot;cb3-8&quot;&gt;&lt;a href=&quot;#cb3-8&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-9&quot;&gt;&lt;a href=&quot;#cb3-9&quot;&gt;&lt;/a&gt;    (p,r) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parse str&lt;/span&gt;
+&lt;span id=&quot;cb3-10&quot;&gt;&lt;a href=&quot;#cb3-10&quot;&gt;&lt;/a&gt;    r&amp;#39;    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; Seq.update &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;12&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; Seq.update &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; r&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;For part 2 we can just do a brute force search&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;part2 str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; listToMaybe&lt;/span&gt;
+&lt;span id=&quot;cb4-3&quot;&gt;&lt;a href=&quot;#cb4-3&quot;&gt;&lt;/a&gt;    [ (noun, verb)&lt;/span&gt;
+&lt;span id=&quot;cb4-4&quot;&gt;&lt;a href=&quot;#cb4-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; noun &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;op&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;99&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb4-5&quot;&gt;&lt;a href=&quot;#cb4-5&quot;&gt;&lt;/a&gt;    , verb &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;op&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;99&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb4-6&quot;&gt;&lt;a href=&quot;#cb4-6&quot;&gt;&lt;/a&gt;    , &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; r&amp;#39; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; Seq.update &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; noun &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; Seq.update &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; verb &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; r&lt;/span&gt;
+&lt;span id=&quot;cb4-7&quot;&gt;&lt;a href=&quot;#cb4-7&quot;&gt;&lt;/a&gt;    , runProg (p, r&amp;#39;) &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;19690720&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-8&quot;&gt;&lt;a href=&quot;#cb4-8&quot;&gt;&lt;/a&gt;    ]&lt;/span&gt;
+&lt;span id=&quot;cb4-9&quot;&gt;&lt;a href=&quot;#cb4-9&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-10&quot;&gt;&lt;a href=&quot;#cb4-10&quot;&gt;&lt;/a&gt;    (p, r) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parse str&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This doesn’t take too long on my machine! But for my &lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day02.hs&quot;&gt;actual solution&lt;/a&gt;, I actually used a binary search (that I had coded up for last year). I noticed that &lt;code&gt;noun&lt;/code&gt; increases the answer by a lot, and &lt;code&gt;verb&lt;/code&gt; increases it by a little, so by doing an binary search on &lt;code&gt;noun&lt;/code&gt;, then an binary search on &lt;code&gt;verb&lt;/code&gt;, you can get a good answer pretty quickly. My part 2 time (470 μs) is only twice as long as my part 1 time (260 μs) with the binary search. Happy that some prep time paid off :)&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2&amp;#39; ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2&amp;#39; str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;    noun &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; binaryMinSearch (\i &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;        runProg (p, Seq.update &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; (i &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;) r) &lt;span class=&quot;op&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; moon&lt;/span&gt;
+&lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;      ) &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;99&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-6&quot;&gt;&lt;a href=&quot;#cb5-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; r&amp;#39; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; Seq.update &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; noun r&lt;/span&gt;
+&lt;span id=&quot;cb5-7&quot;&gt;&lt;a href=&quot;#cb5-7&quot;&gt;&lt;/a&gt;    verb &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; binaryMinSearch (\i &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-8&quot;&gt;&lt;a href=&quot;#cb5-8&quot;&gt;&lt;/a&gt;        runProg (p, Seq.update &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; (i &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;) r) &lt;span class=&quot;op&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; moon&lt;/span&gt;
+&lt;span id=&quot;cb5-9&quot;&gt;&lt;a href=&quot;#cb5-9&quot;&gt;&lt;/a&gt;      ) &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;99&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-10&quot;&gt;&lt;a href=&quot;#cb5-10&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; (noun, verb)&lt;/span&gt;
+&lt;span id=&quot;cb5-11&quot;&gt;&lt;a href=&quot;#cb5-11&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-12&quot;&gt;&lt;a href=&quot;#cb5-12&quot;&gt;&lt;/a&gt;    moon &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;19690720&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-13&quot;&gt;&lt;a href=&quot;#cb5-13&quot;&gt;&lt;/a&gt;    (p, r) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parse str&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This gets us an O(log n) search instead of an O(n^2) search, cutting down times pretty nicely.&lt;/p&gt;
+&lt;p&gt;Just for the same of completion, I’m including my implementation of &lt;code&gt;binaryMinSearch&lt;/code&gt; here. It’s tucked away in my utilities/common functionality file normally!&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- | Find the lowest value where the predicate is satisfied within the&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- given bounds.&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;binaryMinSearch&lt;/span&gt;
+&lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Bool&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb6-5&quot;&gt;&lt;a href=&quot;#cb6-5&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;                  &lt;span class=&quot;co&quot;&gt;-- ^ min&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-6&quot;&gt;&lt;a href=&quot;#cb6-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;                  &lt;span class=&quot;co&quot;&gt;-- ^ max&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-7&quot;&gt;&lt;a href=&quot;#cb6-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-8&quot;&gt;&lt;a href=&quot;#cb6-8&quot;&gt;&lt;/a&gt;binaryMinSearch p &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; go&lt;/span&gt;
+&lt;span id=&quot;cb6-9&quot;&gt;&lt;a href=&quot;#cb6-9&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-10&quot;&gt;&lt;a href=&quot;#cb6-10&quot;&gt;&lt;/a&gt;    go &lt;span class=&quot;op&quot;&gt;!&lt;/span&gt;x &lt;span class=&quot;op&quot;&gt;!&lt;/span&gt;y&lt;/span&gt;
+&lt;span id=&quot;cb6-11&quot;&gt;&lt;a href=&quot;#cb6-11&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; x &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; mid &lt;span class=&quot;op&quot;&gt;||&lt;/span&gt; y &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; mid &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; (x &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb6-12&quot;&gt;&lt;a href=&quot;#cb6-12&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; p mid                &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; go x mid&lt;/span&gt;
+&lt;span id=&quot;cb6-13&quot;&gt;&lt;a href=&quot;#cb6-13&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;otherwise&lt;/span&gt;            &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; go mid y&lt;/span&gt;
+&lt;span id=&quot;cb6-14&quot;&gt;&lt;a href=&quot;#cb6-14&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-15&quot;&gt;&lt;a href=&quot;#cb6-15&quot;&gt;&lt;/a&gt;        mid &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; ((y &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; x) &lt;span class=&quot;ot&quot;&gt;`div`&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; x&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&quot;day-2-benchmarks&quot;&gt;Day 2 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 02a
+benchmarking...
+time                 272.9 μs   (257.7 μs .. 296.2 μs)
+                     0.974 R²   (0.953 R² .. 1.000 R²)
+mean                 265.9 μs   (259.3 μs .. 285.0 μs)
+std dev              32.76 μs   (5.613 μs .. 60.80 μs)
+variance introduced by outliers: 85% (severely inflated)
+
+&amp;gt;&amp;gt; Day 02b
+benchmarking...
+time                 464.2 μs   (450.5 μs .. 501.3 μs)
+                     0.961 R²   (0.892 R² .. 1.000 R²)
+mean                 462.9 μs   (452.3 μs .. 494.3 μs)
+std dev              63.73 μs   (6.510 μs .. 122.1 μs)
+variance introduced by outliers: 86% (severely inflated)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-2</link>
+      <pubDate>Mon,  2 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
+    <item>
+      <title>Day 3</title>
+      <description>&lt;h2 id=&quot;day-3&quot;&gt;Day 3&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/3&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day03.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day03.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;As another data processing one, I feel like this might be another win for Haskell as well :) My part 2 leaderboard position was much higher than my part1 position — my suspicion is that the new twist made it difficult for imperative coders, but the twist was naturally handled in the Haskell case.&lt;/p&gt;
+&lt;p&gt;First off, I’m going to parse the path not as a series of directions and numbers, but rather as a list of each individual step to take. This was similar to my approach for &lt;a href=&quot;https://adventofcode.com/2016/day/1&quot;&gt;2016 Day 1&lt;/a&gt;. I’m using my favorite type for describing points, &lt;a href=&quot;https://hackage.haskell.org/package/linear/docs/Linear-V2.html&quot;&gt;V2&lt;/a&gt;, because it has a really useful &lt;code&gt;Num&lt;/code&gt; instance to support addition of points.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt;           &lt;span class=&quot;dt&quot;&gt;Data.List.Split&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt;           &lt;span class=&quot;dt&quot;&gt;Linear.V2&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parsePath ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;parsePath &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;concatMap&lt;/span&gt; parsePoint &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; splitOn &lt;span class=&quot;st&quot;&gt;&amp;quot;,&amp;quot;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;    parsePoint (d&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ns) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;replicate&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;read&lt;/span&gt; ns) &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; d &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;ch&quot;&gt;&amp;#39;U&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt;   &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;    &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;ch&quot;&gt;&amp;#39;R&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt;   &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;    &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;ch&quot;&gt;&amp;#39;D&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt;   &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;  (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;ch&quot;&gt;&amp;#39;L&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;)   &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;    parsePoint _      &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; []&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now, our list of points is simply a cumulative sum, which comes from our best friend &lt;code&gt;scanl&#39;&lt;/code&gt; (and family). We use &lt;code&gt;scanl1&lt;/code&gt; to get the running sum of all the direction pieces, and get the set of all points.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;visited ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;visited &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.fromList &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;scanl1&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now Part 1 is:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-2&quot;&gt;&lt;a href=&quot;#cb3-2&quot;&gt;&lt;/a&gt;part1 str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;minimum&lt;/span&gt; (S.map mannDist (S.intersection xs ys))&lt;/span&gt;
+&lt;span id=&quot;cb3-3&quot;&gt;&lt;a href=&quot;#cb3-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-4&quot;&gt;&lt;a href=&quot;#cb3-4&quot;&gt;&lt;/a&gt;    [xs, ys] &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (visited &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; parsePath) (&lt;span class=&quot;fu&quot;&gt;lines&lt;/span&gt; str)&lt;/span&gt;
+&lt;span id=&quot;cb3-5&quot;&gt;&lt;a href=&quot;#cb3-5&quot;&gt;&lt;/a&gt;    mannDist (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x y) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;abs&lt;/span&gt; x &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;abs&lt;/span&gt; y&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Once we get the intersection (the set of points that are visited by both), we can map the &lt;code&gt;mannDist&lt;/code&gt; over each intersection and find the minimum.&lt;/p&gt;
+&lt;p&gt;Part 2 adds an “extra twist”, in that now we also want to keep track of the time it takes to reach each point. This requires only a small tweak to &lt;code&gt;visited&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;visited2 ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;) &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;visited2 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; M.fromListWith &lt;span class=&quot;fu&quot;&gt;min&lt;/span&gt;        &lt;span class=&quot;co&quot;&gt;-- turn it into a map, keeping first seen&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-3&quot;&gt;&lt;a href=&quot;#cb4-3&quot;&gt;&lt;/a&gt;         &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;flip&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;zip&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;op&quot;&gt;..&lt;/span&gt;]            &lt;span class=&quot;co&quot;&gt;-- list of (sum, time taken)&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-4&quot;&gt;&lt;a href=&quot;#cb4-4&quot;&gt;&lt;/a&gt;         &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;scanl1&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;)                &lt;span class=&quot;co&quot;&gt;-- running sum&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We pair each item in the running sum with the time taken, and so get a map of points seen to time taken to get to that point. We make sure to use &lt;code&gt;M.fromListWith min&lt;/code&gt; so that we keep the &lt;em&gt;lowest&lt;/em&gt; time at each point.&lt;/p&gt;
+&lt;p&gt;Part 2 is very similar, then:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2 str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;minimum&lt;/span&gt; (M.intersectionWith (&lt;span class=&quot;op&quot;&gt;+&lt;/span&gt;) xs ys)&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;    [xs, ys] &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (visited2 &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; parsePath) (&lt;span class=&quot;fu&quot;&gt;lines&lt;/span&gt; str)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Using &lt;code&gt;M.intersectionWith (+)&lt;/code&gt; instead of &lt;code&gt;S.intersection&lt;/code&gt;, because we want the map that has the same keys in both paths, while adding together the times at each key.&lt;/p&gt;
+&lt;p&gt;Note that we can actually solve &lt;code&gt;part1&lt;/code&gt; using &lt;code&gt;visited2&lt;/code&gt; instead of &lt;code&gt;visited&lt;/code&gt;…because we can “forget” the values in a &lt;code&gt;Map (V2 Int) Int&lt;/code&gt; by using &lt;code&gt;M.keysSet :: Map k a -&amp;gt; Set k&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&quot;day-3-benchmarks&quot;&gt;Day 3 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 03a
+benchmarking...
+time                 298.0 ms   (276.8 ms .. 322.1 ms)
+                     0.998 R²   (0.991 R² .. 1.000 R²)
+mean                 303.0 ms   (297.7 ms .. 307.2 ms)
+std dev              6.642 ms   (5.044 ms .. 7.689 ms)
+variance introduced by outliers: 16% (moderately inflated)
+
+&amp;gt;&amp;gt; Day 03b
+benchmarking...
+time                 296.3 ms   (283.1 ms .. 314.1 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 291.8 ms   (284.5 ms .. 295.8 ms)
+std dev              6.753 ms   (2.482 ms .. 8.958 ms)
+variance introduced by outliers: 16% (moderately inflated)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-3</link>
+      <pubDate>Tue,  3 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
+    <item>
+      <title>Day 4</title>
+      <description>&lt;h2 id=&quot;day-4&quot;&gt;Day 4&lt;/h2&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/4&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day04.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day04.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;I should probably appreciate these Haskell freebies while they still last :) I have a feeling they’re not going to be this frictionless for long!&lt;/p&gt;
+&lt;p&gt;Parsing in the range we can use &lt;code&gt;splitOn&lt;/code&gt; again:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;fu&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;ot&quot;&gt; ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;fu&quot;&gt;range&lt;/span&gt; str &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [x&lt;span class=&quot;op&quot;&gt;..&lt;/span&gt;y]&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;    [x, y] &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt;  &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;read&lt;/span&gt; (splitOn &lt;span class=&quot;st&quot;&gt;&amp;quot;-&amp;quot;&lt;/span&gt; str)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;It’s also handy to have a function for giving us consecutive pairs of items:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;consecs ::&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [(a,a)]&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;consecs xs &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;zip&lt;/span&gt; xs (&lt;span class=&quot;fu&quot;&gt;tail&lt;/span&gt; xs)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now for the fun part: making our filters! For part 1, we have two filters on the digits: first, that the digits are monotonic, and second, that at least one pair of consecutive digits matches:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;mono ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Ord&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Bool&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-2&quot;&gt;&lt;a href=&quot;#cb3-2&quot;&gt;&lt;/a&gt;mono &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;all&lt;/span&gt; (\(x,y) &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; x &lt;span class=&quot;op&quot;&gt;&amp;gt;=&lt;/span&gt; y) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; consecs&lt;/span&gt;
+&lt;span id=&quot;cb3-3&quot;&gt;&lt;a href=&quot;#cb3-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-4&quot;&gt;&lt;a href=&quot;#cb3-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;dups ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Bool&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-5&quot;&gt;&lt;a href=&quot;#cb3-5&quot;&gt;&lt;/a&gt;dups &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;any&lt;/span&gt; (\(x,y) &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; x &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; y) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; consecs&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;For part 2, we have two filters: the same &lt;code&gt;mono&lt;/code&gt; filter, but also that we have a group that is &lt;em&gt;exactly&lt;/em&gt; length two. For that we can use &lt;code&gt;group&lt;/code&gt;, which groups a list into chunks of equal items: &lt;code&gt;group &quot;abbbcc&quot; == [&quot;a&quot;,&quot;bbb&quot;,&quot;cc&quot;]&lt;/code&gt;. We then check if any of the chunks have a length of exactly two:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;strictDups ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Bool&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;strictDups &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;any&lt;/span&gt; ((&lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;group&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And from here, we just run our filters on the range and count the number of items:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (\x &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;all&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;show&lt;/span&gt; x) [mono, dups      ]) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;range&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;part1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (\x &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;all&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;show&lt;/span&gt; x) [mono, strictDups]) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;range&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;(Also, note to self next time … if going for time, if you just have two numbers in your input, just enter the numbers directly into the source file at first, heh, instead of trying to parse them)&lt;/p&gt;
+&lt;h3 id=&quot;day-4-benchmarks&quot;&gt;Day 4 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 04a
+benchmarking...
+time                 43.74 ms   (43.45 ms .. 44.29 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 43.58 ms   (43.49 ms .. 43.90 ms)
+std dev              317.6 μs   (129.3 μs .. 563.4 μs)
+
+&amp;gt;&amp;gt; Day 04b
+benchmarking...
+time                 44.23 ms   (43.64 ms .. 44.81 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 44.19 ms   (43.99 ms .. 44.76 ms)
+std dev              551.8 μs   (199.9 μs .. 1.001 ms)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-4</link>
+      <pubDate>Wed,  4 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
+  </channel>
+</rss>

@@ -42,7 +42,7 @@ day04a = MkSol
     , sShow  = show
     , sSolve = Just
              . length
-             . filter (\x -> all ($ show x) [monotonic, doubles])
+             . filter (\x -> all ($ show x) [monotonic, doubles      ])
     }
 
 day04b :: [Int] :~> Int

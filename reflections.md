@@ -352,7 +352,7 @@ Parsing in the range we can use `splitOn` again:
 range :: String -> [Int]
 range str = [x..y]
   where
-    [x, y] =  read <$> splitOn "-" str
+    [x, y] =  map read (splitOn "-" str)
 ```
 
 It's also handy to have a function for giving us consecutive pairs of items:

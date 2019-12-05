@@ -116,6 +116,9 @@ fixedPoint :: Eq a => (a -> a) -> a -> a
 -- | Flood fill from a starting set
 floodFill :: Ord a => (a -> Set a) -> Set a -> Set a
 
+-- | Count the number of items in a container where the predicate is true.
+countTrue :: Foldable f => (a -> Bool) -> f a -> Int
+
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
 
@@ -2909,18 +2912,7 @@ put :: MonadState s m => s -> m ()
 
 -- | Embed a simple state action into the monad.
 state :: MonadState s m => (s -> (a, s)) -> m a
-
--- | Finite number type. <tt><a>Finite</a> n</tt> is inhabited by exactly
---   <tt>n</tt> values. Invariants:
---   
---   <pre>
---   getFinite x &lt; natVal x
---   </pre>
---   
---   <pre>
---   getFinite x &gt;= 0
---   </pre>
-data Finite (n :: Nat)
+zonedTimeToUTC :: ZonedTime -> UTCTime
 
 -- | This is the simplest representation of UTC. It consists of the day
 --   number, and a time offset from midnight. Note that if a day has a leap
@@ -2934,6 +2926,31 @@ UTCTime :: Day -> DiffTime -> UTCTime
 -- | the time from midnight, 0 &lt;= t &lt; 86401s (because of
 --   leap-seconds)
 [utctDayTime] :: UTCTime -> DiffTime
+
+-- | This is a length of time, as measured by UTC. Conversion functions
+--   will treat it as seconds. It has a precision of 10^-12 s. It ignores
+--   leap-seconds, so it's not necessarily a fixed amount of clock time.
+--   For instance, 23:00 UTC + 2 hours of NominalDiffTime = 01:00 UTC (+ 1
+--   day), regardless of whether a leap-second intervened.
+data NominalDiffTime
+
+-- | A local time together with a time zone.
+data ZonedTime
+ZonedTime :: LocalTime -> TimeZone -> ZonedTime
+[zonedTimeToLocalTime] :: ZonedTime -> LocalTime
+[zonedTimeZone] :: ZonedTime -> TimeZone
+
+-- | Finite number type. <tt><a>Finite</a> n</tt> is inhabited by exactly
+--   <tt>n</tt> values. Invariants:
+--   
+--   <pre>
+--   getFinite x &lt; natVal x
+--   </pre>
+--   
+--   <pre>
+--   getFinite x &gt;= 0
+--   </pre>
+data Finite (n :: Nat)
 
 -- | A bifunctor is a type constructor that takes two type arguments and is
 --   a functor in <i>both</i> arguments. That is, unlike with
@@ -17549,14 +17566,7 @@ buildTime :: ParseTime t => TimeLocale -> [(Char, String)] -> Maybe t
 
 utcToLocalZonedTime :: UTCTime -> IO ZonedTime
 getZonedTime :: IO ZonedTime
-zonedTimeToUTC :: ZonedTime -> UTCTime
 utcToZonedTime :: TimeZone -> UTCTime -> ZonedTime
-
--- | A local time together with a time zone.
-data ZonedTime
-ZonedTime :: LocalTime -> TimeZone -> ZonedTime
-[zonedTimeToLocalTime] :: ZonedTime -> LocalTime
-[zonedTimeZone] :: ZonedTime -> TimeZone
 
 -- | Format string according to <a>RFC822</a>.
 rfc822DateFormat :: String
@@ -17735,13 +17745,6 @@ getTime_resolution :: DiffTime
 -- | One day in <a>NominalDiffTime</a>.
 nominalDay :: NominalDiffTime
 
--- | This is a length of time, as measured by UTC. Conversion functions
---   will treat it as seconds. It has a precision of 10^-12 s. It ignores
---   leap-seconds, so it's not necessarily a fixed amount of clock time.
---   For instance, 23:00 UTC + 2 hours of NominalDiffTime = 01:00 UTC (+ 1
---   day), regardless of whether a leap-second intervened.
-data NominalDiffTime
-
 -- | Get the number of picoseconds in a <a>DiffTime</a>.
 diffTimeToPicoseconds :: DiffTime -> Integer
 
@@ -17883,6 +17886,9 @@ firstRepeated :: Ord a => [a] -> Maybe a
 
 -- | Repeat a function until you get the same result twice.
 fixedPoint :: Eq a => (a -> a) -> a -> a
+
+-- | Count the number of items in a container where the predicate is true.
+countTrue :: Foldable f => (a -> Bool) -> f a -> Int
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
@@ -18466,23 +18472,6 @@ module AOC.Challenge.Day06
 module AOC.Challenge.Day05
 
 
--- | Day 4. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day04
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18531,6 +18520,12 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
 
 
+-- | Day 4. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day04
+day04a :: [Int] :~> Int
+day04b :: [Int] :~> Int
+
+
 -- | Day 3. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day03
 day03a :: NonEmpty Path :~> Int
@@ -18569,8 +18564,6 @@ CS :: Day -> Part -> ChallengeSpec
 --   You can usually get <a>Part1</a> (if it is already released) with a
 --   nonsense session key, but <a>Part2</a> always requires a valid session
 --   key.
---   
---   Note also that Challenge #25 typically only has a single part.
 data Part
 Part1 :: Part
 Part2 :: Part
@@ -18727,13 +18720,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Esa
-mainRunOpts :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa MainRunOpts
-mroBench :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
-mroInput :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
-mroSpec :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa TestSpec
-mroTest :: HasMainRunOpts c_a1Esa => Lens' c_a1Esa Bool
+class HasMainRunOpts c_a1Feo
+mainRunOpts :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo MainRunOpts
+mroBench :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
+mroInput :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
+mroSpec :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo TestSpec
+mroTest :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18746,10 +18739,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1EyI
-mainViewOpts :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI TestSpec
-mvoWait :: HasMainViewOpts c_a1EyI => Lens' c_a1EyI Bool
+class HasMainViewOpts c_a1FkW
+mainViewOpts :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW TestSpec
+mvoWait :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18770,12 +18763,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1ED1
-mainSubmitOpts :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
-msoLock :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
-msoSpec :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1ED1 => Lens' c_a1ED1 Bool
+class HasMainSubmitOpts c_a1Fpf
+mainSubmitOpts :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
+msoLock :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
+msoSpec :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

@@ -7,13 +7,15 @@
 
 -- | Assemble README and Reflections
 
+import           Control.Monad
 import           Data.Char
 import           Data.Foldable
+import           Data.List
 import           Data.Maybe
 import           Data.String.AnsiEscapeCodes.Strip.Text
+import           Data.Text                              (Text)
 import           Data.Text.Template
 import           Data.Time
-import           Data.Traversable
 import           Development.Shake
 import           Development.Shake.FilePath
 import           Text.Printf
@@ -27,14 +29,19 @@ import qualified HTMLEntities.Text                      as H
 -- CONSTANTS
 year :: Integer
 year = 2019
+github :: String
+github = "mstksg"
+otherYears :: S.Set Integer
+otherYears = S.fromList [2016 .. 2019]
 
-ctx0 :: M.Map T.Text T.Text
+ctx0 :: M.Map Text Text
 ctx0 = M.fromList [
     ("year"  , T.pack (show year)                                   )
-  , ("github", "mstksg"                                             )
+  , ("github", T.pack github                                        )
   , ("name"  , "Justin Le"                                          )
   , ("email" , "justin@jle.im"                                      )
   , ("rss"   , "http://feeds.feedburner.com/jle-advent-of-code-2019")
+  , ("other_years", yearLinks                                       )
   ]
 
 opts :: ShakeOptions
@@ -46,18 +53,6 @@ opts = shakeOptions { shakeFiles     = "_build"
 
 parseDayFp :: FilePath -> Maybe Int
 parseDayFp = readMaybe . filter isDigit . takeBaseName
-
-mkLinks :: Int -> [String]
-mkLinks d = [
-    printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
-      d year d
-  , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
-      d year d
-  , printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
-      d year d
-  , printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
-      d year d
-  ]
 
 reflPath :: Int -> FilePath
 reflPath d = "reflections" </> printf "day%02d.md" d
@@ -76,12 +71,17 @@ main = shakeArgs opts $ do
         days   <- getDays
         bodies <- forM (toList days) $ \d ->
           T.pack <$> readFile' (reflOutPath d)
-        let toc = flip map (toList days) $ \d ->
+        let yearUrls   = tUnlines' . flip foldMap otherYears $ \oy ->
+              T.pack
+                (printf "[%04d]: https://github.com/%s/advent-of-code-%04d/blob/master/reflections.md" oy github oy)
+                    <$ guard (oy /= year)
+            toc = flip map (toList days) $ \d ->
                     printf "* [Day %d](#day-%d)" d d
 
             ctx = ctx0 <> M.fromList
-              [ ("toc" , T.pack $ unlines toc         )
+              [ ("toc" , T.pack $ unlines' toc         )
               , ("body", T.intercalate "\n\n\n" bodies)
+              , ("other_links", yearUrls    )
               ]
         writeTemplate fp ctx "template/reflections.md.template"
 
@@ -94,14 +94,18 @@ main = shakeArgs opts $ do
               | otherwise         =
                   printf "| Day %2d    |             |           |            |            |"
                     d
-            table = unlines $
+            table = unlines' $
                "| Challenge | Reflections | Code      | Rendered   | Benchmarks |"
              : "| --------- | ----------- | --------- | ---------- | ---------- |"
              : map mkRow [1..25]
-            links = concatMap mkLinks days
+            links      = unlines' . concatMap mkLinks $ days
+            yearUrls   = tUnlines' . flip foldMap otherYears $ \oy ->
+                T.pack (printf "[%04d]: https://github.com/%s/advent-of-code-%04d" oy github oy)
+                    <$ guard (oy /= year)
             ctx = ctx0 <> M.fromList
-                [ ("table", T.pack table          )
-                , ("links", T.pack (unlines links))
+                [ ("table"      , T.pack table)
+                , ("links"      , T.pack links)
+                , ("other_links", yearUrls    )
                 ]
         writeTemplate fp ctx "template/README.md.template"
 
@@ -159,3 +163,26 @@ main = shakeArgs opts $ do
     writeTemplate fp ctx templ = do
       out <- flip substitute (ctx M.!) . T.pack <$> readFile' templ
       writeFileChanged fp (TL.unpack out)
+
+yearLinks :: Text
+yearLinks  = T.intercalate " / " . flip map (S.toList otherYears) $ \oy ->
+    let linker | oy == year = "%04d"
+               | otherwise  = "[%04d][]"
+    in  T.pack $ printf "*%s*" (printf linker oy :: String)
+
+mkLinks :: Int -> [String]
+mkLinks d = [
+    printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
+      d year d
+  , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
+      d year d
+  , printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
+      d year d
+  , printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
+      d year d
+  ]
+
+unlines' :: [String] -> String
+unlines' = intercalate "\n"
+tUnlines' :: [Text] -> Text
+tUnlines' = T.intercalate "\n"

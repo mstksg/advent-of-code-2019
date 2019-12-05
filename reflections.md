@@ -379,16 +379,7 @@ that file instead!
 I should probably appreciate these Haskell freebies while they still last :)  I
 have a feeling they're not going to be this frictionless for long!
 
-Parsing in the range we can use `splitOn` again:
-
-```haskell
-range :: String -> [Int]
-range str = [x..y]
-  where
-    [x, y] =  map read (splitOn "-" str)
-```
-
-It's also handy to have a function for giving us consecutive pairs of items:
+It's handy to have a function for giving us consecutive pairs of items:
 
 ```haskell
 consecs :: [a] -> [(a,a)]
@@ -421,16 +412,28 @@ And from here, we just run our filters on the range and count the number of
 items:
 
 ```haskell
-part1 :: String -> Int
-part1 = length . filter (\x -> all ($ show x) [mono, dups      ]) . range
+part1 :: Int -> Int -> Int
+part1 mn mx = length . filter (\x -> all ($ show x) [mono, dups      ])
+            $ [mn .. mx]
 
-part2 :: String -> Int
-part2 = length . filter (\x -> all ($ show x) [mono, strictDups]) . range
+part2 :: Int -> Int -> Int
+part2 mn mx = length . filter (\x -> all ($ show x) [mono, strictDups]) . range
+            $ [mn .. mx]
+```
+
+For parsing the range, we can use `splitOn` again:
+
+```haskell
+range :: String -> (x, y)
+range str = (x, y)
+  where
+    [x, y] =  map read (splitOn "-" str)
 ```
 
 (Also, note to self next time ... if going for time, if you just have two
 numbers in your input, just enter the numbers directly into the source file at
 first, heh, instead of trying to parse them)
+
 
 
 ### Day 4 Benchmarks

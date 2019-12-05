@@ -73,12 +73,15 @@ eitherToMaybe :: Alternative m => Either e a -> m a
 
 -- | Like <a>find</a>, but instead of taking an <tt>a -&gt; Bool</tt>,
 --   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
-findMaybe :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
+firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 
 -- | Convert a <a>Maybe</a> into an <a>Either</a>, or any <a>MonadError</a>
 --   instance, by providing an error value in case <a>Nothing</a> was
 --   given.
 maybeToEither :: MonadError e m => e -> Maybe a -> m a
+
+-- | Generalize a <a>Maybe</a> to any <a>Alternative</a>
+maybeAlt :: Alternative m => Maybe a -> m a
 
 
 -- | Common functions for solutions
@@ -91,9 +94,13 @@ iterateMaybe :: (a -> Maybe a) -> a -> [a]
 --   produced value.
 loopMaybe :: (a -> Maybe a) -> a -> a
 
--- | Find the first value where the function is <a>Just</a>.
-firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
-lastMaybe :: Foldable f => f a -> Maybe a
+-- | Apply monadic function until <a>Nothing</a> is produced, and return
+--   last produced value.
+loopMaybeM :: Monad m => (a -> m (Maybe a)) -> a -> m a
+
+-- | Like <a>find</a>, but instead of taking an <tt>a -&gt; Bool</tt>,
+--   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
+firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -17835,7 +17842,10 @@ maybeToEither :: MonadError e m => e -> Maybe a -> m a
 
 -- | Like <a>find</a>, but instead of taking an <tt>a -&gt; Bool</tt>,
 --   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
-findMaybe :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
+firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
+
+-- | Generalize a <a>Maybe</a> to any <a>Alternative</a>
+maybeAlt :: Alternative m => Maybe a -> m a
 
 -- | Use a stream of tokens <tt>a</tt> as the underlying parser stream.
 --   Note that error messages for parser errors are going necessarily to be
@@ -17867,10 +17877,10 @@ iterateMaybe :: (a -> Maybe a) -> a -> [a]
 -- | Apply function until <a>Nothing</a> is produced, and return last
 --   produced value.
 loopMaybe :: (a -> Maybe a) -> a -> a
-lastMaybe :: Foldable f => f a -> Maybe a
 
--- | Find the first value where the function is <a>Just</a>.
-firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
+-- | Apply monadic function until <a>Nothing</a> is produced, and return
+--   last produced value.
+loopMaybeM :: Monad m => (a -> m (Maybe a)) -> a -> m a
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
@@ -18470,6 +18480,22 @@ module AOC.Challenge.Day06
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day05
+day05a :: Memory :~> Int
+day05b :: Memory :~> Int
+
+-- | Magically fills a fixed-shape <a>Applicative</a> with each mode from a
+--   mode op int.
+fillModes :: (Traversable t, Applicative t) => Int -> t Mode
+instance GHC.Show.Show AOC.Challenge.Day05.InstrRes
+instance GHC.Show.Show AOC.Challenge.Day05.Instr
+instance GHC.Enum.Enum AOC.Challenge.Day05.Instr
+instance GHC.Classes.Ord AOC.Challenge.Day05.Instr
+instance GHC.Classes.Eq AOC.Challenge.Day05.Instr
+instance GHC.Show.Show AOC.Challenge.Day05.Mode
+instance GHC.Enum.Enum AOC.Challenge.Day05.Mode
+instance GHC.Classes.Ord AOC.Challenge.Day05.Mode
+instance GHC.Classes.Eq AOC.Challenge.Day05.Mode
+instance GHC.Show.Show AOC.Challenge.Day05.Memory
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -18720,13 +18746,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Feo
-mainRunOpts :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo MainRunOpts
-mroBench :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
-mroInput :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
-mroSpec :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo TestSpec
-mroTest :: HasMainRunOpts c_a1Feo => Lens' c_a1Feo Bool
+class HasMainRunOpts c_a1Jcr
+mainRunOpts :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr MainRunOpts
+mroBench :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
+mroInput :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
+mroSpec :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr TestSpec
+mroTest :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18739,10 +18765,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1FkW
-mainViewOpts :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW TestSpec
-mvoWait :: HasMainViewOpts c_a1FkW => Lens' c_a1FkW Bool
+class HasMainViewOpts c_a1JiZ
+mainViewOpts :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ TestSpec
+mvoWait :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18763,12 +18789,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Fpf
-mainSubmitOpts :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
-msoLock :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
-msoSpec :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Fpf => Lens' c_a1Fpf Bool
+class HasMainSubmitOpts c_a1Jni
+mainSubmitOpts :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
+msoLock :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
+msoSpec :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

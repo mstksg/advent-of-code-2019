@@ -196,4 +196,4 @@ pullStdin inputCache d = readIORef inputCache >>= \case
                   evaluate . force =<< getContents
       writeIORef inputCache . Just $ (d,) <$> out
       pure out
-    Just old -> pure . findMaybe (\(d',o) -> o <$ guard (d == d')) $ old
+    Just old -> pure . firstJust (\(d',o) -> o <$ guard (d == d')) $ old

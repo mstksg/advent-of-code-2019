@@ -17,8 +17,8 @@ module AOC.Common (
   -- * Loops and searches
     iterateMaybe
   , loopMaybe
+  , loopMaybeM
   , firstJust
-  , lastMaybe
   , (!!!)
   , dup
   , scanlT
@@ -146,12 +146,18 @@ loopMaybe f = go
       Nothing -> x
       Just !y -> go y
 
-lastMaybe :: Foldable f => f a -> Maybe a
-lastMaybe = fmap getLast . foldMap (Just . Last)
-
--- | Find the first value where the function is 'Just'.
-firstJust :: Foldable f => (a -> Maybe b) -> f a -> Maybe b
-firstJust f = listToMaybe . mapMaybe f . toList
+-- | Apply monadic function until 'Nothing' is produced, and return last produced
+-- value.
+loopMaybeM
+    :: Monad m
+    => (a -> m (Maybe a))
+    -> a
+    -> m a
+loopMaybeM f = go
+  where
+    go !x = f x >>= \case
+      Nothing -> pure x
+      Just !y -> go y
 
 -- | A tuple of the same item twice
 dup :: a -> (a, a)

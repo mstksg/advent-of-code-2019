@@ -13,8 +13,9 @@
 module AOC.Util (
     strip
   , eitherToMaybe
-  , findMaybe
+  , firstJust
   , maybeToEither
+  , maybeAlt
   ) where
 
 import           Control.Applicative
@@ -38,9 +39,13 @@ maybeToEither e = maybe (throwError e) pure
 
 -- | Like 'find', but instead of taking an @a -> Bool@, takes an @a ->
 -- Maybe b@ and returns the first success.
-findMaybe
+firstJust
     :: Foldable t
     => (a -> Maybe b)
     -> t a
     -> Maybe b
-findMaybe p = asum . map p . toList
+firstJust p = asum . map p . toList
+
+-- | Generalize a 'Maybe' to any 'Alternative'
+maybeAlt :: Alternative m => Maybe a -> m a
+maybeAlt = maybe empty pure

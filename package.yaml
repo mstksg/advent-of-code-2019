@@ -76,6 +76,7 @@ library:
   - containers
   - criterion
   - data-default-class
+  - comonad
   - data-memocombinators
   - deepseq
   - directory

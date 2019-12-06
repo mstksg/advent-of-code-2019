@@ -15,25 +15,27 @@ module AOC.Challenge.Day05 (
   , fillModes
   ) where
 
-import           AOC.Common               (loopMaybeM)
-import           AOC.Solver               ((:~>)(..))
-import           AOC.Util                 (maybeToEither, eitherToMaybe)
+import           AOC.Common                (loopMaybeM)
+import           AOC.Solver                ((:~>)(..))
+import           AOC.Util                  (maybeToEither, eitherToMaybe)
 import           Control.Applicative
-import           Control.Monad            (void)
-import           Control.Monad.Except     (MonadError(..))
-import           Control.Monad.State      (MonadState(..), runStateT)
-import           Data.Conduit             (ConduitT, await, yield, (.|), runConduit)
+import           Control.Monad             (void)
+import           Control.Monad.Except      (MonadError(..))
+import           Control.Monad.Loops
+import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
+import           Data.Conduit              (ConduitT, await, yield, (.|), runConduit)
 import           Data.Conduit.Lift
-import           Data.List.Split          (splitOn)
-import           Data.Map                 (Map)
-import           Data.Sequence            (Seq)
-import           Data.Traversable         (for, mapAccumL)
-import           Linear                   (V0(..), V1(..), V2(..))
-import           Safe                     (lastMay)
-import           Text.Read                (readMaybe)
-import qualified Data.Conduit.Combinators as C
-import qualified Data.Map                 as M
-import qualified Data.Sequence            as Seq
+import           Data.List.Split           (splitOn)
+import           Data.Map                  (Map)
+import           Data.Sequence             (Seq)
+import           Data.Traversable          (for, mapAccumL)
+import           Linear                    (V0(..), V1(..), V2(..))
+import           Safe                      (lastMay)
+import           Text.Read                 (readMaybe)
+import qualified Data.Conduit.Combinators  as C
+import qualified Data.Map                  as M
+import qualified Data.Sequence             as Seq
 
 data Memory = Mem
     { mPos  :: Int
@@ -50,8 +52,8 @@ data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | Hlt
 -- readMem :: Memory -> Maybe (Int, Memory)
 -- readMem (Mem p r) = (, Mem (p + 1) r) <$> Seq.lookup p r
 
-seekMem :: Int -> Memory -> Memory
-seekMem i (Mem _ r) = Mem i r
+-- seekMem :: Int -> Memory -> Memory
+-- seekMem i (Mem _ r) = Mem i r
 
 instrMap :: Map Int Instr
 instrMap = M.fromList $
@@ -103,13 +105,12 @@ peekMem i = do
       Nothing -> throwError "bad index"
       Just x  -> pure x
 
-
 runInstrOp
     :: (Traversable t, MonadError String m, MonadState Memory m)
     => t Mode
     -> (t Int -> m InstrRes)
     -> m InstrRes
-runInstrOp m0 modes f = do
+runInstrOp modes f = do
     inp <- for modes $ \mode -> do
       a <- readMem
       case mode of
@@ -128,28 +129,36 @@ fillModes i = snd $ mapAccumL go i (pure ())
 
 step
     :: (MonadError String m, MonadState Memory m)
-    => ConduitT Int Int m (Maybe Memory)
+    => ConduitT Int Int m Bool
 step = do
     x <- readMem
     o <- maybeToEither "bad instr" $ instr x
-    undefined
-    -- case instrOp o of
-    --   InstrOp f -> do
-    --     (ir, q) <- runInstrOp m (fillModes (x `div` 100)) f
-    --     case ir of
-    --       IRWrite y -> do
-    --         c <- maybeToEither "bad index" $ Seq.lookup q r
-    --         pure . Just $ Mem (q + 1) (Seq.update c y r)
-    --       IRJump  z ->
-    --         pure . Just $ Mem z r
-    --       IRNop     ->
-    --         pure . Just $ Mem q r
-    --       IRHalt    -> pure Nothing
+    case instrOp o of
+      InstrOp f -> do
+        ir <- runInstrOp (fillModes (x `div` 100)) f
+        case ir of
+          IRWrite y -> do
+            c <- readMem
+            True <$ modify (\(Mem p r) -> Mem p (Seq.update c y r))
+          IRJump  z ->
+            True <$ modify (\(Mem _ r) -> Mem z r)
+          IRNop     ->
+            pure True
+          IRHalt    ->
+            pure False
 
 runProg :: [Int] -> Memory -> Either String [Int]
 runProg inp m = runConduit $ C.yieldMany inp
-                          .| void (runStateC m (many step))
+                          .| void (runStateC m (untilFalse step))
                           .| C.sinkList
+
+untilFalse :: Monad m => m Bool -> m ()
+untilFalse x = go
+  where
+    go = x >>= \case
+      False -> pure ()
+      True  -> go
+    
 
 day05a :: Memory :~> Int
 day05a = MkSol

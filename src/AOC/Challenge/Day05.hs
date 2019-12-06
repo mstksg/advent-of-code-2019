@@ -18,11 +18,12 @@ module AOC.Challenge.Day05 (
 import           AOC.Common               (loopMaybeM)
 import           AOC.Solver               ((:~>)(..))
 import           AOC.Util                 (maybeToEither, eitherToMaybe)
+import           Control.Applicative
 import           Control.Monad            (void)
 import           Control.Monad.Except     (MonadError(..))
-import           Control.Monad.State      (MonadState(..), runStateT, evalStateT)
-import           Control.Monad.Writer     (MonadWriter(..), execWriterT)
+import           Control.Monad.State      (MonadState(..), runStateT)
 import           Data.Conduit             (ConduitT, await, yield, (.|), runConduit)
+import           Data.Conduit.Lift
 import           Data.List.Split          (splitOn)
 import           Data.Map                 (Map)
 import           Data.Sequence            (Seq)
@@ -45,6 +46,12 @@ data Mode = Pos | Imm
 
 data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | Hlt
   deriving (Eq, Ord, Enum, Show)
+
+-- readMem :: Memory -> Maybe (Int, Memory)
+-- readMem (Mem p r) = (, Mem (p + 1) r) <$> Seq.lookup p r
+
+seekMem :: Int -> Memory -> Memory
+seekMem i (Mem _ r) = Mem i r
 
 instrMap :: Map Int Instr
 instrMap = M.fromList $
@@ -78,22 +85,37 @@ instrOp = \case
     Ceq -> InstrOp $ \case V2 x y -> pure . IRWrite $ if x == y then 1 else 0
     Hlt -> InstrOp $ \case V0     -> pure IRHalt
 
+readMem
+    :: (MonadState Memory m, MonadError String m)
+    => m Int
+readMem = do
+    Mem p r <- get
+    case Seq.lookup p r of
+      Nothing -> throwError "bad index"
+      Just x  -> x <$ put (Mem (p + 1) r)
+
+peekMem
+    :: (MonadState Memory m, MonadError String m)
+    => Int -> m Int
+peekMem i = do
+    Mem _ r <- get
+    case Seq.lookup i r of
+      Nothing -> throwError "bad index"
+      Just x  -> pure x
+
+
 runInstrOp
-    :: (Traversable t, MonadError String m)
-    => Memory
-    -> t Mode
+    :: (Traversable t, MonadError String m, MonadState Memory m)
+    => t Mode
     -> (t Int -> m InstrRes)
-    -> m (InstrRes, Int)
-runInstrOp (Mem p r) modes f = do
-    (inp, p') <- flip runStateT (p + 1) . for modes $ \m -> do
-      q <- tick
-      a <- maybeToEither "bad index" $ Seq.lookup q r
-      case m of
-        Pos -> maybeToEither "bad index" $ Seq.lookup a r
-        Imm -> pure a
-    (,p') <$> f inp
-  where
-    tick = state $ \i -> (i, i + 1)
+    -> m InstrRes
+runInstrOp m0 modes f = do
+    inp <- for modes $ \mode -> do
+      a <- readMem
+      case mode of
+        Pos -> peekMem a
+        Imm  -> pure a
+    f inp
 
 -- | Magically fills a fixed-shape 'Applicative' with each mode from a mode
 -- op int.
@@ -105,28 +127,28 @@ fillModes i = snd $ mapAccumL go i (pure ())
         (t,o) = j `divMod` 10
 
 step
-    :: MonadError String m
-    => Memory
-    -> ConduitT Int Int m (Maybe Memory)
-step m@(Mem p r) = do
-    x <- maybeToEither "bad index" $ Seq.lookup p r
+    :: (MonadError String m, MonadState Memory m)
+    => ConduitT Int Int m (Maybe Memory)
+step = do
+    x <- readMem
     o <- maybeToEither "bad instr" $ instr x
-    case instrOp o of
-      InstrOp f -> do
-        (ir, q) <- runInstrOp m (fillModes (x `div` 100)) f
-        case ir of
-          IRWrite y -> do
-            c <- maybeToEither "bad index" $ Seq.lookup q r
-            pure . Just $ Mem (q + 1) (Seq.update c y r)
-          IRJump  z ->
-            pure . Just $ Mem z r
-          IRNop     ->
-            pure . Just $ Mem q r
-          IRHalt    -> pure Nothing
+    undefined
+    -- case instrOp o of
+    --   InstrOp f -> do
+    --     (ir, q) <- runInstrOp m (fillModes (x `div` 100)) f
+    --     case ir of
+    --       IRWrite y -> do
+    --         c <- maybeToEither "bad index" $ Seq.lookup q r
+    --         pure . Just $ Mem (q + 1) (Seq.update c y r)
+    --       IRJump  z ->
+    --         pure . Just $ Mem z r
+    --       IRNop     ->
+    --         pure . Just $ Mem q r
+    --       IRHalt    -> pure Nothing
 
 runProg :: [Int] -> Memory -> Either String [Int]
 runProg inp m = runConduit $ C.yieldMany inp
-                          .| void (loopMaybeM step m)
+                          .| void (runStateC m (many step))
                           .| C.sinkList
 
 day05a :: Memory :~> Int

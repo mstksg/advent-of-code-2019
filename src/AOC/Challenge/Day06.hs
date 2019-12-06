@@ -17,6 +17,7 @@ import           Data.Functor    ((<&>))
 import           Data.List.Split (splitOn)
 import           Data.Map        (Map)
 import qualified Data.Map        as M
+import qualified Data.Set        as S
 
 parseParents :: String -> Map String String
 parseParents str = M.fromList [
@@ -48,17 +49,10 @@ day06b = MkSol
                case M.lookup v orbits of
                  Nothing -> []
                  Just ss -> v:ss
-        you <- M.lookup "YOU" orbits
-        san <- M.lookup "SAN" orbits
-        let (pY, pS) = dropPre (reverse you) (reverse san)
-        pure $ length pY + length pS
+        you <- S.fromList <$> M.lookup "YOU" orbits
+        san <- S.fromList <$> M.lookup "SAN" orbits
+        let onlyYou = you S.\\ san
+            onlySan = san S.\\ you
+        pure $ S.size onlyYou + S.size onlySan
     }
-
--- | Drop the common prefix
-dropPre :: Eq a => [a] -> [a] -> ([a], [a])
-dropPre [] xs = ([], xs)
-dropPre  xs [] = (xs, [])
-dropPre (x:xs) (y:ys)
-    | x == y    = dropPre xs ys
-    | otherwise = (x:xs, y:ys)
 

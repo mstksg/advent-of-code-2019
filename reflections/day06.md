@@ -18,6 +18,11 @@ But how do we compute that?
 Here, I'm going to show the "finale" first, and explain the way to get there:
 
 ```haskell
+type Parent = String
+type Child  = String
+
+parents :: Map Child Parent
+
 parentsCount     = parents <&> \p -> case M.lookup p parentsCount of
     Nothing -> 1
     Just n  -> n + 1

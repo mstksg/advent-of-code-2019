@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Fri,  6 Dec 2019 02:00:40 EST</lastBuildDate>
+    <lastBuildDate>Fri,  6 Dec 2019 02:02:41 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Fri,  6 Dec 2019 02:00:40 EST</pubDate>
+    <pubDate>Fri,  6 Dec 2019 02:02:41 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -25,13 +25,18 @@ that file instead!
 &lt;p&gt;The general idea is: let’s say we had a map of children to parents, &lt;code&gt;Map String String&lt;/code&gt;. To get the count of all indirect orbits, we can get a &lt;code&gt;Map String Int&lt;/code&gt;, a map of children to the number of parents and indirect parents above them, and get the sum of those.&lt;/p&gt;
 &lt;p&gt;But how do we compute that?&lt;/p&gt;
 &lt;p&gt;Here, I’m going to show the “finale” first, and explain the way to get there:&lt;/p&gt;
-&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;parentsCount     &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsCount &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; n  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; n &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;parentsOfParents &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsOfParents &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; []&lt;/span&gt;
-&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; ps &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt;  &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parents ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;parentsCount     &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsCount &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; n  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; n &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;parentsOfParents &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsOfParents &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; []&lt;/span&gt;
+&lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; ps &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Fun, right? And satisfyingly symmetrical. That’s more or less it!&lt;/p&gt;
 &lt;p&gt;So, how do we get there?&lt;/p&gt;
 &lt;p&gt;Let’s call the child-parent map and the parent counts map as:&lt;/p&gt;

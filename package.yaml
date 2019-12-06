@@ -73,11 +73,11 @@ library:
   - aeson
   - ansi-terminal
   - bytestring
+  - comonad
+  - conduit
   - containers
   - criterion
   - data-default-class
-  - comonad
-  - conduit
   - data-memocombinators
   - deepseq
   - directory
@@ -94,6 +94,7 @@ library:
   - lens-regex-pcre
   - linear
   - megaparsec >= 8.0
+  - monad-loops
   - mtl
   - nonempty-containers >= 0.3.3.0
   - pandoc

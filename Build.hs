@@ -52,7 +52,9 @@ opts = shakeOptions { shakeFiles     = "_build"
                     }
 
 parseDayFp :: FilePath -> Maybe Int
-parseDayFp = readMaybe . filter isDigit . takeBaseName
+parseDayFp = readMaybe . filter validChar . takeBaseName
+  where
+    validChar p = isDigit p || p == '_'
 
 reflPath :: Int -> FilePath
 reflPath d = "reflections" </> printf "day%02d.md" d

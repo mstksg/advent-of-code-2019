@@ -22,22 +22,53 @@
 --     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day06 (
-    -- day06a
-  -- , day06b
+    day06a
+  , day06b
   ) where
 
 import           AOC.Prelude
+import qualified Data.Tree as Tr
+import qualified Data.Map as M
 
-day06a :: _ :~> _
+-- type T = Tree
+
+parset :: String -> Map String String
+parset = M.fromList . map (\(splitOn")"->[x,y])->(y, x)) . lines
+
+day06a :: Map String String :~> Int
 day06a = MkSol
-    { sParse = Just
+    { sParse = Just . parset
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \t -> let sumMap = flip M.mapWithKey t $ \k v ->
+                            case M.lookup v sumMap of
+                              Nothing -> 1
+                              Just s  -> s + 1
+                     in  Just $ sum sumMap
     }
+
+-- go t x = sumOf
 
 day06b :: _ :~> _
 day06b = MkSol
-    { sParse = Just
+    { sParse = Just . parset
     , sShow  = show
-    , sSolve = Just
+    , sSolve = \t -> let treeUp s = case M.lookup s t of
+                                      Nothing -> []
+                                      Just k  -> k : treeUp k
+                         youTree = reverse $ treeUp "YOU"
+                         sanTree = reverse $ treeUp "SAN"
+                         (pY, pS) = dropPre youTree sanTree
+                     in  Just $ length pY + length pS
     }
+
+dropPre [] xs = ([], xs)
+dropPre  xs [] = (xs, [])
+dropPre (x:xs) (y:ys)
+    | x == y    = dropPre xs ys
+    | otherwise = (x:xs, y:ys)
+
+
+
+
+
+

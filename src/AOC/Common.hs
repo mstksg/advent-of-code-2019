@@ -97,7 +97,6 @@ import           Data.List
 import           Data.List.NonEmpty                 (NonEmpty)
 import           Data.Map                           (Map)
 import           Data.Map.NonEmpty                  (NEMap)
-import           Data.Maybe
 import           Data.MemoCombinators               (Memo)
 import           Data.Monoid                        (Ap(..))
 import           Data.Ord

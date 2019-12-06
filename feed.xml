@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Fri,  6 Dec 2019 02:02:41 EST</lastBuildDate>
+    <lastBuildDate>Fri,  6 Dec 2019 03:01:36 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Fri,  6 Dec 2019 02:02:41 EST</pubDate>
+    <pubDate>Fri,  6 Dec 2019 03:01:36 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -30,13 +30,15 @@ that file instead!
 &lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parents ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;parentsCount     &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsCount &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; n  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; n &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;parentsOfParents &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsOfParents &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; []&lt;/span&gt;
-&lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; ps &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parentsCount     ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;parentsCount     &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsCount &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; n  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; n &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parentsCount     ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;parentsOfParents &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsOfParents &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-13&quot;&gt;&lt;a href=&quot;#cb1-13&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; []&lt;/span&gt;
+&lt;span id=&quot;cb1-14&quot;&gt;&lt;a href=&quot;#cb1-14&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; ps &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Fun, right? And satisfyingly symmetrical. That’s more or less it!&lt;/p&gt;
 &lt;p&gt;So, how do we get there?&lt;/p&gt;
 &lt;p&gt;Let’s call the child-parent map and the parent counts map as:&lt;/p&gt;
@@ -75,6 +77,7 @@ that file instead!
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb7&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb7-1&quot;&gt;&lt;a href=&quot;#cb7-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- we could have done this&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-2&quot;&gt;&lt;a href=&quot;#cb7-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parentsCount ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-3&quot;&gt;&lt;a href=&quot;#cb7-3&quot;&gt;&lt;/a&gt;parentsCount &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;fmap&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; parentsOfParents&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;(But this is worse than the way we did it originally. Do you see why?)&lt;/p&gt;
 &lt;p&gt;But anyway, for part 2, we will get the parents of parents of &lt;code&gt;&quot;YOU&quot;&lt;/code&gt; and the parents of parents of &lt;code&gt;&quot;SAN&quot;&lt;/code&gt; and count the items that are unique to each:&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb8&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb8-1&quot;&gt;&lt;a href=&quot;#cb8-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;qualified&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Data.Set&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;S&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb8-2&quot;&gt;&lt;a href=&quot;#cb8-2&quot;&gt;&lt;/a&gt;&lt;/span&gt;

@@ -497,10 +497,12 @@ type Child  = String
 
 parents :: Map Child Parent
 
+parentsCount     :: Map Child Int
 parentsCount     = parents <&> \p -> case M.lookup p parentsCount of
     Nothing -> 1
     Just n  -> n + 1
 
+parentsCount     :: Map Child [Parent]
 parentsOfParents = parents <&> \p -> case M.lookup p parentsOfParents of
     Nothing -> []
     Just ps -> p:ps
@@ -578,6 +580,9 @@ Note that we actually could have defined `parentsCount` this way too:
 parentsCount :: Map Child Int
 parentsCount = fmap length parentsOfParents
 ```
+
+(But this is worse than the way we did it originally.  Do you see why?)
+
 
 But anyway, for part 2, we will get the parents of parents of `"YOU"` and the
 parents of parents of `"SAN"` and count the items that are unique to each:

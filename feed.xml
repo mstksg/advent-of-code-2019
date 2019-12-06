@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Fri,  6 Dec 2019 04:00:10 EST</lastBuildDate>
+    <lastBuildDate>Fri,  6 Dec 2019 15:10:48 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Fri,  6 Dec 2019 04:00:10 EST</pubDate>
+    <pubDate>Fri,  6 Dec 2019 15:10:48 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -35,7 +35,7 @@ that file instead!
 &lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; n  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; n &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;&lt;/span&gt;
-&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parentsCount     ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;parentsOfParents ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Child&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Parent&lt;/span&gt;]&lt;/span&gt;
 &lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;parentsOfParents &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; parents &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \p &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p parentsOfParents &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-13&quot;&gt;&lt;a href=&quot;#cb1-13&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; []&lt;/span&gt;
 &lt;span id=&quot;cb1-14&quot;&gt;&lt;a href=&quot;#cb1-14&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; ps &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; p&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;ps&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;

@@ -28,7 +28,7 @@ parentsCount     = parents <&> \p -> case M.lookup p parentsCount of
     Nothing -> 1
     Just n  -> n + 1
 
-parentsCount     :: Map Child [Parent]
+parentsOfParents :: Map Child [Parent]
 parentsOfParents = parents <&> \p -> case M.lookup p parentsOfParents of
     Nothing -> []
     Just ps -> p:ps

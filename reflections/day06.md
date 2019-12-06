@@ -15,6 +15,22 @@ them, and get the sum of those.
 
 But how do we compute that?
 
+Here, I'm going to show the "finale" first, and explain the way to get there:
+
+```haskell
+parentsCount     = parents <&> \p -> case M.lookup p parentsCount of
+    Nothing -> 1
+    Just n  -> n + 1
+
+parentsOfParents = parents <&> \p -> case M.lookup p parentsOfParents of
+    Nothing -> []
+    Just ps -> p:ps
+```
+
+Fun, right?  And satisfyingly symmetrical.  That's more or less it!
+
+So, how do we get there?
+
 Let's call the child-parent map and the parent counts map as:
 
 ```haskell
@@ -24,6 +40,7 @@ type Child  = String
 parents      :: Map Child Parent
 parentsCount :: Map Child Int
 ```
+
 
 We see that the two have the same keys, so we can "map" a function over the
 `parents` map to get `parentsCount`:

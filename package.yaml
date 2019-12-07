@@ -71,7 +71,9 @@ library:
   dependencies:
   - advent-of-code-api >= 0.2.7
   - aeson
+  - conduino
   - ansi-terminal
+  - free
   - bytestring
   - comonad
   - conduit

@@ -272,9 +272,9 @@ displayStatus = \case
           Just s  -> printf "  Hint: Answer was %s." s
 
 runAll
-    :: Maybe String                             -- ^ session key
-    -> Integer                                  -- ^ year
-    -> Bool                                     -- ^ run and lock answer
+    :: Maybe String                         -- ^ session key
+    -> Integer                              -- ^ year
+    -> Bool                                 -- ^ run and lock answer
     -> (Day -> Part -> IO (Maybe String))   -- ^ replacements
     -> ChallengeMap
     -> (SomeSolution -> Maybe String -> ChallengeData -> IO a)  -- ^ callback. given solution, "replacement" input, and data

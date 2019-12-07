@@ -43,6 +43,8 @@ extra-deps:
 - parser-combinators-1.2.1
 - nonempty-containers-0.3.3.0
 - nonempty-vector-0.2.0.1
+- conduino-0.2.0.0
+- list-transformer-1.0.6
 
 allow-newer: true
 

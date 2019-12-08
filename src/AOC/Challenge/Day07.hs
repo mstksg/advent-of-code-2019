@@ -12,28 +12,22 @@ module AOC.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC.Common.Conduino       (evalStateP, feedbackP)
-import           AOC.Common.Intcode        (Memory, VM, untilHalt, stepForeverAndDie, parseMem)
+import           AOC.Common.Conduino       (feedbackP)
+import           AOC.Common.Intcode        (Memory, VM, untilHalt, stepForeverAndDie, parseMem, yieldAndDie, yieldAndPass)
 import           AOC.Solver                ((:~>)(..))
 import           AOC.Util                  (eitherToMaybe)
-import           Control.Monad.Except      (MonadError, throwError)
-import           Data.Conduino             (Pipe, (.|), yield, runPipePure, runPipe, awaitSurely)
+import           Control.Monad.Except      (MonadError)
+import           Data.Conduino             ((.|), runPipePure, runPipe, awaitSurely)
 import           Data.List                 (permutations)
 import           Data.Semigroup            (Max(..))
 import           Data.Void                 (Void)
 import qualified Data.Conduino.Combinators as C
 
-yieldAndDie :: MonadError String m => o -> Pipe i o u m a
-yieldAndDie i = yield i *> throwError "that's all you get"
-
-yieldAndPass :: o -> Pipe o o u m u
-yieldAndPass i = yield i *> C.map id
-
 setupChain :: MonadError String m => Memory -> [Int] -> VM m Void
 setupChain m = foldr ((.|) . prime) (C.map id)
   where
     prime i = yieldAndPass i
-           .| evalStateP m stepForeverAndDie
+           .| stepForeverAndDie m
 
 day07a :: Memory :~> Int
 day07a = MkSol

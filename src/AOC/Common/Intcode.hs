@@ -14,9 +14,9 @@ module AOC.Common.Intcode (
   , stepForever
   , stepForeverAndDie
   , untilHalt
-  , maybeToEither
-  , runProg
   , parseMem
+  , yieldAndDie
+  , yieldAndPass
   ) where
 
 import           AOC.Common.Conduino
@@ -134,20 +134,27 @@ step = do
         pure False
 
 stepForever
-    :: (MonadState Memory m, MonadError String m)
-    => Pipe Int Int Void m ()
-stepForever = untilFalse step
+    :: MonadError String m
+    => Memory
+    -> Pipe Int Int Void m Memory
+stepForever m = execStateP m (untilFalse step)
 
 stepForeverAndDie
-    :: (MonadState Memory m, MonadError String m)
-    => Pipe Int Int Void m Void
-stepForeverAndDie = stepForever *> throwError "no more input to give"
+    :: MonadError String m
+    => Memory
+    -> Pipe Int Int Void m Void
+stepForeverAndDie m = stepForever m *> throwError "no more input to give"
 
 untilHalt
     :: Monad m
     => Pipe i o u (ExceptT String m) a
     -> Pipe i o u m                  ()
 untilHalt = void . runExceptP
+
+parseMem :: String -> Maybe Memory
+parseMem = (onNonEmpty (Mem 0 . NESeq.fromList) =<<)
+         . traverse readMaybe
+         . splitOn ","
 
 untilFalse :: Monad m => m Bool -> m ()
 untilFalse x = go
@@ -156,14 +163,9 @@ untilFalse x = go
       False -> pure ()
       True  -> go
 
-runProg :: [Int] -> Memory -> Either String [Int]
-runProg inp m = flip evalStateT m $
-      runPipe $ (C.sourceList inp *> throwError "ran out of input")
-             .| untilFalse step
-             .| C.sinkList
+yieldAndDie :: MonadError String m => o -> Pipe i o u m a
+yieldAndDie i = yield i *> throwError "that's all you get"
 
-parseMem :: String -> Maybe Memory
-parseMem = (onNonEmpty (Mem 0 . NESeq.fromList) =<<)
-         . traverse readMaybe
-         . splitOn ","
+yieldAndPass :: o -> Pipe o o u m u
+yieldAndPass i = yield i *> C.map id
 

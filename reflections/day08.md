@@ -65,15 +65,15 @@ and deducing our image.  For me, I wrote a function to display it nicely:
 showImage :: String -> String
 showImage = unlines
           . chunksOf 25         -- number of columns
-          . map (\case '0' -> ' '; _ -> '*')
+          . map (\case '0' -> ' '; _ -> '#')
 ```
 
 ```
-*  * ***  *  * **** ***
-*  * *  * *  * *    *  *
-*  * ***  *  * ***  *  *
-*  * *  * *  * *    ***
-*  * *  * *  * *    *
- **  ***   **  *    *
+#  # ###  #  # #### ###
+#  # #  # #  # #    #  #
+#  # ###  #  # ###  #  #
+#  # #  # #  # #    ###
+#  # #  # #  # #    #
+ ##  ###   ##  #    #
 ```
 

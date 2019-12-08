@@ -6,4 +6,5 @@
 /aoc-conf.yaml
 /logs
 /bench-out
+/tmp
 _*

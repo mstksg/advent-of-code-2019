@@ -40,6 +40,6 @@ day08a = MkSol
 day08b :: [String] :~> String
 day08b = MkSol
     { sParse = Just . chunksOf 150
-    , sShow  = unlines . (map . map) (\case '0' -> ' '; _ -> '*') . chunksOf 25
+    , sShow  = unlines . chunksOf 25 . map (\case '0' -> ' '; _ -> '*')
     , sSolve = traverse (listToMaybe . dropWhile (== '2')) . transpose
     }

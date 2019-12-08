@@ -7,11 +7,80 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Fri,  6 Dec 2019 15:10:48 EST</lastBuildDate>
+    <lastBuildDate>Sun,  8 Dec 2019 00:34:53 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Fri,  6 Dec 2019 15:10:48 EST</pubDate>
+    <pubDate>Sun,  8 Dec 2019 00:34:53 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
+    <item>
+      <title>Day 8</title>
+      <description>&lt;h2 id=&quot;day-8&quot;&gt;Day 8&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day08.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/8&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day08.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day08.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This one feels like another Haskell freebie from the early days. I’m not complaining, we’ll take what we can get :)&lt;/p&gt;
+&lt;p&gt;We’ll define a useful function that counts the number of items in a list that is equal to a given value:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;numMatches ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;numMatches x &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;x&amp;#39;&lt;/span&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can use the &lt;a href=&quot;https://hackage.haskell.org/package/split/Data-List-Split.html#v:chunksOf&quot;&gt;&lt;code&gt;chunksOf&lt;/code&gt;&lt;/a&gt; function from the amazing &lt;em&gt;&lt;a href=&quot;https://hackage.haskell.org/package/split&quot;&gt;split&lt;/a&gt;&lt;/em&gt; package to split our input into chunks of 150. Then we can find the maximum of those lines based on their zero count. Then we encode the answer.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;part1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; encodeAnswer&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; maximumBy (comparing (numMatchs &lt;span class=&quot;ch&quot;&gt;&amp;#39;0&amp;#39;&lt;/span&gt;))&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; chunksOf &lt;span class=&quot;dv&quot;&gt;150&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;    encodeAnswer xs &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; numMatches &lt;span class=&quot;ch&quot;&gt;&amp;#39;1&amp;#39;&lt;/span&gt; xs &lt;span class=&quot;op&quot;&gt;*&lt;/span&gt; numMatches &lt;span class=&quot;ch&quot;&gt;&amp;#39;2&amp;#39;&lt;/span&gt; xs&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;For part 2, we can use &lt;code&gt;transpose&lt;/code&gt; turn a list of lines into a list where every item is all of the pixel data for that pixel. So it would turn&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[&amp;quot;1234&amp;quot;
+,&amp;quot;1234&amp;quot;
+,&amp;quot;1234&amp;quot;
+]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;into&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[&amp;quot;111&amp;quot;
+,&amp;quot;222&amp;quot;
+,&amp;quot;333&amp;quot;
+,&amp;quot;333&amp;quot;
+]&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;which is exactly what we need to process it.&lt;/p&gt;
+&lt;p&gt;Finding the ‘pixel value’ of each pixel is basically the first non-&lt;code&gt;2&lt;/code&gt; pixel in each list. The first way that came to my mind was to use &lt;code&gt;dropWhile (/= &#39;2&#39;)&lt;/code&gt;, but &lt;code&gt;filter (/= &#39;2&#39;)&lt;/code&gt; would have worked as well.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;dropWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;/=&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;2&amp;#39;&lt;/span&gt;))&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; transpose&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; chunksOf &lt;span class=&quot;dv&quot;&gt;150&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And that’s it! Well, almost. Part 2 requires looking at 0/1 transparency data and deducing our image. For me, I wrote a function to display it nicely:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;showImage ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;showImage &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;unlines&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; chunksOf &lt;span class=&quot;dv&quot;&gt;25&lt;/span&gt;         &lt;span class=&quot;co&quot;&gt;-- number of columns&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (\&lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;0&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39; &amp;#39;&lt;/span&gt;; _ &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;*&amp;#39;&lt;/span&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;pre&gt;&lt;code&gt;*  * ***  *  * **** ***
+*  * *  * *  * *    *  *
+*  * ***  *  * ***  *  *
+*  * *  * *  * *    ***
+*  * *  * *  * *    *
+ **  ***   **  *    *&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&quot;day-8-benchmarks&quot;&gt;Day 8 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 08a
+benchmarking...
+time                 831.9 μs   (781.5 μs .. 927.5 μs)
+                     0.958 R²   (0.920 R² .. 0.999 R²)
+mean                 805.9 μs   (788.4 μs .. 844.9 μs)
+std dev              89.20 μs   (51.19 μs .. 158.4 μs)
+variance introduced by outliers: 78% (severely inflated)
+
+&amp;gt;&amp;gt; Day 08b
+benchmarking...
+time                 1.298 ms   (1.290 ms .. 1.314 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 1.304 ms   (1.298 ms .. 1.316 ms)
+std dev              27.41 μs   (18.09 μs .. 43.71 μs)
+variance introduced by outliers: 10% (moderately inflated)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8</link>
+      <pubDate>Sun,  8 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
     <item>
       <title>Day 6</title>
       <description>&lt;h2 id=&quot;day-6&quot;&gt;Day 6&lt;/h2&gt;

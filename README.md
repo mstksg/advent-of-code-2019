@@ -43,7 +43,7 @@ haddocks][haddock] --- more info below!
 | Day  5    |             |           |            |            |
 | Day  6    | [x][d06r]   | [x][d06g] | [x][d06h]  | [x][d06b]  |
 | Day  7    |             |           |            |            |
-| Day  8    |             |           |            |            |
+| Day  8    | [x][d08r]   | [x][d08g] | [x][d08h]  | [x][d08b]  |
 | Day  9    |             |           |            |            |
 | Day 10    |             |           |            |            |
 | Day 11    |             |           |            |            |
@@ -313,3 +313,7 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d06h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day06.html
 [d06r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-6
 [d06b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-6-benchmarks
+[d08g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day08.hs
+[d08h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day08.html
+[d08r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8
+[d08b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8-benchmarks

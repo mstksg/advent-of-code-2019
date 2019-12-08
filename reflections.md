@@ -24,6 +24,7 @@ Table of Contents
 * [Day 3](#day-3)
 * [Day 4](#day-4)
 * [Day 6](#day-6)
+* [Day 8](#day-8)
 
 Day 1
 ------
@@ -656,5 +657,123 @@ time                 4.588 ms   (3.971 ms .. 5.433 ms)
 mean                 4.195 ms   (4.024 ms .. 4.562 ms)
 std dev              775.1 μs   (463.2 μs .. 1.166 ms)
 variance introduced by outliers: 86% (severely inflated)
+```
+
+
+
+Day 8
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day08.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d08p]* / *[Code][d08g]* / *[Rendered][d08h]*
+
+[d08p]: https://adventofcode.com/2019/day/8
+[d08g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day08.hs
+[d08h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day08.html
+
+This one feels like another Haskell freebie from the early days.  I'm not
+complaining, we'll take what we can get :)
+
+We'll define a useful function that counts the number of items in a list that
+is equal to a given value:
+
+```haskell
+numMatches :: Eq a => a -> [a] -> Int
+numMatches x = length . filter (== 'x')
+```
+
+We can use the [`chunksOf`][chunksOf] function from the amazing *[split][]*
+package to split our input into chunks of 150.  Then we can find the maximum of
+those lines based on their zero count.  Then we encode the answer.
+
+[chunksOf]: https://hackage.haskell.org/package/split/Data-List-Split.html#v:chunksOf
+[split]: https://hackage.haskell.org/package/split
+
+```haskell
+part1 :: String -> Int
+part1 = encodeAnswer
+      . maximumBy (comparing (numMatchs '0'))
+      . chunksOf 150
+  where
+    encodeAnswer xs = numMatches '1' xs * numMatches '2' xs
+```
+
+For part 2, we can use `transpose` turn a list of lines into a list where every
+item is all of the pixel data for that pixel.  So it would turn
+
+```
+["1234"
+,"1234"
+,"1234"
+]
+```
+
+into
+
+```
+["111"
+,"222"
+,"333"
+,"333"
+]
+```
+
+which is exactly what we need to process it.
+
+Finding the 'pixel value' of each pixel is basically the first non-`2` pixel in
+each list.  The first way that came to my mind was to use `dropWhile (/=
+'2')`, but `filter (/= '2')` would have worked as well.
+
+```haskell
+part2 :: String -> String
+part2 = map (head . dropWhile (/= '2'))
+      . transpose
+      . chunksOf 150
+```
+
+And that's it!  Well, almost.  Part 2 requires looking at 0/1 transparency data
+and deducing our image.  For me, I wrote a function to display it nicely:
+
+```haskell
+showImage :: String -> String
+showImage = unlines
+          . chunksOf 25         -- number of columns
+          . map (\case '0' -> ' '; _ -> '*')
+```
+
+```
+*  * ***  *  * **** ***
+*  * *  * *  * *    *  *
+*  * ***  *  * ***  *  *
+*  * *  * *  * *    ***
+*  * *  * *  * *    *
+ **  ***   **  *    *
+```
+
+
+
+### Day 8 Benchmarks
+
+```
+>> Day 08a
+benchmarking...
+time                 831.9 μs   (781.5 μs .. 927.5 μs)
+                     0.958 R²   (0.920 R² .. 0.999 R²)
+mean                 805.9 μs   (788.4 μs .. 844.9 μs)
+std dev              89.20 μs   (51.19 μs .. 158.4 μs)
+variance introduced by outliers: 78% (severely inflated)
+
+>> Day 08b
+benchmarking...
+time                 1.298 ms   (1.290 ms .. 1.314 ms)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 1.304 ms   (1.298 ms .. 1.316 ms)
+std dev              27.41 μs   (18.09 μs .. 43.71 μs)
+variance introduced by outliers: 10% (moderately inflated)
 ```
 

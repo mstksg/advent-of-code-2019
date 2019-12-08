@@ -15,11 +15,12 @@ module AOC.Challenge.Day07 (
 import           AOC.Common.Conduino       (evalStateP, feedbackP)
 import           AOC.Common.Intcode        (Memory, VM, untilHalt, stepForeverAndDie, parseMem)
 import           AOC.Solver                ((:~>)(..))
+import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad.Except      (MonadError, throwError)
 import           Data.Conduino             (Pipe, (.|), yield, runPipePure, runPipe, awaitSurely)
 import           Data.List                 (permutations)
+import           Data.Semigroup            (Max(..))
 import           Data.Void                 (Void)
-import           Safe                      (maximumMay)
 import qualified Data.Conduino.Combinators as C
 
 yieldAndDie :: MonadError String m => o -> Pipe i o u m a
@@ -34,32 +35,26 @@ setupChain m = foldr ((.|) . prime) (C.map id)
     prime i = yieldAndPass i
            .| evalStateP m stepForeverAndDie
 
-day07a :: _ :~> _
+day07a :: Memory :~> Int
 day07a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = \m -> maximumMay
-            [ r
-            | xs <- permutations [0..4]
-            , Right r <- (:[]) $
-                runPipe $ yieldAndDie 0
-                       .| setupChain m xs
-                       .| awaitSurely
-            ]
+    , sSolve = \m -> fmap getMax . flip foldMap (permutations [0..4]) $ \xs ->
+        let res = runPipe $ yieldAndDie 0
+                         .| setupChain m xs
+                         .| awaitSurely
+        in  Max <$> eitherToMaybe res
     }
 
-day07b :: _ :~> _
+day07b :: Memory :~> Int
 day07b = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = \m -> maximumMay
-            [ r
-            | xs <- permutations [5..9]
-            , Just r <- (:[]) $
-                runPipePure $ untilHalt ( yieldAndDie 0
-                                       .| feedbackP (setupChain m xs)
-                                        )
-                           .| C.last
-            ]
+    , sSolve = \m -> fmap getMax . flip foldMap (permutations [5..9]) $ \xs ->
+        let res = runPipePure $ untilHalt ( yieldAndDie 0
+                                         .| feedbackP (setupChain m xs)
+                                          )
+                            .| C.last
+        in  Max <$> res
     }
 

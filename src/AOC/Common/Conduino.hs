@@ -5,6 +5,10 @@ module AOC.Common.Conduino (
   , execStateP
   , evalStateP
   , runExceptP
+  , fuseBoth
+  , fuseUpstream
+  , (&|)
+  , (|.)
   ) where
 
 import           Control.Monad.Trans.Except
@@ -59,3 +63,27 @@ runExceptP_ (FreeT p) = FreeT $ runExceptT p >>= \case
     Right (Pure x) -> pure . Pure $ Right x
     Right (Free l) -> pure $ Free (fmap runExceptP_ l)
 
+fuseBoth :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
+fuseBoth p q = p .| (q >>= exhaust)
+  where
+    exhaust x = go
+      where
+        go = awaitEither >>= \case
+          Left  y -> pure (y, x)
+          Right _ -> go
+
+fuseUpstream
+    :: Monad m
+    => Pipe a b u m v
+    -> Pipe b c v m r
+    -> Pipe a c u m v
+fuseUpstream p q = fst <$> fuseBoth p q
+
+(&|) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
+(&|) = fuseBoth
+
+(|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
+(|.) = fuseUpstream
+
+infixr 2 &|
+infixr 2 |.

@@ -29,6 +29,7 @@ module AOC.Common (
   , countTrue
   -- * Lists
   , freqs
+  , lookupFreq
   , freqList
   , revFreq
   , perturbations
@@ -196,6 +197,11 @@ countTrue p = length . filter p . toList
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
 freqs = M.fromListWith (+) . map (,1) . toList
+
+-- | Look up a count from a frequency map, defaulting to zero if item is
+-- not foudn
+lookupFreq :: Ord a => a -> Map a Int -> Int
+lookupFreq = M.findWithDefault 0
 
 -- | Build a reverse frequency map
 revFreq :: (Foldable f, Ord a) => f a -> IntMap (NESet a)

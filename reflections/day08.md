@@ -13,7 +13,7 @@ We can use the [`chunksOf`][chunksOf] function from the amazing *[split][]*
 package to split our input into chunks of 150.  Then we can find the maximum of
 those lines based on their zero count.  Then we encode the answer.
 
-[chunksOf]: https://hackage.haskell.org/package/split/Data-List-Split.html#v:chunksOf
+[chunksOf]: https://hackage.haskell.org/package/split/docs/Data-List-Split.html#v:chunksOf
 [split]: https://hackage.haskell.org/package/split
 
 ```haskell

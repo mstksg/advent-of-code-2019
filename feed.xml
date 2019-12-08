@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Sun,  8 Dec 2019 02:46:57 EST</lastBuildDate>
+    <lastBuildDate>Sun,  8 Dec 2019 03:06:28 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Sun,  8 Dec 2019 02:46:57 EST</pubDate>
+    <pubDate>Sun,  8 Dec 2019 03:06:28 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -25,7 +25,7 @@ that file instead!
 &lt;p&gt;We’ll define a useful function that counts the number of items in a list that is equal to a given value:&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;numMatches ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;numMatches x &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; x)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;We can use the &lt;a href=&quot;https://hackage.haskell.org/package/split/Data-List-Split.html#v:chunksOf&quot;&gt;&lt;code&gt;chunksOf&lt;/code&gt;&lt;/a&gt; function from the amazing &lt;em&gt;&lt;a href=&quot;https://hackage.haskell.org/package/split&quot;&gt;split&lt;/a&gt;&lt;/em&gt; package to split our input into chunks of 150. Then we can find the maximum of those lines based on their zero count. Then we encode the answer.&lt;/p&gt;
+&lt;p&gt;We can use the &lt;a href=&quot;https://hackage.haskell.org/package/split/docs/Data-List-Split.html#v:chunksOf&quot;&gt;&lt;code&gt;chunksOf&lt;/code&gt;&lt;/a&gt; function from the amazing &lt;em&gt;&lt;a href=&quot;https://hackage.haskell.org/package/split&quot;&gt;split&lt;/a&gt;&lt;/em&gt; package to split our input into chunks of 150. Then we can find the maximum of those lines based on their zero count. Then we encode the answer.&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;part1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; encodeAnswer&lt;/span&gt;
 &lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; minimumBy (comparing (numMatchs &lt;span class=&quot;ch&quot;&gt;&amp;#39;0&amp;#39;&lt;/span&gt;))&lt;/span&gt;

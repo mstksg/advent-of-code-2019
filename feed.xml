@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Sun,  8 Dec 2019 01:44:27 EST</lastBuildDate>
+    <lastBuildDate>Sun,  8 Dec 2019 02:03:55 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Sun,  8 Dec 2019 01:44:27 EST</pubDate>
+    <pubDate>Sun,  8 Dec 2019 02:03:55 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -44,9 +44,9 @@ that file instead!
 ,&amp;quot;333&amp;quot;
 ]&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;which is exactly what we need to process it.&lt;/p&gt;
-&lt;p&gt;Finding the ‘pixel value’ of each pixel is basically the first non-&lt;code&gt;2&lt;/code&gt; pixel in each list. The first way that came to my mind was to use &lt;code&gt;dropWhile (/= &#39;2&#39;)&lt;/code&gt;, but &lt;code&gt;filter (/= &#39;2&#39;)&lt;/code&gt; would have worked as well.&lt;/p&gt;
+&lt;p&gt;Finding the ‘pixel value’ of each pixel is basically the first non-&lt;code&gt;2&lt;/code&gt; pixel in each list. The first way that came to my mind was to use &lt;code&gt;dropWhile (== &#39;2&#39;)&lt;/code&gt;, but &lt;code&gt;filter (/= &#39;2&#39;)&lt;/code&gt; would have worked as well.&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;dropWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;/=&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;2&amp;#39;&lt;/span&gt;))&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;map&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;dropWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;ch&quot;&gt;&amp;#39;2&amp;#39;&lt;/span&gt;))&lt;/span&gt;
 &lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; transpose&lt;/span&gt;
 &lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; chunksOf &lt;span class=&quot;dv&quot;&gt;150&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;And that’s it! Well, almost. Part 2 requires looking at 0/1 transparency data and deducing our image. For me, I wrote a function to display it nicely:&lt;/p&gt;

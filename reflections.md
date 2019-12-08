@@ -726,12 +726,12 @@ into
 which is exactly what we need to process it.
 
 Finding the 'pixel value' of each pixel is basically the first non-`2` pixel in
-each list.  The first way that came to my mind was to use `dropWhile (/=
+each list.  The first way that came to my mind was to use `dropWhile (==
 '2')`, but `filter (/= '2')` would have worked as well.
 
 ```haskell
 part2 :: String -> String
-part2 = map (head . dropWhile (/= '2'))
+part2 = map (head . dropWhile (== '2'))
       . transpose
       . chunksOf 150
 ```

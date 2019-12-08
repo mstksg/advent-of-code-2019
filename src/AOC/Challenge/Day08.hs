@@ -28,14 +28,16 @@ module AOC.Challenge.Day08 (
 
 import           AOC.Prelude
 
-day08a :: [String] :~> Int
+day08a :: String :~> Int
 day08a = MkSol
-    { sParse = Just . chunksOf 150
+    { sParse = Just
     , sShow  = show
-    , sSolve = fmap answer . minimumByMay (comparing (countTrue (== '0')))
+    , sSolve = fmap answer
+             . minimumByMay (comparing (countTrue (== '0')))
+             . chunksOf (dyno_ "w" 25 * dyno_ "h" 6)
     }
   where
-    answer x = countTrue (== '1') x * countTrue (== '2') x
+    answer x  = countTrue (== '1') x * countTrue (== '2') x
 
 day08b :: [String] :~> String
 day08b = MkSol

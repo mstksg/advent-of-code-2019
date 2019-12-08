@@ -19,7 +19,7 @@ those lines based on their zero count.  Then we encode the answer.
 ```haskell
 part1 :: String -> Int
 part1 = encodeAnswer
-      . minimumBy (comparing (numMatchs '0'))
+      . minimumBy (comparing (numMatches '0'))
       . chunksOf 150
   where
     encodeAnswer xs = numMatches '1' xs * numMatches '2' xs

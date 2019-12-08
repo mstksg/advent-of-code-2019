@@ -23,6 +23,8 @@ import           Linear                   (V2(..), V3(..))
 import           Text.Read                (readMaybe)
 import qualified Data.Sequence.NonEmpty   as NESeq
 
+-- TODO: we need to implement fuseBoth for conduino if we want to refactor
+
 data Memory = Mem
     { mPos  :: Int
     , mRegs :: NESeq Int

@@ -22,22 +22,24 @@
 --     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day08 (
-    -- day08a
-  -- , day08b
+    day08a
+  , day08b
   ) where
 
 import           AOC.Prelude
 
-day08a :: _ :~> _
+day08a :: [String] :~> Int
 day08a = MkSol
-    { sParse = Just
+    { sParse = Just . chunksOf 150
     , sShow  = show
-    , sSolve = Just
+    , sSolve = fmap answer . minimumByMay (comparing (countTrue (== '0')))
     }
+  where
+    answer x = countTrue (== '1') x * countTrue (== '2') x
 
-day08b :: _ :~> _
+day08b :: [String] :~> String
 day08b = MkSol
-    { sParse = Just
-    , sShow  = show
-    , sSolve = Just
+    { sParse = Just . chunksOf 150
+    , sShow  = unlines . (map . map) (\case '0' -> ' '; _ -> '*') . chunksOf 25
+    , sSolve = traverse (listToMaybe . dropWhile (== '2')) . transpose
     }

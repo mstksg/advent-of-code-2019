@@ -684,7 +684,7 @@ is equal to a given value:
 
 ```haskell
 numMatches :: Eq a => a -> [a] -> Int
-numMatches x = length . filter (== 'x')
+numMatches x = length . filter (== x)
 ```
 
 We can use the [`chunksOf`][chunksOf] function from the amazing *[split][]*

@@ -71,11 +71,10 @@ library:
   dependencies:
   - advent-of-code-api >= 0.2.7
   - aeson
-  - conduino
   - ansi-terminal
-  - free
   - bytestring
   - comonad
+  - conduino
   - conduit
   - containers
   - criterion
@@ -86,11 +85,13 @@ library:
   - filepath
   - finite-typelits
   - foldl
+  - free
   - groups
   - hashable
   - haskeline
   - haskell-names
   - haskell-src-exts
+  - heredoc
   - hpack
   - lens
   - lens-regex-pcre

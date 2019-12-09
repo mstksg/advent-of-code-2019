@@ -33,6 +33,9 @@ import           Data.Void
 import           Linear
 import           Text.Read                 (readMaybe)
 import qualified Data.Conduino.Combinators as C
+import qualified Data.IntMap               as IM
+import           AOC.Common
+import           AOC.Prelude
 import qualified Data.Map                  as M
 import qualified Data.Sequence.NonEmpty    as NESeq
 
@@ -40,14 +43,15 @@ type VM = Pipe Int Int Void
 
 data Memory = Mem
     { mPos  :: Int
-    , mRegs :: NESeq Int
+    , mBase :: Int
+    , mRegs :: IntMap Int
     }
   deriving Show
 
-data Mode = Pos | Imm
+data Mode = Pos | Imm | Rel
   deriving (Eq, Ord, Enum, Show)
 
-data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | Hlt
+data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | ChB | Hlt
   deriving (Eq, Ord, Enum, Show)
 
 instrMap :: Map Int Instr
@@ -58,50 +62,58 @@ instr :: Int -> Maybe Instr
 instr = (`M.lookup` instrMap)
 
 readMem
-    :: (MonadState Memory m, MonadError String m)
+    :: MonadState Memory m
     => m Int
 readMem = do
-    Mem p r <- get
-    case NESeq.lookup p r of
-      Nothing -> throwError $ "bad index under current position: " ++ show p
-      Just x  -> x <$ put (Mem (p + 1) r)
+    m@Mem{..} <- get
+    IM.findWithDefault 0 mPos mRegs <$ put (m { mPos = mPos + 1 })
 
 peekMem
-    :: (MonadState Memory m, MonadError String m)
+    :: MonadState Memory m
     => Int -> m Int
-peekMem i = do
-    Mem _ r <- get
-    case NESeq.lookup i r of
-      Nothing -> throwError $ "bad index for peek: " ++ show i
-      Just x  -> pure x
+peekMem i = gets $ IM.findWithDefault 0 i . mRegs
 
--- | Run a @t Int -> m r@ function by getting fetching an input container
+-- | Run a @t Int -> m r@ function by fetching an input container
 -- @t Int@.
 withInput
     :: (Traversable t, Applicative t, MonadState Memory m, MonadError String m)
     => Int      -- ^ mode int
     -> (t Int -> m r)
-    -> m r
+    -> m (r, Mode)
 withInput mo f = do
-    inp <- for (fillModes mo) $ \mode -> do
+    (lastMode, modes) <- case fillModes mo of
+      Left  i -> throwError $ "bad mode: " ++ show i
+      Right x -> pure x
+    ba  <- gets mBase
+    inp <- for modes $ \mode -> do
       a <- readMem
       case mode of
         Pos -> peekMem a
-        Imm  -> pure a
-    f inp
+        Imm -> pure a
+        Rel -> peekMem (a + ba)
+    (, lastMode) <$> f inp
+
+intMode :: Int -> Maybe Mode
+intMode = \case 0 -> Just Pos
+                1 -> Just Imm
+                2 -> Just Rel
+                _ -> Nothing
 
 -- | Magically fills a fixed-shape 'Applicative' with each mode from a mode
 -- op int.
-fillModes :: (Traversable t, Applicative t) => Int -> t Mode
-fillModes i = snd $ mapAccumL go i (pure ())
+fillModes :: forall t. (Traversable t, Applicative t) => Int -> Either Int (Mode, t Mode)
+fillModes i = do
+    (lastMode, ms) <- traverse sequence $ mapAccumL go i (pure ())
+    (,ms) <$> maybeToEither lastMode (intMode lastMode)
   where
-    go j _ = (t, case o of 0 -> Pos; _ -> Imm)
+    go j _ = (t, maybeToEither o $ intMode o)
       where
         (t,o) = j `divMod` 10
 
 -- | Useful type to abstract over the actions of the different operations
-data InstrRes = IRWrite Int         -- ^ write a value
+data InstrRes = IRWrite Int       -- ^ write a value to location at
               | IRJump  Int         -- ^ jump to position
+              | IRBase  Int         -- ^ set base
               | IRNop               -- ^ do nothing
               | IRHalt              -- ^ halt
   deriving Show
@@ -112,22 +124,29 @@ step
 step = do
     (mo, x) <- (`divMod` 100) <$> readMem
     o  <- maybeToEither ("bad instr: " ++ show x) $ instr x
-    ir <- case o of
+    (ir, lastMode) <- case o of
       Add -> withInput mo $ \case V2 a b  -> pure . IRWrite $ a + b
       Mul -> withInput mo $ \case V2 a b  -> pure . IRWrite $ a * b
-      Get -> IRWrite <$> awaitSurely
+      Get -> withInput mo $ \case V0      -> IRWrite <$> awaitSurely
       Put -> withInput mo $ \case V1 a    -> IRNop <$ yield a
       Jnz -> withInput mo $ \case V2 a b  -> pure $ if a /= 0 then IRJump b else IRNop
       Jez -> withInput mo $ \case V2 a b  -> pure $ if a == 0 then IRJump b else IRNop
       Clt -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a <  b then 1 else 0
       Ceq -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a == b then 1 else 0
-      Hlt                                 -> pure IRHalt
+      ChB -> withInput mo $ \case V1 a    -> pure $ IRBase a
+      Hlt -> withInput mo $ \case V0      -> pure IRHalt
     case ir of
       IRWrite y -> do
-        c <- readMem
-        True <$ modify (\(Mem p r) -> Mem p (NESeq.update c y r))
+        c <- case lastMode of
+               Pos -> peekMem =<< gets mPos
+               Imm -> gets mPos
+               Rel -> (+) <$> (peekMem =<< gets mPos) <*> gets mBase
+        _ <- readMem
+        True <$ modify (\m -> m { mRegs = IM.insert c y (mRegs m) })
       IRJump  z ->
-        True <$ modify (\(Mem _ r) -> Mem z r)
+        True <$ modify (\m -> m { mPos = z })
+      IRBase  b ->
+        True <$ modify (\m -> m { mBase = b + mBase m })
       IRNop     ->
         pure True
       IRHalt    ->
@@ -152,7 +171,7 @@ untilHalt
 untilHalt = void . runExceptP
 
 parseMem :: String -> Maybe Memory
-parseMem = (onNonEmpty (Mem 0 . NESeq.fromList) =<<)
+parseMem = fmap (Mem 0 0 . IM.fromList . zip [0..])
          . traverse readMaybe
          . splitOn ","
 
@@ -168,4 +187,5 @@ yieldAndDie i = yield i *> throwError "that's all you get"
 
 yieldAndPass :: o -> Pipe o o u m u
 yieldAndPass i = yield i *> C.map id
+
 

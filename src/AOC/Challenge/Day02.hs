@@ -20,11 +20,12 @@ import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad.Except      (throwError)
 import           Data.Conduino             (runPipe, (.|))
 import qualified Data.Conduino.Combinators as C
+import qualified Data.IntMap as IM
 import qualified Data.Sequence.NonEmpty    as NESeq
 
 setMem :: Maybe Int -> Maybe Int -> Memory -> Memory
-setMem noun verb m = m { mRegs = maybe id (NESeq.update 2) verb
-                               . maybe id (NESeq.update 1) noun
+setMem noun verb m = m { mRegs = maybe id (IM.insert 2) verb
+                               . maybe id (IM.insert 1) noun
                                $ mRegs m
                        }
 
@@ -32,7 +33,7 @@ setMem noun verb m = m { mRegs = maybe id (NESeq.update 2) verb
 runProg :: Memory -> Maybe Int
 runProg m = eitherToMaybe . runPipe $
         throwError "no input should happen in Day 2 programs"
-     .| (NESeq.head . mRegs <$> stepForever m)
+     .| ((IM.! 0) . mRegs <$> stepForever m)
      |. C.sinkNull
 
 day02a :: Memory :~> Int

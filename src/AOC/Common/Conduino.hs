@@ -1,3 +1,5 @@
+{-# LANGUAGE StandaloneDeriving #-}
+{-# OPTIONS_GHC -Wno-orphans    #-}
 
 module AOC.Common.Conduino (
     feedbackP
@@ -11,6 +13,8 @@ module AOC.Common.Conduino (
   , (|.)
   ) where
 
+import           Control.Applicative
+import           Control.Monad
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free
 import           Control.Monad.Trans.State
@@ -87,3 +91,6 @@ fuseUpstream p q = fst <$> fuseBoth p q
 
 infixr 2 &|
 infixr 2 |.
+
+deriving instance MonadPlus m => Alternative (Pipe a c u m)
+deriving instance MonadPlus m => MonadPlus (Pipe a c u m)

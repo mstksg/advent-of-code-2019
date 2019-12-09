@@ -17,23 +17,28 @@ module AOC.Common.Intcode (
   , parseMem
   , yieldAndDie
   , yieldAndPass
+  , IErr(..)
   ) where
 
 import           AOC.Common
 import           AOC.Common.Conduino
 import           AOC.Util
+import           Control.Applicative
+import           Control.Exception
 import           Control.Monad.Except
 import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
 import           Data.Conduino
 import           Data.List.Split
-import           Data.Map                    (Map)
+import           Data.Map                  (Map)
 import           Data.Traversable
+import           Data.Typeable
 import           Data.Void
 import           Linear
-import           Numeric.Natural             (Natural)
-import           Text.Read                   (readMaybe)
-import qualified Data.Conduino.Combinators   as C
-import qualified Data.Map                    as M
+import           Numeric.Natural           (Natural)
+import           Text.Read                 (readMaybe)
+import qualified Data.Conduino.Combinators as C
+import qualified Data.Map                  as M
 
 type VM = Pipe Int Int Void
 
@@ -50,6 +55,14 @@ data Mode = Pos | Imm | Rel
 data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | ChB | Hlt
   deriving (Eq, Ord, Enum, Show)
 
+data IErr = IEBadMode  Int
+          | IEBadInstr Int
+          | IEBadPos   Int
+          | IENoInput
+  deriving (Eq, Ord, Show, Typeable)
+
+instance Exception IErr
+
 instrMap :: Map Int Instr
 instrMap = M.fromList $
     (99, Hlt) : zip [1 ..] [Add ..]
@@ -57,10 +70,8 @@ instrMap = M.fromList $
 instr :: Int -> Maybe Instr
 instr = (`M.lookup` instrMap)
 
-toNatural' :: MonadError String m => Int -> m Natural
-toNatural' x = maybeToEither e . toNatural $ x
-  where
-    e = "invalid position: " ++ show x
+toNatural' :: MonadError IErr m => Int -> m Natural
+toNatural' x = maybeToEither (IEBadPos x) . toNatural $ x
 
 readMem
     :: MonadState Memory m
@@ -76,13 +87,13 @@ peekMem i = gets $ M.findWithDefault 0 i . mRegs
 
 -- | Defered version of 'withInput', to allow for maximum 'laziness'.
 withInputLazy
-    :: (Traversable t, Applicative t, MonadState Memory m, MonadError String m)
+    :: (Traversable t, Applicative t, MonadState Memory m, MonadError IErr m)
     => Int      -- ^ mode int
     -> (t (m Int) -> m r)
     -> m (r, Mode)
 withInputLazy mo f = do
     (lastMode, modes) <- case fillModes mo of
-      Left  i -> throwError $ "bad mode: " ++ show i
+      Left  i -> throwError $ IEBadMode i
       Right x -> pure x
     ba  <- gets mBase
     inp <- for modes $ \mode -> do
@@ -100,7 +111,7 @@ withInputLazy mo f = do
 -- | Run a @t Int -> m r@ function by fetching an input container
 -- @t Int@. This fetches everything in advance, so is 'strict'.
 withInput
-    :: (Traversable t, Applicative t, MonadState Memory m, MonadError String m)
+    :: (Traversable t, Applicative t, MonadState Memory m, MonadError IErr m)
     => Int      -- ^ mode int
     -> (t Int -> m r)
     -> m (r, Mode)
@@ -133,11 +144,11 @@ data InstrRes = IRWrite Int         -- ^ write a value to location at
   deriving Show
 
 step
-    :: (MonadError String m, MonadState Memory m)
+    :: (MonadError IErr m, MonadState Memory m)
     => Pipe Int Int Void m Bool
 step = do
     (mo, x) <- (`divMod` 100) <$> readMem
-    o  <- maybeToEither ("bad instr: " ++ show x) $ instr x
+    o  <- maybeToEither (IEBadInstr x) $ instr x
     (ir, lastMode) <- case o of
       Add -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a + b
       Mul -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a * b
@@ -169,21 +180,21 @@ step = do
         pure False
 
 stepForever
-    :: MonadError String m
+    :: MonadError IErr m
     => Memory
     -> Pipe Int Int Void m Memory
 stepForever m = execStateP m (untilFalse step)
 
 stepForeverAndDie
-    :: MonadError String m
+    :: (MonadError IErr m)
     => Memory
     -> Pipe Int Int Void m Void
-stepForeverAndDie m = stepForever m *> throwError "no more input to give"
+stepForeverAndDie m = stepForever m *> throwError IENoInput
 
 untilHalt
     :: Monad m
-    => Pipe i o u (ExceptT String m) a
-    -> Pipe i o u m                  ()
+    => Pipe i o u (ExceptT e m) a
+    -> Pipe i o u m             ()
 untilHalt = void . runExceptP
 
 parseMem :: String -> Maybe Memory
@@ -198,8 +209,8 @@ untilFalse x = go
       False -> pure ()
       True  -> go
 
-yieldAndDie :: MonadError String m => o -> Pipe i o u m a
-yieldAndDie i = yield i *> throwError "that's all you get"
+yieldAndDie :: MonadError IErr m => o -> Pipe i o u m a
+yieldAndDie i = yield i *> throwError IENoInput
 
 yieldAndPass :: o -> Pipe o o u m u
 yieldAndPass i = yield i *> C.map id

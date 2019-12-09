@@ -14,13 +14,13 @@ module AOC.Challenge.Day05 (
   , day05b
   ) where
 
-import           AOC.Common.Intcode        (Memory, parseMem, yieldAndDie, stepForever)
+import           AOC.Common.Intcode        (Memory, IErr, parseMem, yieldAndDie, stepForever)
 import           AOC.Solver                ((:~>)(..))
 import           Data.Conduino             ((.|), runPipe)
 import           Data.Either               (fromRight)
 import qualified Data.Conduino.Combinators as C
 
-runProg :: Int -> Memory -> Either String (Maybe Int)
+runProg :: Int -> Memory -> Either IErr (Maybe Int)
 runProg i m = runPipe $ yieldAndDie i
                      .| stepForever m
                      .| C.last

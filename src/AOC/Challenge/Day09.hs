@@ -26,13 +26,14 @@ module AOC.Challenge.Day09 (
   , day09b
   ) where
 
-import           AOC.Common.Intcode (Memory, yieldAndDie, stepForever, parseMem)
-import           AOC.Solver         ((:~>)(..))
-import           AOC.Util           (eitherToMaybe)
-import           Control.Monad      (join)
-import           Data.Conduino      (runPipe, (.|), await)
+import           AOC.Common.Intcode        (Memory, IErr, yieldAndDie, stepForever, parseMem)
+import           AOC.Solver                ((:~>)(..))
+import           AOC.Util                  (eitherToMaybe)
+import           Control.Monad             (join)
+import           Control.Monad.Trans.Maybe
+import           Data.Conduino             (runPipe, (.|), await)
 
-runProg :: Int -> Memory -> Either String (Maybe Int)
+runProg :: Int -> Memory -> Either IErr (Maybe Int)
 runProg i m = runPipe $ yieldAndDie i
                      .| stepForever m
                      .| await
@@ -41,12 +42,12 @@ day09a :: _ :~> _
 day09a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = join . eitherToMaybe . runProg 1
+    , sSolve = eitherToMaybe . runProg 1
     }
 
 day09b :: _ :~> _
 day09b = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = join . eitherToMaybe . runProg 2
+    , sSolve = eitherToMaybe . runProg 2
     }

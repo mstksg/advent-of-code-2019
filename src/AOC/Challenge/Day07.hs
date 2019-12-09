@@ -13,7 +13,7 @@ module AOC.Challenge.Day07 (
   ) where
 
 import           AOC.Common.Conduino       (feedbackP)
-import           AOC.Common.Intcode        (Memory, VM, untilHalt, stepForeverAndDie, parseMem, yieldAndDie, yieldAndPass)
+import           AOC.Common.Intcode        (Memory, VM, IErr, untilHalt, stepForeverAndDie, parseMem, yieldAndDie, yieldAndPass)
 import           AOC.Solver                ((:~>)(..))
 import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad.Except      (MonadError)
@@ -23,7 +23,7 @@ import           Data.Semigroup            (Max(..))
 import           Data.Void                 (Void)
 import qualified Data.Conduino.Combinators as C
 
-setupChain :: MonadError String m => Memory -> [Int] -> VM m Void
+setupChain :: MonadError IErr m => Memory -> [Int] -> VM m Void
 setupChain m = foldr ((.|) . prime) (C.map id)
   where
     prime i = yieldAndPass i

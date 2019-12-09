@@ -13,7 +13,7 @@ module AOC.Challenge.Day02 (
   ) where
 
 import           AOC.Common.Conduino       ((|.))
-import           AOC.Common.Intcode        (Memory(..), parseMem, stepForever)
+import           AOC.Common.Intcode        (Memory(..), IErr(..), parseMem, stepForever)
 import           AOC.Common.Search         (binaryMinSearch)
 import           AOC.Solver                ((:~>)(..), dyno_)
 import           AOC.Util                  (eitherToMaybe)
@@ -31,7 +31,7 @@ setMem noun verb m = m { mRegs = maybe id (M.insert 2) verb
 
 runProg :: Memory -> Maybe Int
 runProg m = eitherToMaybe . runPipe $
-        throwError "no input should happen in Day 2 programs"
+        throwError IENoInput
      .| ((M.! 0) . mRegs <$> stepForever m)
      |. C.sinkNull
 

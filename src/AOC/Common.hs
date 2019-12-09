@@ -52,6 +52,7 @@ module AOC.Common (
   , caeser
   , eitherItem
   , getDown
+  , toNatural
   -- * Parsers
   , TokStream(..)
   , parseTokStream
@@ -110,6 +111,7 @@ import           Data.Tuple
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
+import           Numeric.Natural
 import qualified Control.Foldl                      as F
 import qualified Control.Monad.Combinators          as P
 import qualified Data.IntMap                        as IM
@@ -567,3 +569,7 @@ parseTokStreamT_ p = fmap eitherToMaybe . parseTokStreamT p
 -- | Skip every result until this token matches
 nextMatch :: P.MonadParsec e s m => m a -> m a
 nextMatch = P.try . fmap snd . P.manyTill_ (P.try P.anySingle)
+
+toNatural :: Integral a => a -> Maybe Natural
+toNatural x = fromIntegral x <$ guard (x >= 0)
+

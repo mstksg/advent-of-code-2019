@@ -19,32 +19,28 @@ module AOC.Common.Intcode (
   , yieldAndPass
   ) where
 
+import           AOC.Common
 import           AOC.Common.Conduino
 import           AOC.Util
 import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.Conduino
-import           Data.Containers.NonEmpty  (onNonEmpty)
 import           Data.List.Split
-import           Data.Map                  (Map)
-import           Data.Sequence.NonEmpty    (NESeq(..))
+import           Data.Map                    (Map)
 import           Data.Traversable
 import           Data.Void
 import           Linear
-import           Text.Read                 (readMaybe)
-import qualified Data.Conduino.Combinators as C
-import qualified Data.IntMap               as IM
-import           AOC.Common
-import           AOC.Prelude
-import qualified Data.Map                  as M
-import qualified Data.Sequence.NonEmpty    as NESeq
+import           Numeric.Natural             (Natural)
+import           Text.Read                   (readMaybe)
+import qualified Data.Conduino.Combinators   as C
+import qualified Data.Map                    as M
 
 type VM = Pipe Int Int Void
 
 data Memory = Mem
-    { mPos  :: Int
+    { mPos  :: Natural
     , mBase :: Int
-    , mRegs :: IntMap Int
+    , mRegs :: Map Natural Int
     }
   deriving Show
 
@@ -61,17 +57,22 @@ instrMap = M.fromList $
 instr :: Int -> Maybe Instr
 instr = (`M.lookup` instrMap)
 
+toNatural' :: MonadError String m => Int -> m Natural
+toNatural' x = maybeToEither e . toNatural $ x
+  where
+    e = "invalid position: " ++ show x
+
 readMem
     :: MonadState Memory m
     => m Int
 readMem = do
     m@Mem{..} <- get
-    IM.findWithDefault 0 mPos mRegs <$ put (m { mPos = mPos + 1 })
+    M.findWithDefault 0 mPos mRegs <$ put (m { mPos = mPos + 1 })
 
 peekMem
     :: MonadState Memory m
-    => Int -> m Int
-peekMem i = gets $ IM.findWithDefault 0 i . mRegs
+    => Natural -> m Int
+peekMem i = gets $ M.findWithDefault 0 i . mRegs
 
 -- | Run a @t Int -> m r@ function by fetching an input container
 -- @t Int@.
@@ -88,9 +89,13 @@ withInput mo f = do
     inp <- for modes $ \mode -> do
       a <- readMem
       case mode of
-        Pos -> peekMem a
+        Pos -> do
+          x <- toNatural' a
+          peekMem x
         Imm -> pure a
-        Rel -> peekMem (a + ba)
+        Rel -> do
+          x <- toNatural' (a + ba)
+          peekMem x
     (, lastMode) <$> f inp
 
 intMode :: Int -> Maybe Mode
@@ -111,8 +116,8 @@ fillModes i = do
         (t,o) = j `divMod` 10
 
 -- | Useful type to abstract over the actions of the different operations
-data InstrRes = IRWrite Int       -- ^ write a value to location at
-              | IRJump  Int         -- ^ jump to position
+data InstrRes = IRWrite Int         -- ^ write a value to location at
+              | IRJump  Natural     -- ^ jump to position
               | IRBase  Int         -- ^ set base
               | IRNop               -- ^ do nothing
               | IRHalt              -- ^ halt
@@ -129,20 +134,20 @@ step = do
       Mul -> withInput mo $ \case V2 a b  -> pure . IRWrite $ a * b
       Get -> withInput mo $ \case V0      -> IRWrite <$> awaitSurely
       Put -> withInput mo $ \case V1 a    -> IRNop <$ yield a
-      Jnz -> withInput mo $ \case V2 a b  -> pure $ if a /= 0 then IRJump b else IRNop
-      Jez -> withInput mo $ \case V2 a b  -> pure $ if a == 0 then IRJump b else IRNop
+      Jnz -> withInput mo $ \case V2 a b  -> if a /= 0 then IRJump <$> toNatural' b else pure IRNop
+      Jez -> withInput mo $ \case V2 a b  -> if a == 0 then IRJump <$> toNatural' b else pure IRNop
       Clt -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a <  b then 1 else 0
       Ceq -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a == b then 1 else 0
       ChB -> withInput mo $ \case V1 a    -> pure $ IRBase a
       Hlt -> withInput mo $ \case V0      -> pure IRHalt
     case ir of
       IRWrite y -> do
-        c <- case lastMode of
-               Pos -> peekMem =<< gets mPos
-               Imm -> gets mPos
-               Rel -> (+) <$> (peekMem =<< gets mPos) <*> gets mBase
+        c <- toNatural' =<< case lastMode of
+          Pos -> peekMem =<< gets mPos
+          Imm -> fromIntegral <$> gets mPos
+          Rel -> (+) <$> (peekMem =<< gets mPos) <*> gets mBase
         _ <- readMem
-        True <$ modify (\m -> m { mRegs = IM.insert c y (mRegs m) })
+        True <$ modify (\m -> m { mRegs = M.insert c y (mRegs m) })
       IRJump  z ->
         True <$ modify (\m -> m { mPos = z })
       IRBase  b ->
@@ -171,7 +176,7 @@ untilHalt
 untilHalt = void . runExceptP
 
 parseMem :: String -> Maybe Memory
-parseMem = fmap (Mem 0 0 . IM.fromList . zip [0..])
+parseMem = fmap (Mem 0 0 . M.fromList . zip [0..])
          . traverse readMaybe
          . splitOn ","
 

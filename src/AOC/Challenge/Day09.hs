@@ -26,10 +26,11 @@ module AOC.Challenge.Day09 (
   , day09b
   ) where
 
-import           AOC.Common.Intcode
-import           AOC.Prelude
-import           Data.Conduino
-import qualified Data.Conduino.Combinators as C
+import           AOC.Common.Intcode (Memory, yieldAndDie, stepForever, parseMem)
+import           AOC.Solver         ((:~>)(..))
+import           AOC.Util           (eitherToMaybe)
+import           Control.Monad      (join)
+import           Data.Conduino      (runPipe, (.|), await)
 
 runProg :: Int -> Memory -> Either String (Maybe Int)
 runProg i m = runPipe $ yieldAndDie i

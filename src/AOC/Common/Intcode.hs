@@ -74,21 +74,20 @@ peekMem
     => Natural -> m Int
 peekMem i = gets $ M.findWithDefault 0 i . mRegs
 
--- | Run a @t Int -> m r@ function by fetching an input container
--- @t Int@.
-withInput
+-- | Defered version of 'withInput', to allow for maximum 'laziness'.
+withInputLazy
     :: (Traversable t, Applicative t, MonadState Memory m, MonadError String m)
     => Int      -- ^ mode int
-    -> (t Int -> m r)
+    -> (t (m Int) -> m r)
     -> m (r, Mode)
-withInput mo f = do
+withInputLazy mo f = do
     (lastMode, modes) <- case fillModes mo of
       Left  i -> throwError $ "bad mode: " ++ show i
       Right x -> pure x
     ba  <- gets mBase
     inp <- for modes $ \mode -> do
       a <- readMem
-      case mode of
+      pure $ case mode of
         Pos -> do
           x <- toNatural' a
           peekMem x
@@ -98,11 +97,21 @@ withInput mo f = do
           peekMem x
     (, lastMode) <$> f inp
 
+-- | Run a @t Int -> m r@ function by fetching an input container
+-- @t Int@. This fetches everything in advance, so is 'strict'.
+withInput
+    :: (Traversable t, Applicative t, MonadState Memory m, MonadError String m)
+    => Int      -- ^ mode int
+    -> (t Int -> m r)
+    -> m (r, Mode)
+withInput mo f = withInputLazy mo ((f =<<) . sequenceA)
+
 intMode :: Int -> Maybe Mode
 intMode = \case 0 -> Just Pos
                 1 -> Just Imm
                 2 -> Just Rel
                 _ -> Nothing
+
 
 -- | Magically fills a fixed-shape 'Applicative' with each mode from a mode
 -- op int.
@@ -130,16 +139,18 @@ step = do
     (mo, x) <- (`divMod` 100) <$> readMem
     o  <- maybeToEither ("bad instr: " ++ show x) $ instr x
     (ir, lastMode) <- case o of
-      Add -> withInput mo $ \case V2 a b  -> pure . IRWrite $ a + b
-      Mul -> withInput mo $ \case V2 a b  -> pure . IRWrite $ a * b
-      Get -> withInput mo $ \case V0      -> IRWrite <$> awaitSurely
-      Put -> withInput mo $ \case V1 a    -> IRNop <$ yield a
-      Jnz -> withInput mo $ \case V2 a b  -> if a /= 0 then IRJump <$> toNatural' b else pure IRNop
-      Jez -> withInput mo $ \case V2 a b  -> if a == 0 then IRJump <$> toNatural' b else pure IRNop
-      Clt -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a <  b then 1 else 0
-      Ceq -> withInput mo $ \case V2 a b  -> pure . IRWrite $ if a == b then 1 else 0
-      ChB -> withInput mo $ \case V1 a    -> pure $ IRBase a
-      Hlt -> withInput mo $ \case V0      -> pure IRHalt
+      Add -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a + b
+      Mul -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a * b
+      Get -> withInput     mo $ \case V0     -> IRWrite <$> awaitSurely
+      Put -> withInput     mo $ \case V1 a   -> IRNop <$ yield a
+      Jnz -> withInputLazy mo $ \case V2 a b -> a >>= \case 0 -> pure IRNop
+                                                            _ -> IRJump <$> (toNatural' =<< b)
+      Jez -> withInputLazy mo $ \case V2 a b -> a >>= \case 0 -> IRJump <$> (toNatural' =<< b)
+                                                            _ -> pure IRNop
+      Clt -> withInput     mo $ \case V2 a b -> pure . IRWrite $ if a <  b then 1 else 0
+      Ceq -> withInput     mo $ \case V2 a b -> pure . IRWrite $ if a == b then 1 else 0
+      ChB -> withInput     mo $ \case V1 a   -> pure $ IRBase a
+      Hlt -> withInput     mo $ \case V0     -> pure IRHalt
     case ir of
       IRWrite y -> do
         c <- toNatural' =<< case lastMode of

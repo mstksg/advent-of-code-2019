@@ -762,18 +762,18 @@ showImage = unlines
 ```
 >> Day 08a
 benchmarking...
-time                 760.7 μs   (751.9 μs .. 771.9 μs)
-                     0.998 R²   (0.996 R² .. 0.999 R²)
-mean                 758.3 μs   (751.3 μs .. 776.3 μs)
-std dev              35.86 μs   (19.98 μs .. 62.84 μs)
-variance introduced by outliers: 39% (moderately inflated)
+time                 824.3 μs   (806.0 μs .. 865.9 μs)
+                     0.958 R²   (0.879 R² .. 0.999 R²)
+mean                 829.7 μs   (807.2 μs .. 912.3 μs)
+std dev              134.3 μs   (15.92 μs .. 283.1 μs)
+variance introduced by outliers: 89% (severely inflated)
 
 >> Day 08b
 benchmarking...
-time                 1.381 ms   (1.371 ms .. 1.400 ms)
-                     0.998 R²   (0.993 R² .. 1.000 R²)
-mean                 1.379 ms   (1.372 ms .. 1.398 ms)
-std dev              41.27 μs   (9.997 μs .. 78.05 μs)
-variance introduced by outliers: 18% (moderately inflated)
+time                 1.467 ms   (1.357 ms .. 1.706 ms)
+                     0.891 R²   (0.788 R² .. 1.000 R²)
+mean                 1.399 ms   (1.360 ms .. 1.553 ms)
+std dev              243.4 μs   (15.14 μs .. 518.2 μs)
+variance introduced by outliers: 88% (severely inflated)
 ```
 

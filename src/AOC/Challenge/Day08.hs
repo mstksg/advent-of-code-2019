@@ -54,7 +54,7 @@ day08b = MkSol
              . parseAsciiMap (guard . (== '1'))
              . unlines
              . chunksOf 25
-    , sSolve = traverse (listToMaybe . dropWhile (== '2')) . transpose
+    , sSolve = traverse (listToMaybe . filter (/= '2')) . transpose
     }
 
 peel :: Set Point -> Maybe (Set Point, Set Point)

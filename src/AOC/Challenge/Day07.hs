@@ -48,7 +48,7 @@ day07b = MkSol
         let res = runPipePure $ untilHalt ( yieldAndDie 0
                                          .| feedbackP (setupChain m xs)
                                           )
-                            .| C.last
+                             .| C.last
         in  Max <$> res
     }
 

@@ -17,28 +17,31 @@ module AOC.Common.Intcode (
   , parseMem
   , yieldAndDie
   , yieldAndPass
+  , VMErr(..)
   , IErr(..)
+  , AsVMErr(..)
+  , AsIErr(..)
   ) where
 
 import           AOC.Common
 import           AOC.Common.Conduino
 import           AOC.Util
-import           Control.Applicative
 import           Control.Exception
+import           Control.Lens
+import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
 import           Data.Conduino
 import           Data.List.Split
-import           Data.Map                  (Map)
+import           Data.Map                     (Map)
 import           Data.Traversable
 import           Data.Typeable
 import           Data.Void
 import           Linear
-import           Numeric.Natural           (Natural)
-import           Text.Read                 (readMaybe)
-import qualified Data.Conduino.Combinators as C
-import qualified Data.Map                  as M
+import           Numeric.Natural              (Natural)
+import           Text.Read                    (readMaybe)
+import qualified Data.Conduino.Combinators    as C
+import qualified Data.Map                     as M
 
 type VM = Pipe Int Int Void
 
@@ -55,13 +58,22 @@ data Mode = Pos | Imm | Rel
 data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | ChB | Hlt
   deriving (Eq, Ord, Enum, Show)
 
-data IErr = IEBadMode  Int
-          | IEBadInstr Int
-          | IEBadPos   Int
-          | IENoInput
+data VMErr = VMEBadMode  Int
+           | VMEBadInstr Int
+           | VMEBadPos   Int
   deriving (Eq, Ord, Show, Typeable)
+instance Exception VMErr
+makeClassyPrisms ''VMErr
 
+data IErr = IENoInput
+          | IEVM VMErr
+  deriving (Eq, Ord, Show, Typeable)
 instance Exception IErr
+makeClassyPrisms ''IErr
+
+instance AsVMErr IErr where
+    _VMErr = _IEVM
+
 
 instrMap :: Map Int Instr
 instrMap = M.fromList $
@@ -70,8 +82,10 @@ instrMap = M.fromList $
 instr :: Int -> Maybe Instr
 instr = (`M.lookup` instrMap)
 
-toNatural' :: MonadError IErr m => Int -> m Natural
-toNatural' x = maybeToEither (IEBadPos x) . toNatural $ x
+toNatural' :: (AsVMErr e, MonadError e m) => Int -> m Natural
+toNatural' x = maybe (throwing _VMErr (VMEBadPos x)) pure
+             . toNatural
+             $ x
 
 readMem
     :: MonadState Memory m
@@ -87,13 +101,13 @@ peekMem i = gets $ M.findWithDefault 0 i . mRegs
 
 -- | Defered version of 'withInput', to allow for maximum 'laziness'.
 withInputLazy
-    :: (Traversable t, Applicative t, MonadState Memory m, MonadError IErr m)
+    :: (Traversable t, Applicative t, MonadState Memory m, AsVMErr e, MonadError e m)
     => Int      -- ^ mode int
     -> (t (m Int) -> m r)
     -> m (r, Mode)
 withInputLazy mo f = do
     (lastMode, modes) <- case fillModes mo of
-      Left  i -> throwError $ IEBadMode i
+      Left  i -> throwing _VMErr $ VMEBadMode i
       Right x -> pure x
     ba  <- gets mBase
     inp <- for modes $ \mode -> do
@@ -111,7 +125,7 @@ withInputLazy mo f = do
 -- | Run a @t Int -> m r@ function by fetching an input container
 -- @t Int@. This fetches everything in advance, so is 'strict'.
 withInput
-    :: (Traversable t, Applicative t, MonadState Memory m, MonadError IErr m)
+    :: (Traversable t, Applicative t, MonadState Memory m, AsVMErr e, MonadError e m)
     => Int      -- ^ mode int
     -> (t Int -> m r)
     -> m (r, Mode)
@@ -144,11 +158,12 @@ data InstrRes = IRWrite Int         -- ^ write a value to location at
   deriving Show
 
 step
-    :: (MonadError IErr m, MonadState Memory m)
+    :: (AsVMErr e, MonadError e m, MonadState Memory m)
     => Pipe Int Int Void m Bool
 step = do
     (mo, x) <- (`divMod` 100) <$> readMem
-    o  <- maybeToEither (IEBadInstr x) $ instr x
+    o  <- maybe (throwing _VMErr (VMEBadInstr x)) pure $
+            instr x
     (ir, lastMode) <- case o of
       Add -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a + b
       Mul -> withInput     mo $ \case V2 a b -> pure . IRWrite $ a * b
@@ -180,7 +195,7 @@ step = do
         pure False
 
 stepForever
-    :: MonadError IErr m
+    :: (AsVMErr e, MonadError e m)
     => Memory
     -> Pipe Int Int Void m Memory
 stepForever m = execStateP m (untilFalse step)

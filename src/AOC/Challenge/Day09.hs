@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day09
 -- License     : BSD3
@@ -9,17 +6,6 @@
 -- Portability : non-portable
 --
 -- Day 9.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day09 (
     day09a
@@ -30,7 +16,6 @@ import           AOC.Common.Intcode        (Memory, IErr, yieldAndDie, stepForev
 import           AOC.Solver                ((:~>)(..))
 import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad             (join)
-import           Control.Monad.Trans.Maybe
 import           Data.Conduino             (runPipe, (.|), await)
 
 runProg :: Int -> Memory -> Either IErr (Maybe Int)
@@ -38,16 +23,16 @@ runProg i m = runPipe $ yieldAndDie i
                      .| stepForever m
                      .| await
 
-day09a :: _ :~> _
+day09a :: Memory :~> Int
 day09a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = eitherToMaybe . runProg 1
+    , sSolve = join . eitherToMaybe . runProg 1
     }
 
-day09b :: _ :~> _
+day09b :: Memory :~> Int
 day09b = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = eitherToMaybe . runProg 2
+    , sSolve = join . eitherToMaybe . runProg 2
     }

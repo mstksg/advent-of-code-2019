@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Tue, 10 Dec 2019 14:09:40 EST</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2019 14:22:18 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Tue, 10 Dec 2019 14:09:40 EST</pubDate>
+    <pubDate>Tue, 10 Dec 2019 14:22:18 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -77,17 +77,17 @@ that file instead!
 &lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;We now have all the parts to write &lt;code&gt;shootFrom&lt;/code&gt;:&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb7&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb7-1&quot;&gt;&lt;a href=&quot;#cb7-1&quot;&gt;&lt;/a&gt;shootFrom&lt;/span&gt;
-&lt;span id=&quot;cb7-2&quot;&gt;&lt;a href=&quot;#cb7-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;                            &lt;span class=&quot;co&quot;&gt;-- ^ station&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb7-3&quot;&gt;&lt;a href=&quot;#cb7-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;)         &lt;span class=&quot;co&quot;&gt;-- ^ current aim and remaining asteroids&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb7-4&quot;&gt;&lt;a href=&quot;#cb7-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;)   &lt;span class=&quot;co&quot;&gt;-- ^ new aim, leftover field&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-2&quot;&gt;&lt;a href=&quot;#cb7-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;                                    &lt;span class=&quot;co&quot;&gt;-- ^ station&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-3&quot;&gt;&lt;a href=&quot;#cb7-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;)                 &lt;span class=&quot;co&quot;&gt;-- ^ current aim and remaining asteroids&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-4&quot;&gt;&lt;a href=&quot;#cb7-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;))   &lt;span class=&quot;co&quot;&gt;-- ^ blasted asteroid, new aim, leftover field&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-5&quot;&gt;&lt;a href=&quot;#cb7-5&quot;&gt;&lt;/a&gt;shootFrom station (aim, asteroids) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; guard (&lt;span class=&quot;fu&quot;&gt;not&lt;/span&gt; (S.null asteroids)) &lt;span class=&quot;op&quot;&gt;$&amp;gt;&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-6&quot;&gt;&lt;a href=&quot;#cb7-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; aim &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-7&quot;&gt;&lt;a href=&quot;#cb7-7&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-8&quot;&gt;&lt;a href=&quot;#cb7-8&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; targ&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;next&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;_ &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; targetList&lt;/span&gt;
-&lt;span id=&quot;cb7-9&quot;&gt;&lt;a href=&quot;#cb7-9&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; targ, (next, S.delete targ asteroids))&lt;/span&gt;
+&lt;span id=&quot;cb7-9&quot;&gt;&lt;a href=&quot;#cb7-9&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (targ, (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; next, S.delete targ asteroids))&lt;/span&gt;
 &lt;span id=&quot;cb7-10&quot;&gt;&lt;a href=&quot;#cb7-10&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-11&quot;&gt;&lt;a href=&quot;#cb7-11&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; targ&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;next&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;_ &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;dropWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;/=&lt;/span&gt; a) targetList&lt;/span&gt;
-&lt;span id=&quot;cb7-12&quot;&gt;&lt;a href=&quot;#cb7-12&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; targ, (next, S.delete targ asteroids))&lt;/span&gt;
+&lt;span id=&quot;cb7-12&quot;&gt;&lt;a href=&quot;#cb7-12&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (targ, (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; next, S.delete targ asteroids))&lt;/span&gt;
 &lt;span id=&quot;cb7-13&quot;&gt;&lt;a href=&quot;#cb7-13&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-14&quot;&gt;&lt;a href=&quot;#cb7-14&quot;&gt;&lt;/a&gt;    targetList &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;cycle&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb7-15&quot;&gt;&lt;a href=&quot;#cb7-15&quot;&gt;&lt;/a&gt;               &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; sortOn (angleTo station)&lt;/span&gt;

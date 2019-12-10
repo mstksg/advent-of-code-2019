@@ -932,17 +932,17 @@ We now have all the parts to write `shootFrom`:
 
 ```haskell
 shootFrom
-    :: Point                            -- ^ station
-    -> (Maybe Point, Set Point)         -- ^ current aim and remaining asteroids
-    -> Maybe (Maybe Point, Set Point)   -- ^ new aim, leftover field
+    :: Point                                    -- ^ station
+    -> (Maybe Point, Set Point)                 -- ^ current aim and remaining asteroids
+    -> Maybe (Point, Maybe Point, Set Point))   -- ^ blasted asteroid, new aim, leftover field
 shootFrom station (aim, asteroids) = guard (not (S.null asteroids)) $>
     case aim of
       Nothing ->
         let targ:next:_ = targetList
-        in  (Just targ, (next, S.delete targ asteroids))
+        in  (targ, (Just next, S.delete targ asteroids))
       Just a ->
         let targ:next:_ = dropWhile (/= a) targetList
-        in  (Just targ, (next, S.delete targ asteroids))
+        in  (targ, (Just next, S.delete targ asteroids))
   where
     targetList = cycle
                . sortOn (angleTo station)

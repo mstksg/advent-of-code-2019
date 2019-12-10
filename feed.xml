@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Tue, 10 Dec 2019 04:38:38 EST</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2019 06:10:00 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Tue, 10 Dec 2019 04:38:38 EST</pubDate>
+    <pubDate>Tue, 10 Dec 2019 06:10:00 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -105,18 +105,21 @@ that file instead!
 &lt;h3 id=&quot;day-10-benchmarks&quot;&gt;Day 10 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 10a
 benchmarking...
-time                 10.02 ms   (9.811 ms .. 10.31 ms)
-                     0.997 R²   (0.992 R² .. 1.000 R²)
-mean                 10.04 ms   (9.950 ms .. 10.27 ms)
-std dev              370.8 μs   (143.7 μs .. 653.6 μs)
-variance introduced by outliers: 16% (moderately inflated)
+time                 9.647 ms   (9.584 ms .. 9.732 ms)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 9.697 ms   (9.639 ms .. 9.775 ms)
+std dev              187.7 μs   (128.1 μs .. 269.3 μs)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 10b
 benchmarking...
-time                 18.06 ms   (17.93 ms .. 18.22 ms)
-                     0.999 R²   (0.995 R² .. 1.000 R²)
-mean                 18.03 ms   (17.94 ms .. 18.32 ms)
-std dev              366.5 μs   (70.38 μs .. 727.5 μs)&lt;/code&gt;&lt;/pre&gt;
+time                 18.03 ms   (17.69 ms .. 18.61 ms)
+                     0.997 R²   (0.991 R² .. 1.000 R²)
+mean                 17.77 ms   (17.66 ms .. 18.11 ms)
+std dev              415.2 μs   (110.7 μs .. 804.8 μs)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-10</link>
       <pubDate>Tue, 10 Dec 2019 01:00:00 EST</pubDate>
@@ -173,19 +176,23 @@ that file instead!
 &lt;h3 id=&quot;day-8-benchmarks&quot;&gt;Day 8 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 08a
 benchmarking...
-time                 824.3 μs   (806.0 μs .. 865.9 μs)
-                     0.958 R²   (0.879 R² .. 0.999 R²)
-mean                 829.7 μs   (807.2 μs .. 912.3 μs)
-std dev              134.3 μs   (15.92 μs .. 283.1 μs)
-variance introduced by outliers: 89% (severely inflated)
+time                 304.7 μs   (300.5 μs .. 311.0 μs)
+                     0.997 R²   (0.994 R² .. 1.000 R²)
+mean                 303.9 μs   (301.3 μs .. 312.2 μs)
+std dev              14.42 μs   (4.890 μs .. 28.56 μs)
+variance introduced by outliers: 44% (moderately inflated)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 08b
 benchmarking...
-time                 1.467 ms   (1.357 ms .. 1.706 ms)
-                     0.891 R²   (0.788 R² .. 1.000 R²)
-mean                 1.399 ms   (1.360 ms .. 1.553 ms)
-std dev              243.4 μs   (15.14 μs .. 518.2 μs)
-variance introduced by outliers: 88% (severely inflated)&lt;/code&gt;&lt;/pre&gt;
+time                 259.3 μs   (257.0 μs .. 262.8 μs)
+                     0.998 R²   (0.997 R² .. 1.000 R²)
+mean                 261.2 μs   (258.4 μs .. 270.3 μs)
+std dev              14.81 μs   (6.332 μs .. 28.23 μs)
+variance introduced by outliers: 54% (severely inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8</link>
       <pubDate>Sun,  8 Dec 2019 01:00:00 EST</pubDate>
@@ -283,19 +290,22 @@ that file instead!
 &lt;h3 id=&quot;day-6-benchmarks&quot;&gt;Day 6 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 06a
 benchmarking...
-time                 6.336 ms   (6.110 ms .. 6.665 ms)
-                     0.992 R²   (0.986 R² .. 0.999 R²)
-mean                 6.175 ms   (6.114 ms .. 6.289 ms)
-std dev              226.0 μs   (128.2 μs .. 371.4 μs)
-variance introduced by outliers: 15% (moderately inflated)
+time                 421.3 μs   (420.6 μs .. 422.6 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 421.9 μs   (421.1 μs .. 423.3 μs)
+std dev              3.687 μs   (2.282 μs .. 6.304 μs)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 06b
 benchmarking...
-time                 4.588 ms   (3.971 ms .. 5.433 ms)
-                     0.875 R²   (0.830 R² .. 0.999 R²)
-mean                 4.195 ms   (4.024 ms .. 4.562 ms)
-std dev              775.1 μs   (463.2 μs .. 1.166 ms)
-variance introduced by outliers: 86% (severely inflated)&lt;/code&gt;&lt;/pre&gt;
+time                 399.6 μs   (395.2 μs .. 406.7 μs)
+                     0.998 R²   (0.996 R² .. 1.000 R²)
+mean                 401.3 μs   (399.7 μs .. 406.4 μs)
+std dev              8.734 μs   (1.623 μs .. 18.14 μs)
+variance introduced by outliers: 14% (moderately inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-6</link>
       <pubDate>Fri,  6 Dec 2019 01:00:00 EST</pubDate>
@@ -340,17 +350,22 @@ that file instead!
 &lt;h3 id=&quot;day-4-benchmarks&quot;&gt;Day 4 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 04a
 benchmarking...
-time                 43.74 ms   (43.45 ms .. 44.29 ms)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 43.58 ms   (43.49 ms .. 43.90 ms)
-std dev              317.6 μs   (129.3 μs .. 563.4 μs)
+time                 40.54 ms   (34.93 ms .. 43.80 ms)
+                     0.962 R²   (0.871 R² .. 1.000 R²)
+mean                 44.23 ms   (41.85 ms .. 53.46 ms)
+std dev              8.419 ms   (167.2 μs .. 15.72 ms)
+variance introduced by outliers: 70% (severely inflated)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 04b
 benchmarking...
-time                 44.23 ms   (43.64 ms .. 44.81 ms)
-                     1.000 R²   (0.999 R² .. 1.000 R²)
-mean                 44.19 ms   (43.99 ms .. 44.76 ms)
-std dev              551.8 μs   (199.9 μs .. 1.001 ms)&lt;/code&gt;&lt;/pre&gt;
+time                 42.23 ms   (41.81 ms .. 42.91 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 42.41 ms   (42.20 ms .. 42.84 ms)
+std dev              576.4 μs   (125.1 μs .. 929.9 μs)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-4</link>
       <pubDate>Wed,  4 Dec 2019 01:00:00 EST</pubDate>
@@ -405,19 +420,23 @@ that file instead!
 &lt;h3 id=&quot;day-3-benchmarks&quot;&gt;Day 3 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 03a
 benchmarking...
-time                 298.0 ms   (276.8 ms .. 322.1 ms)
-                     0.998 R²   (0.991 R² .. 1.000 R²)
-mean                 303.0 ms   (297.7 ms .. 307.2 ms)
-std dev              6.642 ms   (5.044 ms .. 7.689 ms)
+time                 299.0 ms   (288.7 ms .. 321.8 ms)
+                     0.998 R²   (0.996 R² .. 1.000 R²)
+mean                 294.8 ms   (285.8 ms .. 299.9 ms)
+std dev              8.990 ms   (2.715 ms .. 12.42 ms)
 variance introduced by outliers: 16% (moderately inflated)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 03b
 benchmarking...
-time                 296.3 ms   (283.1 ms .. 314.1 ms)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 291.8 ms   (284.5 ms .. 295.8 ms)
-std dev              6.753 ms   (2.482 ms .. 8.958 ms)
-variance introduced by outliers: 16% (moderately inflated)&lt;/code&gt;&lt;/pre&gt;
+time                 291.7 ms   (277.9 ms .. 315.9 ms)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 291.2 ms   (285.1 ms .. 298.0 ms)
+std dev              8.427 ms   (4.731 ms .. 11.14 ms)
+variance introduced by outliers: 16% (moderately inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-3</link>
       <pubDate>Tue,  3 Dec 2019 01:00:00 EST</pubDate>
@@ -510,19 +529,22 @@ that file instead!
 &lt;h3 id=&quot;day-2-benchmarks&quot;&gt;Day 2 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 02a
 benchmarking...
-time                 272.9 μs   (257.7 μs .. 296.2 μs)
-                     0.974 R²   (0.953 R² .. 1.000 R²)
-mean                 265.9 μs   (259.3 μs .. 285.0 μs)
-std dev              32.76 μs   (5.613 μs .. 60.80 μs)
-variance introduced by outliers: 85% (severely inflated)
+time                 149.6 μs   (148.9 μs .. 150.5 μs)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 149.3 μs   (149.0 μs .. 150.0 μs)
+std dev              1.469 μs   (503.2 ns .. 2.490 μs)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 02b
 benchmarking...
-time                 464.2 μs   (450.5 μs .. 501.3 μs)
-                     0.961 R²   (0.892 R² .. 1.000 R²)
-mean                 462.9 μs   (452.3 μs .. 494.3 μs)
-std dev              63.73 μs   (6.510 μs .. 122.1 μs)
-variance introduced by outliers: 86% (severely inflated)&lt;/code&gt;&lt;/pre&gt;
+time                 2.108 ms   (2.086 ms .. 2.132 ms)
+                     0.997 R²   (0.992 R² .. 1.000 R²)
+mean                 2.116 ms   (2.098 ms .. 2.181 ms)
+std dev              105.1 μs   (22.51 μs .. 218.3 μs)
+variance introduced by outliers: 34% (moderately inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-2</link>
       <pubDate>Mon,  2 Dec 2019 01:00:00 EST</pubDate>
@@ -551,19 +573,22 @@ that file instead!
 &lt;h3 id=&quot;day-1-benchmarks&quot;&gt;Day 1 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 01a
 benchmarking...
-time                 250.6 μs   (242.6 μs .. 269.2 μs)
-                     0.963 R²   (0.904 R² .. 1.000 R²)
-mean                 247.8 μs   (242.5 μs .. 268.6 μs)
-std dev              33.39 μs   (1.410 μs .. 70.89 μs)
-variance introduced by outliers: 87% (severely inflated)
+time                 1.271 μs   (1.269 μs .. 1.273 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.270 μs   (1.269 μs .. 1.272 μs)
+std dev              3.648 ns   (1.644 ns .. 6.001 ns)
+
+* parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 01b
 benchmarking...
-time                 264.3 μs   (261.9 μs .. 268.9 μs)
-                     0.999 R²   (0.997 R² .. 1.000 R²)
-mean                 265.4 μs   (263.5 μs .. 270.6 μs)
-std dev              9.985 μs   (3.934 μs .. 19.53 μs)
-variance introduced by outliers: 34% (moderately inflated)&lt;/code&gt;&lt;/pre&gt;
+time                 20.36 μs   (20.26 μs .. 20.50 μs)
+                     0.998 R²   (0.995 R² .. 1.000 R²)
+mean                 20.51 μs   (20.27 μs .. 21.27 μs)
+std dev              1.301 μs   (165.7 ns .. 2.695 μs)
+variance introduced by outliers: 69% (severely inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-1</link>
       <pubDate>Sun,  1 Dec 2019 01:00:00 EST</pubDate>

@@ -26,6 +26,7 @@ module AOC.Common.Intcode (
 import           AOC.Common
 import           AOC.Common.Conduino
 import           AOC.Util
+import           Control.DeepSeq
 import           Control.Exception
 import           Control.Lens
 import           Control.Monad.Error.Lens
@@ -33,15 +34,16 @@ import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.Conduino
 import           Data.List.Split
-import           Data.Map                     (Map)
+import           Data.Map                  (Map)
 import           Data.Traversable
 import           Data.Typeable
 import           Data.Void
+import           GHC.Generics
 import           Linear
-import           Numeric.Natural              (Natural)
-import           Text.Read                    (readMaybe)
-import qualified Data.Conduino.Combinators    as C
-import qualified Data.Map                     as M
+import           Numeric.Natural           (Natural)
+import           Text.Read                 (readMaybe)
+import qualified Data.Conduino.Combinators as C
+import qualified Data.Map                  as M
 
 type VM = Pipe Int Int Void
 
@@ -50,24 +52,27 @@ data Memory = Mem
     , mBase :: Int
     , mRegs :: Map Natural Int
     }
-  deriving Show
+  deriving (Eq, Ord, Show, Generic)
+instance NFData Memory
 
 data Mode = Pos | Imm | Rel
-  deriving (Eq, Ord, Enum, Show)
+  deriving (Eq, Ord, Enum, Show, Generic)
+instance NFData Mode
 
 data Instr = Add | Mul | Get | Put | Jnz | Jez | Clt | Ceq | ChB | Hlt
-  deriving (Eq, Ord, Enum, Show)
+  deriving (Eq, Ord, Enum, Show, Generic)
+instance NFData Instr
 
 data VMErr = VMEBadMode  Int
            | VMEBadInstr Int
            | VMEBadPos   Int
-  deriving (Eq, Ord, Show, Typeable)
+  deriving (Eq, Ord, Show, Typeable, Generic)
 instance Exception VMErr
 makeClassyPrisms ''VMErr
 
 data IErr = IENoInput
           | IEVM VMErr
-  deriving (Eq, Ord, Show, Typeable)
+  deriving (Eq, Ord, Show, Typeable, Generic)
 instance Exception IErr
 makeClassyPrisms ''IErr
 
@@ -155,7 +160,7 @@ data InstrRes = IRWrite Int         -- ^ write a value to location at
               | IRBase  Int         -- ^ set base
               | IRNop               -- ^ do nothing
               | IRHalt              -- ^ halt
-  deriving Show
+  deriving (Eq, Ord, Show, Generic)
 
 step
     :: (AsVMErr e, MonadError e m, MonadState Memory m)

@@ -138,6 +138,7 @@ import qualified Text.Megaparsec                    as P
 -- | Strict drop
 drop' :: Int -> [a] -> [a]
 drop' 0 xs     = xs
+drop' _ []     = []
 drop' n (x:xs) = x `seq` drop' (n - 1) xs
 
 -- | Iterate until a 'Nothing' is produced
@@ -407,6 +408,7 @@ data Dir = North | East | South | West
   deriving (Show, Eq, Ord, Generic)
 
 instance Hashable Dir
+instance NFData Dir
 
 dirPoint :: Dir -> Point
 dirPoint = \case
@@ -466,6 +468,7 @@ newtype ScanPoint = SP { _getSP :: Point }
   deriving (Eq, Show, Num, Generic)
 
 instance Hashable ScanPoint
+instance NFData ScanPoint
 
 instance Ord ScanPoint where
     compare = comparing (view _y . _getSP)
@@ -517,6 +520,7 @@ newtype TokStream a = TokStream { getTokStream :: [a] }
   deriving (Ord, Eq, Show, Generic, Functor)
 
 instance Hashable a => Hashable (TokStream a)
+instance NFData a => NFData (TokStream a)
 
 instance (Ord a, Show a) => P.Stream (TokStream a) where
     type Token  (TokStream a) = a

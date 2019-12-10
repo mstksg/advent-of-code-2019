@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Tue, 10 Dec 2019 03:33:28 EST</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2019 04:29:58 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Tue, 10 Dec 2019 03:33:28 EST</pubDate>
+    <pubDate>Tue, 10 Dec 2019 04:29:58 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -34,7 +34,7 @@ that file instead!
 &lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;    crunch p &lt;span class=&quot;ch&quot;&gt;&amp;#39;#&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.singleton p&lt;/span&gt;
 &lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;    crunch _ _   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.empty&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Here I’m using the very handy &lt;code&gt;ifoldMap :: Monoid m =&amp;gt; (Int -&amp;gt; a -&amp;gt; m) -&amp;gt; [a]&lt;/code&gt; from &lt;em&gt;&lt;a href=&quot;https://www.stackage.org/haddock/lts-14.17/lens-4.17.1/Control-Lens-Indexed.html#v:ifoldMap&quot;&gt;Control.Lens.Indexed&lt;/a&gt;&lt;/em&gt;, which is a very useful function that I hope will some day make it to &lt;em&gt;base&lt;/em&gt;. It’s like &lt;code&gt;foldMap&lt;/code&gt; with also the indices available.&lt;/p&gt;
-&lt;p&gt;Anyway, how do we check if an asteroid is obscured? There are probably many good methods, but for me I found all the points in a straight line between two asteroids, and checked if any of those items are in the asteroid field.&lt;/p&gt;
+&lt;p&gt;Anyway, how do we check if an asteroid is obscured? There are probably many good methods, but for me I found all the points in a straight line between two asteroids, and checked if any of those items are in the asteroid field. (I did attempt also to get the set of all unique angles, but that method ended up being 10x slower for some reason?)&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;lineTo ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;]&lt;/span&gt;
 &lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;lineTo p0 p1&lt;/span&gt;
 &lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; dy &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x    minY   &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; x &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [minX &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; maxX &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
@@ -75,9 +75,9 @@ that file instead!
 &lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;    station &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; maximumBy (comparing (S.size &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; viewableIn asteroids))&lt;/span&gt;
 &lt;span id=&quot;cb5-6&quot;&gt;&lt;a href=&quot;#cb5-6&quot;&gt;&lt;/a&gt;                asteroids&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;So we have &lt;code&gt;shootFrom&lt;/code&gt; as our iterating function. Our “state” will be &lt;code&gt;Maybe Point&lt;/code&gt; (the asteroid our blaster is aimed at) and &lt;code&gt;Set Point&lt;/code&gt;, the asteroid field remaining. We’ll return &lt;code&gt;Nothing&lt;/code&gt; when we run out of asteroids to eliminate.&lt;/p&gt;
-&lt;p&gt;To implement &lt;code&gt;shootFrom&lt;/code&gt;, it’s useful to be able to sort all viewable asteroids by the angle they make. To do that, I made a function &lt;code&gt;angleFrom&lt;/code&gt; which computes the angle between two points, clockwise from vertical. I use &lt;code&gt;atan2&lt;/code&gt; with some algebraic finessing to make sure north is zero, and the direction moves appropriately.&lt;/p&gt;
+&lt;p&gt;To implement &lt;code&gt;shootFrom&lt;/code&gt;, it’s useful to be able to sort all viewable asteroids by the angle they make. To do that, I made a function &lt;code&gt;angleFrom&lt;/code&gt; which computes the angle between two points, clockwise from vertical. I use &lt;code&gt;atan2&lt;/code&gt; with some algebraic finessing to make sure north is the &lt;em&gt;minimal&lt;/em&gt; amount, and the direction moves appropriately (we flip its arguments and remember to invert the &lt;code&gt;y&lt;/code&gt; axis).&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;angleTo ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Double&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;angleTo p0 p1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;fu&quot;&gt;atan2&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dx) (&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dy) &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pi&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;angleTo p0 p1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;atan2&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dx) (&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dy)&lt;/span&gt;
 &lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;We now have all the parts to write &lt;code&gt;shootFrom&lt;/code&gt;:&lt;/p&gt;
@@ -105,18 +105,18 @@ that file instead!
 &lt;h3 id=&quot;day-10-benchmarks&quot;&gt;Day 10 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 10a
 benchmarking...
-time                 8.661 ms   (8.279 ms .. 9.059 ms)
-                     0.992 R²   (0.984 R² .. 0.997 R²)
-mean                 9.299 ms   (8.769 ms .. 10.47 ms)
-std dev              2.116 ms   (483.9 μs .. 3.861 ms)
-variance introduced by outliers: 87% (severely inflated)
+time                 10.25 ms   (9.895 ms .. 10.88 ms)
+                     0.964 R²   (0.915 R² .. 1.000 R²)
+mean                 10.22 ms   (9.988 ms .. 10.77 ms)
+std dev              954.9 μs   (477.5 μs .. 1.725 ms)
+variance introduced by outliers: 52% (severely inflated)
 
 &amp;gt;&amp;gt; Day 10b
 benchmarking...
-time                 15.82 ms   (15.47 ms .. 16.13 ms)
-                     0.997 R²   (0.994 R² .. 0.999 R²)
-mean                 15.67 ms   (15.55 ms .. 15.92 ms)
-std dev              430.4 μs   (266.1 μs .. 670.3 μs)&lt;/code&gt;&lt;/pre&gt;
+time                 18.10 ms   (17.72 ms .. 18.50 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 18.06 ms   (17.92 ms .. 18.30 ms)
+std dev              466.9 μs   (329.4 μs .. 709.0 μs)&lt;/code&gt;&lt;/pre&gt;
 </description>
       <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-10</link>
       <pubDate>Tue, 10 Dec 2019 01:00:00 EST</pubDate>

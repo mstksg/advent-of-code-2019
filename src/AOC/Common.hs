@@ -66,6 +66,7 @@ module AOC.Common (
   , fullNeighbs
   , mannDist
   , mulPoint
+  , lineTo
   -- * Directions
   , Dir(..)
   , parseDir
@@ -111,6 +112,7 @@ import           Data.Tuple
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
 import           Linear                             (V2(..), _x, _y)
+import           Linear.Vector
 import           Numeric.Natural
 import qualified Control.Foldl                      as F
 import qualified Control.Monad.Combinators          as P
@@ -353,12 +355,12 @@ floodFill
     -> Set a            -- ^ Flood filled
 floodFill f = go S.empty
   where
-    go !inner !outer
-        | S.null outer' = inner'
-        | otherwise     = go inner' outer'
+    go !innr !outr
+        | S.null outr' = innr'
+        | otherwise     = go innr' outr'
       where
-        inner' = S.union inner outer
-        outer' = foldMap f outer `S.difference` inner'
+        innr' = S.union innr outr
+        outr' = foldMap f outr `S.difference` innr'
 
 
 -- | 2D Coordinate
@@ -572,4 +574,16 @@ nextMatch = P.try . fmap snd . P.manyTill_ (P.try P.anySingle)
 
 toNatural :: Integral a => a -> Maybe Natural
 toNatural x = fromIntegral x <$ guard (x >= 0)
+
+-- | Lattice points for line between points, not including endpoints
+lineTo :: Point -> Point -> [Point]
+lineTo p0 p1
+    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
+    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
+  where
+    V2 minX minY = min <$> p0 <*> p1
+    V2 maxX _    = max <$> p0 <*> p1
+    d@(V2 dx dy) = p1 - p0
+    gcf          = gcd dx dy
+    step         = (`div` gcf) <$> d
 

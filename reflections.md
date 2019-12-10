@@ -826,7 +826,9 @@ available.
 
 Anyway, how do we check if an asteroid is obscured?  There are probably many
 good methods, but for me I found all the points in a straight line between two
-asteroids, and checked if any of those items are in the asteroid field.
+asteroids, and checked if any of those items are in the asteroid field. (I did
+attempt also to get the set of all unique angles, but that method ended up
+being 10x slower for some reason?)
 
 ```haskell
 lineTo :: Point -> Point -> [Point]
@@ -900,12 +902,13 @@ eliminate.
 To implement `shootFrom`, it's useful to be able to sort all viewable asteroids
 by the angle they make.  To do that, I made a function `angleFrom` which
 computes the angle between two points, clockwise from vertical.  I use `atan2`
-with some algebraic finessing to make sure north is zero, and the direction
-moves appropriately.
+with some algebraic finessing to make sure north is the *minimal* amount, and
+the direction moves appropriately (we flip its arguments and remember to invert
+the `y` axis).
 
 ```haskell
 angleTo :: Point -> Point -> Double
-angleTo p0 p1 = -atan2 (fromIntegral dx) (fromIntegral dy) + pi
+angleTo p0 p1 = atan2 (-fromIntegral dx) (fromIntegral dy)
   where
     V2 dx dy = p1 - p0
 ```
@@ -960,17 +963,17 @@ Advent of Code challenge :)
 ```
 >> Day 10a
 benchmarking...
-time                 8.661 ms   (8.279 ms .. 9.059 ms)
-                     0.992 R²   (0.984 R² .. 0.997 R²)
-mean                 9.299 ms   (8.769 ms .. 10.47 ms)
-std dev              2.116 ms   (483.9 μs .. 3.861 ms)
-variance introduced by outliers: 87% (severely inflated)
+time                 10.25 ms   (9.895 ms .. 10.88 ms)
+                     0.964 R²   (0.915 R² .. 1.000 R²)
+mean                 10.22 ms   (9.988 ms .. 10.77 ms)
+std dev              954.9 μs   (477.5 μs .. 1.725 ms)
+variance introduced by outliers: 52% (severely inflated)
 
 >> Day 10b
 benchmarking...
-time                 15.82 ms   (15.47 ms .. 16.13 ms)
-                     0.997 R²   (0.994 R² .. 0.999 R²)
-mean                 15.67 ms   (15.55 ms .. 15.92 ms)
-std dev              430.4 μs   (266.1 μs .. 670.3 μs)
+time                 18.10 ms   (17.72 ms .. 18.50 ms)
+                     0.998 R²   (0.996 R² .. 0.999 R²)
+mean                 18.06 ms   (17.92 ms .. 18.30 ms)
+std dev              466.9 μs   (329.4 μs .. 709.0 μs)
 ```
 

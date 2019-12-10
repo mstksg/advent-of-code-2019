@@ -29,7 +29,9 @@ available.
 
 Anyway, how do we check if an asteroid is obscured?  There are probably many
 good methods, but for me I found all the points in a straight line between two
-asteroids, and checked if any of those items are in the asteroid field.
+asteroids, and checked if any of those items are in the asteroid field. (I did
+attempt also to get the set of all unique angles, but that method ended up
+being 10x slower for some reason?)
 
 ```haskell
 lineTo :: Point -> Point -> [Point]
@@ -103,12 +105,13 @@ eliminate.
 To implement `shootFrom`, it's useful to be able to sort all viewable asteroids
 by the angle they make.  To do that, I made a function `angleFrom` which
 computes the angle between two points, clockwise from vertical.  I use `atan2`
-with some algebraic finessing to make sure north is zero, and the direction
-moves appropriately.
+with some algebraic finessing to make sure north is the *minimal* amount, and
+the direction moves appropriately (we flip its arguments and remember to invert
+the `y` axis).
 
 ```haskell
 angleTo :: Point -> Point -> Double
-angleTo p0 p1 = - atan2 (fromIntegral dx) (fromIntegral dy) + pi
+angleTo p0 p1 = atan2 (-fromIntegral dx) (fromIntegral dy)
   where
     V2 dx dy = p1 - p0
 ```

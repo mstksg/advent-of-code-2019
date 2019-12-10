@@ -10,9 +10,10 @@
 module AOC.Challenge.Day10 (
     day10a
   , day10b
+  , angleTo
   ) where
 
-import           AOC.Common              (Point, parseAsciiMap, maximumValNE)
+import           AOC.Common              (Point, parseAsciiMap, maximumValNE, lineTo)
 import           AOC.Solver              ((:~>)(..))
 import           Control.Monad           (guard)
 import           Data.Foldable           (toList)
@@ -22,24 +23,12 @@ import           Data.Semigroup          (Max(..))
 import           Data.Semigroup.Foldable (foldMap1)
 import           Data.Set.NonEmpty       (NESet)
 import           Linear                  (V2(..))
-import           Linear.Vector           ((*^))
 import qualified Data.Map                as M
 import qualified Data.Map.NonEmpty       as NEM
 import qualified Data.Set.NonEmpty       as NES
 
-lineTo :: Point -> Point -> [Point]
-lineTo p0 p1
-    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
-    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
-  where
-    V2 minX minY = min <$> p0 <*> p1
-    V2 maxX _    = max <$> p0 <*> p1
-    d@(V2 dx dy) = p1 - p0
-    gcf          = gcd dx dy
-    step         = (`div` gcf) <$> d
-
 angleTo :: Point -> Point -> Double
-angleTo p0 p1 = -atan2 (fromIntegral dx) (fromIntegral dy) + pi
+angleTo p0 p1 = atan2 (-fromIntegral dx) (fromIntegral dy)
   where
     V2 dx dy = p1 - p0
 

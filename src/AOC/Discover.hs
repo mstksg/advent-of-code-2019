@@ -24,12 +24,17 @@ module AOC.Discover (
   , charPart
   , challengeName
   , solverNFData
+  , deepInstance
   ) where
 
 import           AOC.Solver
 import           Advent
+import           Control.Applicative
 import           Control.DeepSeq
+import           Language.Haskell.TH.Datatype
 import           Control.Monad
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Maybe
 import           Data.Bifunctor
 import           Data.Data
 import           Data.Map                   (Map)
@@ -45,11 +50,18 @@ import           Prelude
 import           System.Directory
 import           System.FilePath
 import           Text.Printf
+import qualified Data.List.NonEmpty         as NE
 import qualified Data.Map                   as M
 import qualified Hpack.Config               as H
 import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
 import qualified Text.Megaparsec.Char.Lexer as PL
+
+-- | Big quick escape hatch if things explode in the middle of solving.
+-- This will disable the check for NFData when using 'MkSomeSol' and assume
+-- no NFData in every case.
+checkIfNFData :: Bool
+checkIfNFData = True
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.
@@ -180,8 +192,30 @@ charPart _   = Nothing
 -- | Check if a solver identifier is of type @A ':~>' B@, where @B@ is an
 -- instance of 'NFData'.
 solverNFData :: TH.Name -> Q Bool
-solverNFData n = reify n >>= \case
-    VarI _ (ConT c `AppT` a `AppT` _) _
-      | c == ''(:~>) -> isInstance ''NFData [a]
-    _ -> pure False
+solverNFData n
+  | checkIfNFData = reify n >>= \case
+      VarI _ (ConT c `AppT` a `AppT` _) _
+        | c == ''(:~>) -> deepInstance ''NFData a 
+      _ -> pure False
+  | otherwise     = pure False
 
+-- | Check if a type is an instance of a class, unifying when possible
+deepInstance
+    :: TH.Name  -- ^ class
+    -> TH.Type  -- ^ type
+    -> Q Bool
+deepInstance cn = fmap isJust . runMaybeT . deepInstance_ cn
+
+deepInstance_
+    :: TH.Name  -- ^ class
+    -> TH.Type  -- ^ type
+    -> MaybeT Q ()
+deepInstance_ cn t = do
+    insts <- maybe empty pure . NE.nonEmpty =<< lift (reifyInstances cn [t])
+    forM_ insts $ \case
+      InstanceD _ ctx instHead _ -> do
+        uni <- lift $ unifyTypes [ConT cn `AppT` t, instHead]
+        forM_ ctx $ \case
+          AppT (ConT c) v -> deepInstance_ c (applySubstitution uni v)
+          _               -> empty
+      _                            -> empty

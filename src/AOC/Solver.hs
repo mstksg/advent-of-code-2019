@@ -18,6 +18,7 @@ module AOC.Solver (
   , SolutionError(..)
   , runSolution
   , runSomeSolution
+  , ssIsNF
   -- * 'DynoMap'
   , runSolutionWith
   , runSomeSolutionWith
@@ -52,7 +53,14 @@ data a :~> b = MkSol
 -- different solutions in a container.
 data SomeSolution where
     MkSomeSolWH :: a :~> b -> SomeSolution
-    MkSomeSolNF :: NFData a => a :~> b -> SomeSolution
+    MkSomeSolNF :: (NFData a, NFData b) => a :~> b -> SomeSolution
+
+-- | Check if a 'SomeSolution' is equipped with an 'NFData' instance on the
+-- types
+ssIsNF :: SomeSolution -> Bool
+ssIsNF = \case
+    MkSomeSolWH _ -> False
+    MkSomeSolNF _ -> True
 
 data SomeSolHelp where
     SSH :: a :~> b -> SomeSolHelp

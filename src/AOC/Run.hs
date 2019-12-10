@@ -1,3 +1,4 @@
+{-# LANGUAGE ImplicitParams    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
@@ -144,17 +145,19 @@ mainRun Cfg{..} MRO{..} =  do
       case inp1 of
         Right inp
           | _mroBench -> do
-              let res = (testRes, Left ["Ran benchmark, so no result"])
+              _ <- evaluate (force inp)
+              let res    = (testRes, Left ["Ran benchmark, so no result"])
               res <$ case c of
-                MkSomeSolWH _ -> benchmark (nf (runSomeSolution c) inp)
-                MkSomeSolNF MkSol{..} -> case sParse inp of
-                  Nothing -> putStrLn "[NO PARSE]"
-                  Just x  -> do
-                    putStrLn "Benchmarking parsing"
-                    let ?dyno = mempty
-                    benchmark (nf sParse inp)
-                    putStrLn "Benchmarking solver"
-                    benchmark (nf sSolve x)
+                MkSomeSolWH _         ->
+                      benchmark (nf (runSomeSolution c) inp)
+                MkSomeSolNF MkSol{..}
+                  | Just x <- sParse inp -> do
+                      _ <- evaluate (force x)
+                      benchmark (nf (let ?dyno = mempty in sSolve) x)
+                      putStrLn "* parsing and formatting times excluded"
+                      putStrLn ""
+                  | otherwise            ->
+                      putStrLn "(No parse)"
           | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp (TM ans1 M.empty)
         Left e
           | _mroTest  -> pure (testRes, Left ["Ran tests, so no result"])

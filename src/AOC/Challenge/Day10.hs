@@ -10,7 +10,6 @@
 module AOC.Challenge.Day10 (
     day10a
   , day10b
-  , angleTo
   ) where
 
 import           AOC.Common              (Point, parseAsciiMap, maximumValNE, lineTo, drop')

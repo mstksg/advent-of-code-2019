@@ -20,6 +20,7 @@ module AOC.Common (
   , loopMaybeM
   , firstJust
   , (!!!)
+  , drop'
   , dup
   , scanlT
   , scanrT
@@ -133,6 +134,11 @@ import qualified Text.Megaparsec                    as P
 [] !!! _ = error "Out of range"
 (x:_ ) !!! 0 = x
 (x:xs) !!! n = x `seq` (xs !!! (n - 1))
+
+-- | Strict drop
+drop' :: Int -> [a] -> [a]
+drop' 0 xs     = xs
+drop' n (x:xs) = x `seq` drop' (n - 1) xs
 
 -- | Iterate until a 'Nothing' is produced
 iterateMaybe :: (a -> Maybe a) -> a -> [a]

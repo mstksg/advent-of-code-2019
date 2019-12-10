@@ -31,7 +31,8 @@ Anyway, how do we check if an asteroid is obscured?  There are probably many
 good methods, but for me I found all the points in a straight line between two
 asteroids, and checked if any of those items are in the asteroid field. (I did
 attempt also to get the set of all unique angles, but that method ended up
-being 10x slower for some reason?)
+being 10x slower for some reason? also using floating point equality makes me
+feel queasy to my core)
 
 ```haskell
 lineTo :: Point -> Point -> [Point]

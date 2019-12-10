@@ -13,7 +13,7 @@ module AOC.Challenge.Day10 (
   , angleTo
   ) where
 
-import           AOC.Common              (Point, parseAsciiMap, maximumValNE, lineTo)
+import           AOC.Common              (Point, parseAsciiMap, maximumValNE, lineTo, drop')
 import           AOC.Solver              ((:~>)(..))
 import           Control.Monad           (guard)
 import           Data.Foldable           (toList)
@@ -51,7 +51,7 @@ day10b = MkSol
     , sSolve = \as ->
         let (station, _) = maximumValNE $ NEM.fromSet (length . viewableIn as) as
             as'          = NES.delete station as
-        in  listToMaybe . drop 199 $
+        in  listToMaybe . drop' 199 $
               unfoldr (uncurry (shootFrom station)) (Nothing, as')
     }
   where

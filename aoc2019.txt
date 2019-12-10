@@ -327,10 +327,13 @@ instance GHC.Classes.Ord AOC.Common.Dir
 instance GHC.Classes.Eq AOC.Common.Dir
 instance GHC.Show.Show AOC.Common.Dir
 instance Data.Hashable.Class.Hashable a => Data.Hashable.Class.Hashable (AOC.Common.TokStream a)
+instance Control.DeepSeq.NFData a => Control.DeepSeq.NFData (AOC.Common.TokStream a)
 instance (GHC.Classes.Ord a, GHC.Show.Show a) => Text.Megaparsec.Stream.Stream (AOC.Common.TokStream a)
 instance Data.Hashable.Class.Hashable AOC.Common.ScanPoint
+instance Control.DeepSeq.NFData AOC.Common.ScanPoint
 instance GHC.Classes.Ord AOC.Common.ScanPoint
 instance Data.Hashable.Class.Hashable AOC.Common.Dir
+instance Control.DeepSeq.NFData AOC.Common.Dir
 instance GHC.Base.Semigroup AOC.Common.Dir
 instance GHC.Base.Monoid AOC.Common.Dir
 instance Data.Group.Group AOC.Common.Dir
@@ -358,36 +361,49 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aVN3
-_VMErr :: AsVMErr r_aVN3 => Prism' r_aVN3 VMErr
-_VMEBadMode :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
-_VMEBadInstr :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
-_VMEBadPos :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
-class AsIErr r_aVV6
-_IErr :: AsIErr r_aVV6 => Prism' r_aVV6 IErr
-_IENoInput :: AsIErr r_aVV6 => Prism' r_aVV6 ()
-_IEVM :: AsIErr r_aVV6 => Prism' r_aVV6 VMErr
+class AsVMErr r_aWr5
+_VMErr :: AsVMErr r_aWr5 => Prism' r_aWr5 VMErr
+_VMEBadMode :: AsVMErr r_aWr5 => Prism' r_aWr5 Int
+_VMEBadInstr :: AsVMErr r_aWr5 => Prism' r_aWr5 Int
+_VMEBadPos :: AsVMErr r_aWr5 => Prism' r_aWr5 Int
+class AsIErr r_aWAL
+_IErr :: AsIErr r_aWAL => Prism' r_aWAL IErr
+_IENoInput :: AsIErr r_aWAL => Prism' r_aWAL ()
+_IEVM :: AsIErr r_aWAL => Prism' r_aWAL VMErr
+instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
+instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
+instance GHC.Classes.Eq AOC.Common.Intcode.InstrRes
 instance AOC.Common.Intcode.AsIErr AOC.Common.Intcode.IErr
 instance AOC.Common.Intcode.AsVMErr AOC.Common.Intcode.IErr
+instance GHC.Generics.Generic AOC.Common.Intcode.IErr
 instance GHC.Show.Show AOC.Common.Intcode.IErr
 instance GHC.Classes.Ord AOC.Common.Intcode.IErr
 instance GHC.Classes.Eq AOC.Common.Intcode.IErr
 instance GHC.Exception.Type.Exception AOC.Common.Intcode.IErr
 instance AOC.Common.Intcode.AsVMErr AOC.Common.Intcode.VMErr
+instance GHC.Generics.Generic AOC.Common.Intcode.VMErr
 instance GHC.Show.Show AOC.Common.Intcode.VMErr
 instance GHC.Classes.Ord AOC.Common.Intcode.VMErr
 instance GHC.Classes.Eq AOC.Common.Intcode.VMErr
+instance GHC.Generics.Generic AOC.Common.Intcode.Instr
 instance GHC.Show.Show AOC.Common.Intcode.Instr
 instance GHC.Enum.Enum AOC.Common.Intcode.Instr
 instance GHC.Classes.Ord AOC.Common.Intcode.Instr
 instance GHC.Classes.Eq AOC.Common.Intcode.Instr
+instance GHC.Generics.Generic AOC.Common.Intcode.Mode
 instance GHC.Show.Show AOC.Common.Intcode.Mode
 instance GHC.Enum.Enum AOC.Common.Intcode.Mode
 instance GHC.Classes.Ord AOC.Common.Intcode.Mode
 instance GHC.Classes.Eq AOC.Common.Intcode.Mode
+instance GHC.Generics.Generic AOC.Common.Intcode.Memory
 instance GHC.Show.Show AOC.Common.Intcode.Memory
+instance GHC.Classes.Ord AOC.Common.Intcode.Memory
+instance GHC.Classes.Eq AOC.Common.Intcode.Memory
 instance GHC.Exception.Type.Exception AOC.Common.Intcode.VMErr
+instance Control.DeepSeq.NFData AOC.Common.Intcode.Instr
+instance Control.DeepSeq.NFData AOC.Common.Intcode.Mode
+instance Control.DeepSeq.NFData AOC.Common.Intcode.Memory
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -447,7 +463,13 @@ withSolver' :: (String -> String) -> String :~> String
 -- | Wrap an <tt>a <a>:~&gt;</a> b</tt> and hide the type variables so we
 --   can put different solutions in a container.
 data SomeSolution
-[MkSomeSol] :: (a :~> b) -> SomeSolution
+[MkSomeSolWH] :: (a :~> b) -> SomeSolution
+[MkSomeSolNF] :: (NFData a, NFData b) => (a :~> b) -> SomeSolution
+
+-- | Handy pattern to work with both <a>MkSomeSolWH</a> and
+--   <a>MkSomeSolNF</a>. As a constructor, just uses <a>MkSomeSolWH</a>, so
+--   might not be desirable.
+pattern MkSomeSol :: () => forall a b. () => (a :~> b) -> SomeSolution
 
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
@@ -459,6 +481,10 @@ runSolution :: (a :~> b) -> String -> Either SolutionError String
 
 -- | Run a <a>SomeSolution</a> on some input.
 runSomeSolution :: SomeSolution -> String -> Either SolutionError String
+
+-- | Check if a <a>SomeSolution</a> is equipped with an <a>NFData</a>
+--   instance on the types
+ssIsNF :: SomeSolution -> Bool
 
 -- | Run a <a>:~&gt;</a> on some input, with a map of dynamic values for
 --   testing
@@ -18140,7 +18166,13 @@ SESolve :: SolutionError
 -- | Wrap an <tt>a <a>:~&gt;</a> b</tt> and hide the type variables so we
 --   can put different solutions in a container.
 data SomeSolution
-[MkSomeSol] :: (a :~> b) -> SomeSolution
+[MkSomeSolWH] :: (a :~> b) -> SomeSolution
+[MkSomeSolNF] :: (NFData a, NFData b) => (a :~> b) -> SomeSolution
+
+-- | Handy pattern to work with both <a>MkSomeSolWH</a> and
+--   <a>MkSomeSolNF</a>. As a constructor, just uses <a>MkSomeSolWH</a>, so
+--   might not be desirable.
+pattern MkSomeSol :: () => forall a b. () => (a :~> b) -> SomeSolution
 
 -- | Abstracting over the type of a challenge solver to help with cleaner
 --   solutions.
@@ -18164,6 +18196,10 @@ MkSol :: (String -> Maybe a) -> (?dyno :: DynoMap => a -> Maybe b) -> (b -> Stri
 
 -- | print out the <tt>b</tt> solution in a pretty way
 [sShow] :: (:~>) a b -> b -> String
+
+-- | Check if a <a>SomeSolution</a> is equipped with an <a>NFData</a>
+--   instance on the types
+ssIsNF :: SomeSolution -> Bool
 
 -- | Construct a <a>:~&gt;</a> from just a normal <tt>String -&gt;
 --   String</tt> solver. Does no parsing or special printing treatment.
@@ -18519,6 +18555,13 @@ solSpecStr_ :: String -> ChallengeSpec
 -- | Parse a <a>Literal</a> into a <a>Part</a>
 charPart :: Char -> Maybe Part
 challengeName :: Parser ChallengeSpec
+
+-- | Check if a solver identifier is of type <tt>A <a>:~&gt;</a> B</tt>,
+--   where <tt>B</tt> is an instance of <a>NFData</a>.
+solverNFData :: Name -> Q Bool
+
+-- | Check if a type is an instance of a class, unifying when possible
+deepInstance :: Name -> Type -> Q Bool
 instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
@@ -18762,13 +18805,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1PMD
-mainRunOpts :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD MainRunOpts
-mroBench :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
-mroInput :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
-mroSpec :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD TestSpec
-mroTest :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
+class HasMainRunOpts c_a1Tft
+mainRunOpts :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft MainRunOpts
+mroBench :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft Bool
+mroInput :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft Bool
+mroSpec :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft TestSpec
+mroTest :: HasMainRunOpts c_a1Tft => Lens' c_a1Tft Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18781,10 +18824,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1PTb
-mainViewOpts :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb TestSpec
-mvoWait :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb Bool
+class HasMainViewOpts c_a1Tm1
+mainViewOpts :: HasMainViewOpts c_a1Tm1 => Lens' c_a1Tm1 MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1Tm1 => Lens' c_a1Tm1 TestSpec
+mvoWait :: HasMainViewOpts c_a1Tm1 => Lens' c_a1Tm1 Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18805,12 +18848,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1PXu
-mainSubmitOpts :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
-msoLock :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
-msoSpec :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
+class HasMainSubmitOpts c_a1Tqk
+mainSubmitOpts :: HasMainSubmitOpts c_a1Tqk => Lens' c_a1Tqk MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1Tqk => Lens' c_a1Tqk Bool
+msoLock :: HasMainSubmitOpts c_a1Tqk => Lens' c_a1Tqk Bool
+msoSpec :: HasMainSubmitOpts c_a1Tqk => Lens' c_a1Tqk ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1Tqk => Lens' c_a1Tqk Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

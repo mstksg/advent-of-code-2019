@@ -143,7 +143,18 @@ mainRun Cfg{..} MRO{..} =  do
           ans1 = maybe _cdAnswer (const Nothing) inp0
       case inp1 of
         Right inp
-          | _mroBench -> (testRes, Left ["Ran benchmark, so no result"]) <$ benchmark (nf (runSomeSolution c) inp)
+          | _mroBench -> do
+              let res = (testRes, Left ["Ran benchmark, so no result"])
+              res <$ case c of
+                MkSomeSolWH _ -> benchmark (nf (runSomeSolution c) inp)
+                MkSomeSolNF MkSol{..} -> case sParse inp of
+                  Nothing -> putStrLn "[NO PARSE]"
+                  Just x  -> do
+                    putStrLn "Benchmarking parsing"
+                    let ?dyno = mempty
+                    benchmark (nf sParse inp)
+                    putStrLn "Benchmarking solver"
+                    benchmark (nf sSolve x)
           | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp (TM ans1 M.empty)
         Left e
           | _mroTest  -> pure (testRes, Left ["Ran tests, so no result"])

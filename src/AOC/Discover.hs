@@ -23,13 +23,15 @@ module AOC.Discover (
   , solSpecStr_
   , charPart
   , challengeName
+  , solverNFData
   ) where
 
 import           AOC.Solver
 import           Advent
+import           Control.DeepSeq
+import           Control.Monad
 import           Data.Bifunctor
 import           Data.Data
-import           Data.Finite
 import           Data.Map                   (Map)
 import           Data.Maybe
 import           Data.Traversable
@@ -43,11 +45,11 @@ import           Prelude
 import           System.Directory
 import           System.FilePath
 import           Text.Printf
-import           Text.Read                  (readMaybe)
 import qualified Data.Map                   as M
 import qualified Hpack.Config               as H
 import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
+import qualified Text.Megaparsec.Char.Lexer as PL
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.
@@ -66,7 +68,7 @@ type ChallengeMap = Map Day (Map Part SomeSolution)
 -- @
 --
 solSpec :: TH.Name -> ChallengeSpec
-solSpec = solSpecStr_ . nameBase
+solSpec n = solSpecStr_ (nameBase n)
 
 solSpecStr :: String -> Either (P.ParseErrorBundle String Void) ChallengeSpec
 solSpecStr = P.runParser challengeName ""
@@ -86,11 +88,9 @@ type Parser = P.Parsec Void String
 --
 -- See 'mkChallengeMap' for a description of usage.
 solutionList :: FilePath -> Q (TExp [(Day, (Part, SomeSolution))])
-solutionList dir = TExp
-                  . ListE
-                  . map (unType . specExp)
-                <$> runIO (getChallengeSpecs dir)
-
+solutionList dir = fmap (TExp . ListE)
+                 . traverse (fmap unType . specExp)
+               =<< runIO (getChallengeSpecs dir)
 
 -- | Meant to be called like:
 --
@@ -102,14 +102,23 @@ mkChallengeMap = M.unionsWith M.union
                . map (uncurry M.singleton . second (uncurry M.singleton))
 
 
-specExp :: ChallengeSpec -> TExp (Day, (Part, SomeSolution))
-specExp s@(CS (Day d) p) = TExp $ TupE
-    [ VarE 'mkDay_ `AppE` LitE (IntegerL (getFinite d + 1))
-    , TupE
-        [ ConE (partCon p)
-        , ConE 'MkSomeSol `AppE` VarE (mkName (specName s))
-        ]
-    ]
+specExp :: ChallengeSpec -> Q (TExp (Day, (Part, SomeSolution)))
+specExp s@(CS d p) = do
+    n <- lookupValueName (specName s)
+    con <- case n of
+      Nothing -> pure 'MkSomeSolWH
+      Just n' -> do
+        isNF <- solverNFData n'
+        pure $ if isNF
+                 then 'MkSomeSolNF
+                 else 'MkSomeSolWH
+    pure $ TExp $ TupE
+      [ VarE 'mkDay_ `AppE` LitE (IntegerL (dayInt d))
+      , TupE
+          [ ConE (partCon p)
+          , ConE con `AppE` VarE (mkName (specName s))
+          ]
+      ]
   where
     partCon Part1 = 'Part1
     partCon Part2 = 'Part2
@@ -136,7 +145,7 @@ getChallengeSpecs dir = do
 
 defaultExtensions :: IO [E.Extension]
 defaultExtensions = do
-    Right (H.DecodeResult{..}) <- H.readPackageConfig H.defaultDecodeOptions
+    Right H.DecodeResult{..} <- H.readPackageConfig H.defaultDecodeOptions
     Just H.Section{..} <- pure $ H.packageLibrary decodeResultPackage
     pure $ parseExtension <$> sectionDefaultExtensions
 
@@ -154,9 +163,7 @@ isSolution s = do
 challengeName :: Parser ChallengeSpec
 challengeName = do
     _    <- P.string "day"
-    dStr <- P.many P.numberChar
-    dInt <- maybe (fail "Failed parsing integer") pure $
-                readMaybe dStr
+    dInt <- PL.decimal
     dFin <- maybe (fail $ "Day not in range: " ++ show dInt) pure $
                 mkDay dInt
     c    <- P.lowerChar
@@ -169,4 +176,12 @@ charPart :: Char -> Maybe Part
 charPart 'a' = Just Part1
 charPart 'b' = Just Part2
 charPart _   = Nothing
+
+-- | Check if a solver identifier is of type @A ':~>' B@, where @B@ is an
+-- instance of 'NFData'.
+solverNFData :: TH.Name -> Q Bool
+solverNFData n = reify n >>= \case
+    VarI _ (ConT c `AppT` a `AppT` _) _
+      | c == ''(:~>) -> isInstance ''NFData [a]
+    _ -> pure False
 

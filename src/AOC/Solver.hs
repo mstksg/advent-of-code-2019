@@ -14,7 +14,7 @@
 module AOC.Solver (
     (:~>)(..)
   , withSolver, withSolver'
-  , SomeSolution(..)
+  , SomeSolution(.., MkSomeSol)
   , SolutionError(..)
   , runSolution
   , runSomeSolution
@@ -51,7 +51,23 @@ data a :~> b = MkSol
 -- | Wrap an @a ':~>' b@ and hide the type variables so we can put
 -- different solutions in a container.
 data SomeSolution where
-    MkSomeSol :: a :~> b -> SomeSolution
+    MkSomeSolWH :: a :~> b -> SomeSolution
+    MkSomeSolNF :: NFData a => a :~> b -> SomeSolution
+
+data SomeSolHelp where
+    SSH :: a :~> b -> SomeSolHelp
+
+toHelp :: SomeSolution -> SomeSolHelp
+toHelp (MkSomeSolWH x) = SSH x
+toHelp (MkSomeSolNF x) = SSH x
+
+-- | Handy pattern to work with both 'MkSomeSolWH' and 'MkSomeSolNF'.  As
+-- a constructor, just uses 'MkSomeSolWH', so might not be desirable.
+pattern MkSomeSol :: () => forall a b. () => a :~> b -> SomeSolution
+pattern MkSomeSol s <- (toHelp->SSH s)
+  where
+    MkSomeSol x = MkSomeSolWH x
+{-# COMPLETE MkSomeSol #-}
 
 -- | Errors that might happen when running a ':~>' on some input.
 data SolutionError = SEParse

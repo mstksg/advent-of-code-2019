@@ -7,11 +7,121 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Sun,  8 Dec 2019 19:35:02 EST</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2019 03:33:28 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Sun,  8 Dec 2019 19:35:02 EST</pubDate>
+    <pubDate>Tue, 10 Dec 2019 03:33:28 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
+    <item>
+      <title>Day 10</title>
+      <description>&lt;h2 id=&quot;day-10&quot;&gt;Day 10&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day10.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/10&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day10.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day10.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Ah, a 2D lattice map problem – a staple of Advent of Code, and a favorite to many (including me!)&lt;/p&gt;
+&lt;p&gt;The first thing to do is get our map into a format we can use. Using &lt;code&gt;V2 Int&lt;/code&gt; to represent a 2d point (because of its useful instances like &lt;code&gt;Num&lt;/code&gt; and &lt;code&gt;Applicative&lt;/code&gt;), we want to get things into a &lt;code&gt;Set&lt;/code&gt; of all asteroids. This is common enough that I have a pre-made utility function to handle this, but for demonstration’s sake we can implement it like:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;qualified&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Data.Set&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;S&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;asteroidSet ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;asteroidSet &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; ifoldMap (\y &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; ifoldMap (\x &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; crunch (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x y)))&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;            &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;lines&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;    crunch p &lt;span class=&quot;ch&quot;&gt;&amp;#39;#&amp;#39;&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.singleton p&lt;/span&gt;
+&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;    crunch _ _   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.empty&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Here I’m using the very handy &lt;code&gt;ifoldMap :: Monoid m =&amp;gt; (Int -&amp;gt; a -&amp;gt; m) -&amp;gt; [a]&lt;/code&gt; from &lt;em&gt;&lt;a href=&quot;https://www.stackage.org/haddock/lts-14.17/lens-4.17.1/Control-Lens-Indexed.html#v:ifoldMap&quot;&gt;Control.Lens.Indexed&lt;/a&gt;&lt;/em&gt;, which is a very useful function that I hope will some day make it to &lt;em&gt;base&lt;/em&gt;. It’s like &lt;code&gt;foldMap&lt;/code&gt; with also the indices available.&lt;/p&gt;
+&lt;p&gt;Anyway, how do we check if an asteroid is obscured? There are probably many good methods, but for me I found all the points in a straight line between two asteroids, and checked if any of those items are in the asteroid field.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;lineTo ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;lineTo p0 p1&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; dy &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x    minY   &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; x &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [minX &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; maxX &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;otherwise&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; t &lt;span class=&quot;op&quot;&gt;*^&lt;/span&gt; step &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; t &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;        &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; gcf  &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; minX minY &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;min&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;&amp;lt;*&amp;gt;&lt;/span&gt; p1&lt;/span&gt;
+&lt;span id=&quot;cb2-7&quot;&gt;&lt;a href=&quot;#cb2-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; maxX _    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;&amp;lt;*&amp;gt;&lt;/span&gt; p1&lt;/span&gt;
+&lt;span id=&quot;cb2-8&quot;&gt;&lt;a href=&quot;#cb2-8&quot;&gt;&lt;/a&gt;    d&lt;span class=&quot;op&quot;&gt;@&lt;/span&gt;(&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;
+&lt;span id=&quot;cb2-9&quot;&gt;&lt;a href=&quot;#cb2-9&quot;&gt;&lt;/a&gt;    gcf          &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;gcd&lt;/span&gt; dx dy&lt;/span&gt;
+&lt;span id=&quot;cb2-10&quot;&gt;&lt;a href=&quot;#cb2-10&quot;&gt;&lt;/a&gt;    step         &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`div`&lt;/span&gt; gcf) &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; d&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Whoo, that one is kind of a doozy, isn’t it? Well, hopefully this shows at least is a good demonstration of why I like &lt;code&gt;V2 Int&lt;/code&gt; as &lt;code&gt;Point&lt;/code&gt; so much. We take advantages of its instances a lot, including:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Using &lt;code&gt;min &amp;lt;$&amp;gt; p0 &amp;lt;*&amp;gt; p1&lt;/code&gt; to find the component-wise minimum of two points to get &lt;code&gt;V2 minX minY&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Using the &lt;code&gt;Num&lt;/code&gt; instance to compute the deltas, &lt;code&gt;V2 dx dy = p1 - p0&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Using the &lt;code&gt;Functor&lt;/code&gt; instance to compute the step, &lt;code&gt;(&lt;/code&gt;div&lt;code&gt;gcf) &amp;lt;$&amp;gt; d&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;The handy scalar multiplication function &lt;code&gt;c *^ v&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I love &lt;code&gt;V2&lt;/code&gt; :D&lt;/p&gt;
+&lt;p&gt;Anyway, the main crux of this algorithm is the final branch, which computes the “steps” between the start and finish. The first branch is a special-case situation where &lt;code&gt;dy == 0&lt;/code&gt; (a horizontal line) and &lt;code&gt;gcd dx dy&lt;/code&gt; is undefined.&lt;/p&gt;
+&lt;p&gt;Anyway, we can now check all the viewable points.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;viewableIn&lt;/span&gt;
+&lt;span id=&quot;cb3-2&quot;&gt;&lt;a href=&quot;#cb3-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;    &lt;span class=&quot;co&quot;&gt;-- ^ asteroid field&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-3&quot;&gt;&lt;a href=&quot;#cb3-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;        &lt;span class=&quot;co&quot;&gt;-- ^ vantage point&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-4&quot;&gt;&lt;a href=&quot;#cb3-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;    &lt;span class=&quot;co&quot;&gt;-- ^ all viewable points&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-5&quot;&gt;&lt;a href=&quot;#cb3-5&quot;&gt;&lt;/a&gt;viewableIn asteroids p &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.filter good (toList asteroids)&lt;/span&gt;
+&lt;span id=&quot;cb3-6&quot;&gt;&lt;a href=&quot;#cb3-6&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb3-7&quot;&gt;&lt;a href=&quot;#cb3-7&quot;&gt;&lt;/a&gt;    good q &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p &lt;span class=&quot;op&quot;&gt;/=&lt;/span&gt; q&lt;/span&gt;
+&lt;span id=&quot;cb3-8&quot;&gt;&lt;a href=&quot;#cb3-8&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;op&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;all&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`S.notMember`&lt;/span&gt; asteroids) (lineTo p q)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now we can do part 1:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;part1 asteroids &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; S.findMax &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-3&quot;&gt;&lt;a href=&quot;#cb4-3&quot;&gt;&lt;/a&gt;    S.map (S.length &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; viewableIn asteroids) asteroids&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;For part 2, we are going to structure our program as an &lt;code&gt;unfoldr&lt;/code&gt;. Unfoldr generates items while keeping some internal state. We’ll use the “currently aimed at asteroid” and “asteroids left” as our state, and emit newly eliminated asteroids. Then we can simply get the 200th item in the resulting list:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;part2 asteroids &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;    unfoldr (shootFrom station) (&lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt;, asteroids) &lt;span class=&quot;op&quot;&gt;!!&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;199&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;    station &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; maximumBy (comparing (S.size &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; viewableIn asteroids))&lt;/span&gt;
+&lt;span id=&quot;cb5-6&quot;&gt;&lt;a href=&quot;#cb5-6&quot;&gt;&lt;/a&gt;                asteroids&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;So we have &lt;code&gt;shootFrom&lt;/code&gt; as our iterating function. Our “state” will be &lt;code&gt;Maybe Point&lt;/code&gt; (the asteroid our blaster is aimed at) and &lt;code&gt;Set Point&lt;/code&gt;, the asteroid field remaining. We’ll return &lt;code&gt;Nothing&lt;/code&gt; when we run out of asteroids to eliminate.&lt;/p&gt;
+&lt;p&gt;To implement &lt;code&gt;shootFrom&lt;/code&gt;, it’s useful to be able to sort all viewable asteroids by the angle they make. To do that, I made a function &lt;code&gt;angleFrom&lt;/code&gt; which computes the angle between two points, clockwise from vertical. I use &lt;code&gt;atan2&lt;/code&gt; with some algebraic finessing to make sure north is zero, and the direction moves appropriately.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;angleTo ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Double&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;angleTo p0 p1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;fu&quot;&gt;atan2&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dx) (&lt;span class=&quot;fu&quot;&gt;fromIntegral&lt;/span&gt; dy) &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pi&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We now have all the parts to write &lt;code&gt;shootFrom&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb7&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb7-1&quot;&gt;&lt;a href=&quot;#cb7-1&quot;&gt;&lt;/a&gt;shootFrom&lt;/span&gt;
+&lt;span id=&quot;cb7-2&quot;&gt;&lt;a href=&quot;#cb7-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;                            &lt;span class=&quot;co&quot;&gt;-- ^ station&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-3&quot;&gt;&lt;a href=&quot;#cb7-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;)         &lt;span class=&quot;co&quot;&gt;-- ^ current aim and remaining asteroids&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-4&quot;&gt;&lt;a href=&quot;#cb7-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;)   &lt;span class=&quot;co&quot;&gt;-- ^ new aim, leftover field&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-5&quot;&gt;&lt;a href=&quot;#cb7-5&quot;&gt;&lt;/a&gt;shootFrom station (aim, asteroids) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; guard (&lt;span class=&quot;fu&quot;&gt;not&lt;/span&gt; (S.null asteroids)) &lt;span class=&quot;op&quot;&gt;$&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-6&quot;&gt;&lt;a href=&quot;#cb7-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; aim &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-7&quot;&gt;&lt;a href=&quot;#cb7-7&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-8&quot;&gt;&lt;a href=&quot;#cb7-8&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; targ&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;next&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;_ &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; targetList&lt;/span&gt;
+&lt;span id=&quot;cb7-9&quot;&gt;&lt;a href=&quot;#cb7-9&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; targ, (next, S.delete targ asteroids))&lt;/span&gt;
+&lt;span id=&quot;cb7-10&quot;&gt;&lt;a href=&quot;#cb7-10&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-11&quot;&gt;&lt;a href=&quot;#cb7-11&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; targ&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;next&lt;span class=&quot;op&quot;&gt;:&lt;/span&gt;_ &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;dropWhile&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;/=&lt;/span&gt; a) targetList&lt;/span&gt;
+&lt;span id=&quot;cb7-12&quot;&gt;&lt;a href=&quot;#cb7-12&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; targ, (next, S.delete targ asteroids))&lt;/span&gt;
+&lt;span id=&quot;cb7-13&quot;&gt;&lt;a href=&quot;#cb7-13&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-14&quot;&gt;&lt;a href=&quot;#cb7-14&quot;&gt;&lt;/a&gt;    targetList &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;cycle&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb7-15&quot;&gt;&lt;a href=&quot;#cb7-15&quot;&gt;&lt;/a&gt;               &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; sortOn (angleTo station)&lt;/span&gt;
+&lt;span id=&quot;cb7-16&quot;&gt;&lt;a href=&quot;#cb7-16&quot;&gt;&lt;/a&gt;               &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; toList&lt;/span&gt;
+&lt;span id=&quot;cb7-17&quot;&gt;&lt;a href=&quot;#cb7-17&quot;&gt;&lt;/a&gt;               &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; viewableIn asteroids station&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Our &lt;code&gt;targetList&lt;/code&gt; is all of the remaining asteroids that are viewable from our station, sorted by their angle from the station (0 being north, going clockwise). We &lt;code&gt;cycle :: [a] -&amp;gt; [a]&lt;/code&gt; it, which loops it on itself forever, so that the “next target” will always be the item &lt;em&gt;after&lt;/em&gt; the current target. It turns &lt;code&gt;[a,b,c]&lt;/code&gt; into &lt;code&gt;[a,b,c,a,b,c,a,b,c...]&lt;/code&gt;, so if we want to ask “what target comes after &lt;code&gt;c&lt;/code&gt;?”, we can see that &lt;code&gt;a&lt;/code&gt; is after &lt;code&gt;c&lt;/code&gt; in the cycled version.&lt;/p&gt;
+&lt;p&gt;First, we use &lt;code&gt;guard&lt;/code&gt; to return &lt;code&gt;Nothing&lt;/code&gt; immediately if there are no asteroids left. But if there are asteroids left, we then check what we are aiming at. If we aren’t aiming at anything, just find the first item in the target list and blast at that. Otherwise, eat up the target list until we find the item we are aiming at, and blast at that. In both cases, the item after our target will be the new item we are aiming at.&lt;/p&gt;
+&lt;p&gt;We just then need to make sure we delete our target in the new &lt;code&gt;Set Point&lt;/code&gt;, to remove it from the pool.&lt;/p&gt;
+&lt;p&gt;This one was a nice mix of math, geometry, spatial awareness, and a sense of iterative algorithms (like &lt;code&gt;shootFrom&lt;/code&gt;) – for me, all of the best parts of an Advent of Code challenge :)&lt;/p&gt;
+&lt;h3 id=&quot;day-10-benchmarks&quot;&gt;Day 10 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 10a
+benchmarking...
+time                 8.661 ms   (8.279 ms .. 9.059 ms)
+                     0.992 R²   (0.984 R² .. 0.997 R²)
+mean                 9.299 ms   (8.769 ms .. 10.47 ms)
+std dev              2.116 ms   (483.9 μs .. 3.861 ms)
+variance introduced by outliers: 87% (severely inflated)
+
+&amp;gt;&amp;gt; Day 10b
+benchmarking...
+time                 15.82 ms   (15.47 ms .. 16.13 ms)
+                     0.997 R²   (0.994 R² .. 0.999 R²)
+mean                 15.67 ms   (15.55 ms .. 15.92 ms)
+std dev              430.4 μs   (266.1 μs .. 670.3 μs)&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-10</link>
+      <pubDate>Tue, 10 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
     <item>
       <title>Day 8</title>
       <description>&lt;h2 id=&quot;day-8&quot;&gt;Day 8&lt;/h2&gt;

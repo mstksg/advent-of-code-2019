@@ -12,42 +12,39 @@ module AOC.Challenge.Day10 (
   , day10b
   ) where
 
-import           AOC.Common              (Point, parseAsciiMap)
+import           AOC.Common              (Point, parseAsciiMap, maximumValNE)
 import           AOC.Solver              ((:~>)(..))
 import           Control.Monad           (guard)
-import           Data.Fixed              (mod')
 import           Data.Foldable           (toList)
-import           Data.List               (sortOn, maximumBy, unfoldr)
+import           Data.List               (sortOn, unfoldr)
 import           Data.Maybe              (listToMaybe)
-import           Data.Ord                (comparing)
 import           Data.Semigroup          (Max(..))
 import           Data.Semigroup.Foldable (foldMap1)
 import           Data.Set.NonEmpty       (NESet)
 import           Linear                  (V2(..))
 import           Linear.Vector           ((*^))
 import qualified Data.Map                as M
+import qualified Data.Map.NonEmpty       as NEM
 import qualified Data.Set.NonEmpty       as NES
 
 lineTo :: Point -> Point -> [Point]
 lineTo p0 p1
-    | dx == 0   = V2 minX     <$> [minY + 1 .. maxY - 1]
-    | dy == 0   = (`V2` minY) <$> [minX + 1 .. maxX - 1]
-    | gcf > 1   = [ p0 + n *^ step | n <- [1 .. gcf - 1] ]
-    | otherwise = []
+    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
+    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
   where
     V2 minX minY = min <$> p0 <*> p1
-    V2 maxX maxY = max <$> p0 <*> p1
+    V2 maxX _    = max <$> p0 <*> p1
     d@(V2 dx dy) = p1 - p0
     gcf          = gcd dx dy
     step         = (`div` gcf) <$> d
 
 angleTo :: Point -> Point -> Double
-angleTo p0 p1 = (-atan2 (fromIntegral dx) (fromIntegral dy) + pi) `mod'` (2 * pi)
+angleTo p0 p1 = -atan2 (fromIntegral dx) (fromIntegral dy) + pi
   where
     V2 dx dy = p1 - p0
 
-viewable :: NESet Point -> Point -> [Point]
-viewable s p = filter good . toList . NES.delete p $ s
+viewableIn :: NESet Point -> Point -> [Point]
+viewableIn s p = filter good . toList . NES.delete p $ s
   where
     good q = all (`NES.notMember` s) (lineTo p q)
 
@@ -55,26 +52,24 @@ day10a :: NESet Point :~> Int
 day10a = MkSol
     { sParse = NES.nonEmptySet . M.keysSet . parseAsciiMap (\c -> guard (c == '#'))
     , sShow  = show
-    , sSolve = \s -> Just
-                   . getMax
-                   . foldMap1 (Max . length . viewable s)
-                   $ s
+    , sSolve = \as -> Just . getMax . foldMap1 (Max . length . viewableIn as) $ as
     }
 
 day10b :: NESet Point :~> Point
 day10b = MkSol
     { sParse = NES.nonEmptySet . M.keysSet . parseAsciiMap (\c -> guard (c == '#'))
     , sShow  = \case V2 x y -> show $ x * 100 + y
-    , sSolve = \s ->
-        let station = maximumBy (comparing (length . viewable s)) s
-            s'      = NES.delete station s
-        in  listToMaybe . drop 199 $ unfoldr (shootFrom station) (Nothing, s')
+    , sSolve = \as ->
+        let (station, _) = maximumValNE $ NEM.fromSet (length . viewableIn as) as
+            as'          = NES.delete station as
+        in  listToMaybe . drop 199 $
+              unfoldr (uncurry (shootFrom station)) (Nothing, as')
     }
   where
-    shootFrom p (aim, s) = do
-        s' <- NES.nonEmptySet s
-        let targ:next:_ = dropper . cycle . sortOn (angleTo p) $ viewable s' p
-        pure (targ, (Just next, NES.delete targ s'))
+    shootFrom p aim as = do
+        as' <- NES.nonEmptySet as
+        let targ:next:_ = dropper . cycle . sortOn (angleTo p) $ viewableIn as' p
+        pure (targ, (Just next, NES.delete targ as'))
       where
         dropper = case aim of
           Nothing -> id

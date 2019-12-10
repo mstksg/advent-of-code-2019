@@ -36,34 +36,26 @@ feel queasy to my core)
 
 ```haskell
 lineTo :: Point -> Point -> [Point]
-lineTo p0 p1
-    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
-    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
+lineTo p0 p1 = [ p0 + t *^ step | t <- [1 .. gcf  - 1] ]
   where
-    V2 minX minY = min <$> p0 <*> p1
-    V2 maxX _    = max <$> p0 <*> p1
     d@(V2 dx dy) = p1 - p0
     gcf          = gcd dx dy
     step         = (`div` gcf) <$> d
 ```
 
-Whoo, that one is kind of a doozy, isn't it?  Well, hopefully this shows at least
-is a good demonstration of why I like `V2 Int` as `Point` so much.  We take
-advantages of its instances a lot, including:
+Hopefully this shows at least is a good demonstration of why I like `V2 Int` as
+`Point` so much.  We take advantages of its instances a lot, including:
 
-*   Using `min <$> p0 <*> p1` to find the component-wise minimum of two points
-    to get `V2 minX minY`
 *   Using the `Num` instance to compute the deltas, `V2 dx dy = p1 - p0`
 *   Using the `Functor` instance to compute the step, `(`div` gcf) <$> d`
 *   The handy scalar multiplication function `c *^ v`
 
 I love `V2` :D
 
-Anyway, the main crux of this algorithm is the final branch, which computes
-the "steps" between the start and finish.  The first branch is a special-case
-situation where `dy == 0` (a horizontal line) and `gcd dx dy` is undefined.
+Anyway, the main crux of this algorithm is the list comprehension, which
+computes the "steps" between the start and finish.
 
-Anyway, we can now check all the viewable points.
+We can now check all the viewable points.
 
 ```haskell
 viewableIn

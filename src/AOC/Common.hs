@@ -587,12 +587,8 @@ toNatural x = fromIntegral x <$ guard (x >= 0)
 
 -- | Lattice points for line between points, not including endpoints
 lineTo :: Point -> Point -> [Point]
-lineTo p0 p1
-    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
-    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
+lineTo p0 p1 = [ p0 + t *^ step | t <- [1 .. gcf  - 1] ]
   where
-    V2 minX minY = min <$> p0 <*> p1
-    V2 maxX _    = max <$> p0 <*> p1
     d@(V2 dx dy) = p1 - p0
     gcf          = gcd dx dy
     step         = (`div` gcf) <$> d

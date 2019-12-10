@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Tue, 10 Dec 2019 06:10:00 EST</lastBuildDate>
+    <lastBuildDate>Tue, 10 Dec 2019 14:09:40 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Tue, 10 Dec 2019 06:10:00 EST</pubDate>
+    <pubDate>Tue, 10 Dec 2019 14:09:40 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -36,25 +36,20 @@ that file instead!
 &lt;p&gt;Here I’m using the very handy &lt;code&gt;ifoldMap :: Monoid m =&amp;gt; (Int -&amp;gt; a -&amp;gt; m) -&amp;gt; [a]&lt;/code&gt; from &lt;em&gt;&lt;a href=&quot;https://www.stackage.org/haddock/lts-14.17/lens-4.17.1/Control-Lens-Indexed.html#v:ifoldMap&quot;&gt;Control.Lens.Indexed&lt;/a&gt;&lt;/em&gt;, which is a very useful function that I hope will some day make it to &lt;em&gt;base&lt;/em&gt;. It’s like &lt;code&gt;foldMap&lt;/code&gt; with also the indices available.&lt;/p&gt;
 &lt;p&gt;Anyway, how do we check if an asteroid is obscured? There are probably many good methods, but for me I found all the points in a straight line between two asteroids, and checked if any of those items are in the asteroid field. (I did attempt also to get the set of all unique angles, but that method ended up being 10x slower for some reason? also using floating point equality makes me feel queasy to my core)&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;lineTo ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;]&lt;/span&gt;
-&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;lineTo p0 p1&lt;/span&gt;
-&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; dy &lt;span class=&quot;op&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x    minY   &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; x &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [minX &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; maxX &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
-&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;otherwise&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; t &lt;span class=&quot;op&quot;&gt;*^&lt;/span&gt; step &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; t &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;        &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; gcf  &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
-&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; minX minY &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;min&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;&amp;lt;*&amp;gt;&lt;/span&gt; p1&lt;/span&gt;
-&lt;span id=&quot;cb2-7&quot;&gt;&lt;a href=&quot;#cb2-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; maxX _    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;max&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;&amp;lt;*&amp;gt;&lt;/span&gt; p1&lt;/span&gt;
-&lt;span id=&quot;cb2-8&quot;&gt;&lt;a href=&quot;#cb2-8&quot;&gt;&lt;/a&gt;    d&lt;span class=&quot;op&quot;&gt;@&lt;/span&gt;(&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;
-&lt;span id=&quot;cb2-9&quot;&gt;&lt;a href=&quot;#cb2-9&quot;&gt;&lt;/a&gt;    gcf          &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;gcd&lt;/span&gt; dx dy&lt;/span&gt;
-&lt;span id=&quot;cb2-10&quot;&gt;&lt;a href=&quot;#cb2-10&quot;&gt;&lt;/a&gt;    step         &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`div`&lt;/span&gt; gcf) &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; d&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Whoo, that one is kind of a doozy, isn’t it? Well, hopefully this shows at least is a good demonstration of why I like &lt;code&gt;V2 Int&lt;/code&gt; as &lt;code&gt;Point&lt;/code&gt; so much. We take advantages of its instances a lot, including:&lt;/p&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;lineTo p0 p1 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; [ p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; t &lt;span class=&quot;op&quot;&gt;*^&lt;/span&gt; step &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; t &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; [&lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;..&lt;/span&gt; gcf  &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;] ]&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;    d&lt;span class=&quot;op&quot;&gt;@&lt;/span&gt;(&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p1 &lt;span class=&quot;op&quot;&gt;-&lt;/span&gt; p0&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;    gcf          &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;gcd&lt;/span&gt; dx dy&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;    step         &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; (&lt;span class=&quot;ot&quot;&gt;`div`&lt;/span&gt; gcf) &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; d&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Hopefully this shows at least is a good demonstration of why I like &lt;code&gt;V2 Int&lt;/code&gt; as &lt;code&gt;Point&lt;/code&gt; so much. We take advantages of its instances a lot, including:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;Using &lt;code&gt;min &amp;lt;$&amp;gt; p0 &amp;lt;*&amp;gt; p1&lt;/code&gt; to find the component-wise minimum of two points to get &lt;code&gt;V2 minX minY&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;Using the &lt;code&gt;Num&lt;/code&gt; instance to compute the deltas, &lt;code&gt;V2 dx dy = p1 - p0&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;Using the &lt;code&gt;Functor&lt;/code&gt; instance to compute the step, &lt;code&gt;(&lt;/code&gt;div&lt;code&gt;gcf) &amp;lt;$&amp;gt; d&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;The handy scalar multiplication function &lt;code&gt;c *^ v&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;I love &lt;code&gt;V2&lt;/code&gt; :D&lt;/p&gt;
-&lt;p&gt;Anyway, the main crux of this algorithm is the final branch, which computes the “steps” between the start and finish. The first branch is a special-case situation where &lt;code&gt;dy == 0&lt;/code&gt; (a horizontal line) and &lt;code&gt;gcd dx dy&lt;/code&gt; is undefined.&lt;/p&gt;
-&lt;p&gt;Anyway, we can now check all the viewable points.&lt;/p&gt;
+&lt;p&gt;Anyway, the main crux of this algorithm is the list comprehension, which computes the “steps” between the start and finish.&lt;/p&gt;
+&lt;p&gt;We can now check all the viewable points.&lt;/p&gt;
 &lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;viewableIn&lt;/span&gt;
 &lt;span id=&quot;cb3-2&quot;&gt;&lt;a href=&quot;#cb3-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;    &lt;span class=&quot;co&quot;&gt;-- ^ asteroid field&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb3-3&quot;&gt;&lt;a href=&quot;#cb3-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;        &lt;span class=&quot;co&quot;&gt;-- ^ vantage point&lt;/span&gt;&lt;/span&gt;
@@ -105,19 +100,21 @@ that file instead!
 &lt;h3 id=&quot;day-10-benchmarks&quot;&gt;Day 10 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 10a
 benchmarking...
-time                 9.647 ms   (9.584 ms .. 9.732 ms)
-                     0.999 R²   (0.999 R² .. 1.000 R²)
-mean                 9.697 ms   (9.639 ms .. 9.775 ms)
-std dev              187.7 μs   (128.1 μs .. 269.3 μs)
+time                 9.816 ms   (9.317 ms .. 10.81 ms)
+                     0.895 R²   (0.759 R² .. 0.999 R²)
+mean                 10.06 ms   (9.664 ms .. 11.32 ms)
+std dev              1.631 ms   (483.8 μs .. 3.402 ms)
+variance introduced by outliers: 76% (severely inflated)
 
 * parsing and formatting times excluded
 
 &amp;gt;&amp;gt; Day 10b
 benchmarking...
-time                 18.03 ms   (17.69 ms .. 18.61 ms)
-                     0.997 R²   (0.991 R² .. 1.000 R²)
-mean                 17.77 ms   (17.66 ms .. 18.11 ms)
-std dev              415.2 μs   (110.7 μs .. 804.8 μs)
+time                 16.92 ms   (15.44 ms .. 17.83 ms)
+                     0.974 R²   (0.917 R² .. 0.999 R²)
+mean                 18.81 ms   (17.94 ms .. 21.21 ms)
+std dev              3.739 ms   (867.5 μs .. 6.685 ms)
+variance introduced by outliers: 81% (severely inflated)
 
 * parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
 </description>

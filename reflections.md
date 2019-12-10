@@ -855,34 +855,26 @@ feel queasy to my core)
 
 ```haskell
 lineTo :: Point -> Point -> [Point]
-lineTo p0 p1
-    | dy == 0   = [ V2 x    minY   | x <- [minX + 1 .. maxX - 1] ]
-    | otherwise = [ p0 + t *^ step | t <- [1        .. gcf  - 1] ]
+lineTo p0 p1 = [ p0 + t *^ step | t <- [1 .. gcf  - 1] ]
   where
-    V2 minX minY = min <$> p0 <*> p1
-    V2 maxX _    = max <$> p0 <*> p1
     d@(V2 dx dy) = p1 - p0
     gcf          = gcd dx dy
     step         = (`div` gcf) <$> d
 ```
 
-Whoo, that one is kind of a doozy, isn't it?  Well, hopefully this shows at least
-is a good demonstration of why I like `V2 Int` as `Point` so much.  We take
-advantages of its instances a lot, including:
+Hopefully this shows at least is a good demonstration of why I like `V2 Int` as
+`Point` so much.  We take advantages of its instances a lot, including:
 
-*   Using `min <$> p0 <*> p1` to find the component-wise minimum of two points
-    to get `V2 minX minY`
 *   Using the `Num` instance to compute the deltas, `V2 dx dy = p1 - p0`
 *   Using the `Functor` instance to compute the step, `(`div` gcf) <$> d`
 *   The handy scalar multiplication function `c *^ v`
 
 I love `V2` :D
 
-Anyway, the main crux of this algorithm is the final branch, which computes
-the "steps" between the start and finish.  The first branch is a special-case
-situation where `dy == 0` (a horizontal line) and `gcd dx dy` is undefined.
+Anyway, the main crux of this algorithm is the list comprehension, which
+computes the "steps" between the start and finish.
 
-Anyway, we can now check all the viewable points.
+We can now check all the viewable points.
 
 ```haskell
 viewableIn
@@ -986,19 +978,21 @@ Advent of Code challenge :)
 ```
 >> Day 10a
 benchmarking...
-time                 9.647 ms   (9.584 ms .. 9.732 ms)
-                     0.999 R²   (0.999 R² .. 1.000 R²)
-mean                 9.697 ms   (9.639 ms .. 9.775 ms)
-std dev              187.7 μs   (128.1 μs .. 269.3 μs)
+time                 9.816 ms   (9.317 ms .. 10.81 ms)
+                     0.895 R²   (0.759 R² .. 0.999 R²)
+mean                 10.06 ms   (9.664 ms .. 11.32 ms)
+std dev              1.631 ms   (483.8 μs .. 3.402 ms)
+variance introduced by outliers: 76% (severely inflated)
 
 * parsing and formatting times excluded
 
 >> Day 10b
 benchmarking...
-time                 18.03 ms   (17.69 ms .. 18.61 ms)
-                     0.997 R²   (0.991 R² .. 1.000 R²)
-mean                 17.77 ms   (17.66 ms .. 18.11 ms)
-std dev              415.2 μs   (110.7 μs .. 804.8 μs)
+time                 16.92 ms   (15.44 ms .. 17.83 ms)
+                     0.974 R²   (0.917 R² .. 0.999 R²)
+mean                 18.81 ms   (17.94 ms .. 21.21 ms)
+std dev              3.739 ms   (867.5 μs .. 6.685 ms)
+variance introduced by outliers: 81% (severely inflated)
 
 * parsing and formatting times excluded
 ```

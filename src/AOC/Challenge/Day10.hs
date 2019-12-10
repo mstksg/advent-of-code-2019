@@ -12,11 +12,19 @@ module AOC.Challenge.Day10 (
   , day10b
   ) where
 
-import           AOC.Prelude
-import           Data.Fixed
-import           Data.Semigroup.Foldable
+import           AOC.Common              (Point, parseAsciiMap)
+import           AOC.Solver              ((:~>)(..))
+import           Control.Monad           (guard)
+import           Data.Fixed              (mod')
+import           Data.Foldable           (toList)
+import           Data.List               (sortOn, maximumBy, unfoldr)
+import           Data.Maybe              (listToMaybe)
+import           Data.Ord                (comparing)
+import           Data.Semigroup          (Max(..))
+import           Data.Semigroup.Foldable (foldMap1)
 import           Data.Set.NonEmpty       (NESet)
-import           Linear.Vector
+import           Linear                  (V2(..))
+import           Linear.Vector           ((*^))
 import qualified Data.Map                as M
 import qualified Data.Set.NonEmpty       as NES
 

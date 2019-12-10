@@ -1,44 +1,83 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# OPTIONS_GHC -Wno-unused-imports   #-}</span><span>
-</span><a name="line-2"></a><span class="hs-pragma">{-# OPTIONS_GHC -Wno-unused-top-binds #-}</span><span>
-</span><a name="line-3"></a><span>
-</span><a name="line-4"></a><span class="hs-comment">-- |</span><span>
-</span><a name="line-5"></a><span class="hs-comment">-- Module      : AOC.Challenge.Day08</span><span>
-</span><a name="line-6"></a><span class="hs-comment">-- License     : BSD3</span><span>
-</span><a name="line-7"></a><span class="hs-comment">--</span><span>
-</span><a name="line-8"></a><span class="hs-comment">-- Stability   : experimental</span><span>
-</span><a name="line-9"></a><span class="hs-comment">-- Portability : non-portable</span><span>
-</span><a name="line-10"></a><span class="hs-comment">--</span><span>
-</span><a name="line-11"></a><span class="hs-comment">-- Day 8.  See &quot;AOC.Solver&quot; for the types used in this module!</span><span>
-</span><a name="line-12"></a><span class="hs-comment">--</span><span>
-</span><a name="line-13"></a><span class="hs-comment">-- After completing the challenge, it is recommended to:</span><span>
-</span><a name="line-14"></a><span class="hs-comment">--</span><span>
-</span><a name="line-15"></a><span class="hs-comment">-- *   Replace &quot;AOC.Prelude&quot; imports to specific modules (with explicit</span><span>
-</span><a name="line-16"></a><span class="hs-comment">--     imports) for readability.</span><span>
-</span><a name="line-17"></a><span class="hs-comment">-- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@</span><span>
-</span><a name="line-18"></a><span class="hs-comment">--     pragmas.</span><span>
-</span><a name="line-19"></a><span class="hs-comment">-- *   Replace the partial type signatures underscores in the solution</span><span>
-</span><a name="line-20"></a><span class="hs-comment">--     types @_ :~&gt; _@ with the actual types of inputs and outputs of the</span><span>
-</span><a name="line-21"></a><span class="hs-comment">--     solution.  You can delete the type signatures completely and GHC</span><span>
-</span><a name="line-22"></a><span class="hs-comment">--     will recommend what should go in place of the underscores.</span><span>
-</span><a name="line-23"></a><span>
-</span><a name="line-24"></a><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">AOC.Challenge.Day08</span><span> </span><span class="hs-special">(</span><span>
-</span><a name="line-25"></a><span>    </span><span class="hs-comment">-- day08a</span><span>
-</span><a name="line-26"></a><span>  </span><span class="hs-comment">-- , day08b</span><span>
-</span><a name="line-27"></a><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
-</span><a name="line-28"></a><span>
-</span><a name="line-29"></a><span class="hs-keyword">import</span><span>           </span><a href="AOC.Prelude.html"><span class="hs-identifier">AOC.Prelude</span></a><span>
-</span><a name="line-30"></a><span>
-</span><a name="line-31"></a><span class="hs-identifier">day08a</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-operator hs-type">:~&gt;</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span>
-</span><a name="line-32"></a><a name="day08a"><a href="AOC.Challenge.Day08.html#day08a"><span class="hs-identifier">day08a</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="AOC.Solver.html#MkSol"><span class="hs-identifier hs-var">MkSol</span></a><span>
-</span><a name="line-33"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">sParse</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-34"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sShow</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">show</span><span>
-</span><a name="line-35"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sSolve</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-36"></a><span>    </span><span class="hs-special">}</span><span>
-</span><a name="line-37"></a><span>
-</span><a name="line-38"></a><span class="hs-identifier">day08b</span><span> </span><span class="hs-glyph">::</span><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-operator hs-type">:~&gt;</span></a><span> </span><a href="AOC.Solver.html#%3A~%3E"><span class="hs-identifier hs-type">_</span></a><span>
-</span><a name="line-39"></a><a name="day08b"><a href="AOC.Challenge.Day08.html#day08b"><span class="hs-identifier">day08b</span></a></a><span> </span><span class="hs-glyph">=</span><span> </span><a href="AOC.Solver.html#MkSol"><span class="hs-identifier hs-var">MkSol</span></a><span>
-</span><a name="line-40"></a><span>    </span><span class="hs-special">{</span><span> </span><span class="hs-identifier">sParse</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-41"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sShow</span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">show</span><span>
-</span><a name="line-42"></a><span>    </span><span class="hs-special">,</span><span> </span><span class="hs-identifier">sSolve</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier hs-var">Just</span><span>
-</span><a name="line-43"></a><span>    </span><span class="hs-special">}</span><span>
-</span><a name="line-44"></a></pre></body></html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="">{-# LANGUAGE QuasiQuotes #-}
+
+-- |
+-- Module      : AOC.Challenge.Day08
+-- License     : BSD3
+--
+-- Stability   : experimental
+-- Portability : non-portable
+--
+-- Day 8.  See &quot;AOC.Solver&quot; for the types used in this module!
+--
+-- After completing the challenge, it is recommended to:
+
+module AOC.Challenge.Day08 (
+    day08a
+  , day08b
+  ) where
+
+import           AOC.Common      (Point, parseAsciiMap, countTrue)
+import           AOC.Solver      ((:~&gt;)(..), dyno_)
+import           Control.Monad   (guard)
+import           Data.Bifunctor  (second)
+import           Data.List       (unfoldr, transpose)
+import           Data.List.Split (chunksOf)
+import           Data.Map        (Map)
+import           Data.Maybe      (listToMaybe, mapMaybe)
+import           Data.Ord        (comparing)
+import           Data.Semigroup  (Min(..))
+import           Data.Set        (Set)
+import           Linear          (V2(..))
+import           Safe            (minimumByMay)
+import           Text.Heredoc    (here)
+import qualified Data.Map        as M
+import qualified Data.Set        as S
+
+day08a :: String :~&gt; Int
+day08a = MkSol
+    { sParse = Just
+    , sShow  = show
+    , sSolve = fmap answer
+             . minimumByMay (comparing (countTrue (== '0')))
+             . chunksOf (dyno_ &quot;w&quot; 25 * dyno_ &quot;h&quot; 6)
+    }
+  where
+    answer x  = countTrue (== '1') x * countTrue (== '2') x
+
+day08b :: [String] :~&gt; String
+day08b = MkSol
+    { sParse = Just . chunksOf 150
+    -- , sShow  = unlines . chunksOf 25 . map (\case '0' -&gt; ' '; _ -&gt; '#')
+    , sShow  = mapMaybe (`M.lookup` letterMap)
+             . unfoldr peel
+             . M.keysSet
+             . parseAsciiMap (guard . (== '1'))
+             . unlines
+             . chunksOf 25
+    , sSolve = traverse (listToMaybe . filter (/= '2')) . transpose
+    }
+
+peel :: Set Point -&gt; Maybe (Set Point, Set Point)
+peel ps = do
+    Min xMin &lt;- flip foldMap ps $ \(V2 x _) -&gt; Just (Min x)
+    let ps' = subtract (V2 xMin 0) `S.map` ps
+    pure $ S.partition (\(V2 x _) -&gt; x &lt; 4) ps'
+
+-- | A map of a set of &quot;on&quot; points (for a 4x6 grid) to the letter they
+-- represent
+letterMap :: Map (Set Point) Char
+letterMap = M.fromList
+          . uncurry (zipWith (flip (,)))
+          . second (unfoldr peel . M.keysSet . parseAsciiMap (guard . (== '#')))
+          $ rawLetterforms
+
+rawLetterforms :: (String, String)
+rawLetterforms = (&quot;ABCEFGHJKLPRUYZ&quot;, drop 1 [here|
+.##.###..##.########.##.#..#..###..##...###.###.#..##...#####
+</span><span class="hs-cpp">#..##..##..##...#...#..##..#...##.#.#...#..##..##..##...#...#
+#..####.#...###.###.#...####...###..#...#..##..##..#.#.#...#.
+#####..##...#...#...#.###..#...##.#.#...###.###.#..#..#...#..
+#..##..##..##...#...#..##..##..##.#.#...#...#.#.#..#..#..#...
+#..####..##.#####....####..#.##.#..######...#..#.##...#..####
+</span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><a name="line-83"></a></pre></body></html>

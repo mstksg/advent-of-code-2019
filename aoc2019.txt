@@ -10,6 +10,30 @@
 @package aoc2019
 @version 0.1.0.0
 
+module AOC.Common.Conduino
+
+-- | Loop a pipe into itself.
+--   
+--   <ul>
+--   <li>Will feed all output back to the input</li>
+--   <li>Will only ask for input upstream if output is stalled.</li>
+--   <li>Yields all outputted values downstream, effectively duplicating
+--   them.</li>
+--   </ul>
+feedbackP :: (Monad m, Show x) => Pipe x x u m a -> Pipe x x u m a
+runStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m (a, s)
+execStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m s
+evalStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m a
+runExceptP :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m (Either e a)
+fuseBoth :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
+fuseUpstream :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
+(&|) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
+infixr 2 &|
+(|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
+infixr 2 |.
+instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
+instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
+
 module AOC.Common.Search
 
 -- | A* Search
@@ -105,6 +129,9 @@ firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
 
+-- | Strict drop
+drop' :: Int -> [a] -> [a]
+
 -- | A tuple of the same item twice
 dup :: a -> (a, a)
 
@@ -128,6 +155,10 @@ countTrue :: Foldable f => (a -> Bool) -> f a -> Int
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
+
+-- | Look up a count from a frequency map, defaulting to zero if item is
+--   not foudn
+lookupFreq :: Ord a => a -> Map a Int -> Int
 
 -- | Build a list of <i>descending</i> frequencies. Ties are sorted.
 freqList :: (Foldable f, Ord a) => f a -> [(Int, a)]
@@ -212,6 +243,7 @@ _CharFinite :: Prism' Char (Bool, Finite 26)
 caeser :: Finite 26 -> Char -> Char
 eitherItem :: Lens' (Either a a) a
 getDown :: Down a -> a
+toNatural :: Integral a => a -> Maybe Natural
 
 -- | Use a stream of tokens <tt>a</tt> as the underlying parser stream.
 --   Note that error messages for parser errors are going necessarily to be
@@ -244,6 +276,9 @@ mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 
 -- | Treat as complex number multiplication. useful for rotations
 mulPoint :: Point -> Point -> Point
+
+-- | Lattice points for line between points, not including endpoints
+lineTo :: Point -> Point -> [Point]
 data Dir
 North :: Dir
 East :: Dir
@@ -302,6 +337,57 @@ instance Data.Group.Group AOC.Common.Dir
 instance Data.Group.Abelian AOC.Common.Dir
 instance (Control.Lens.At.Ixed (v a), Control.Lens.At.Index (v a) Data.Type.Equality.~ GHC.Types.Int, Control.Lens.At.IxValue (v a) Data.Type.Equality.~ a) => Control.Lens.At.Ixed (Data.Vector.Generic.Sized.Internal.Vector v n a)
 instance (GHC.Classes.Ord k, GHC.Classes.Ord p) => Control.Lens.At.Ixed (Data.OrdPSQ.Internal.OrdPSQ k p v)
+
+module AOC.Common.Intcode
+data Memory
+Mem :: Natural -> Int -> Map Natural Int -> Memory
+[mPos] :: Memory -> Natural
+[mBase] :: Memory -> Int
+[mRegs] :: Memory -> Map Natural Int
+type VM = Pipe Int Int Void
+stepForever :: (AsVMErr e, MonadError e m) => Memory -> Pipe Int Int Void m Memory
+stepForeverAndDie :: MonadError IErr m => Memory -> Pipe Int Int Void m Void
+untilHalt :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m ()
+parseMem :: String -> Maybe Memory
+yieldAndDie :: MonadError IErr m => o -> Pipe i o u m a
+yieldAndPass :: o -> Pipe o o u m u
+data VMErr
+VMEBadMode :: Int -> VMErr
+VMEBadInstr :: Int -> VMErr
+VMEBadPos :: Int -> VMErr
+data IErr
+IENoInput :: IErr
+IEVM :: VMErr -> IErr
+class AsVMErr r_aVN3
+_VMErr :: AsVMErr r_aVN3 => Prism' r_aVN3 VMErr
+_VMEBadMode :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
+_VMEBadInstr :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
+_VMEBadPos :: AsVMErr r_aVN3 => Prism' r_aVN3 Int
+class AsIErr r_aVV6
+_IErr :: AsIErr r_aVV6 => Prism' r_aVV6 IErr
+_IENoInput :: AsIErr r_aVV6 => Prism' r_aVV6 ()
+_IEVM :: AsIErr r_aVV6 => Prism' r_aVV6 VMErr
+instance GHC.Show.Show AOC.Common.Intcode.InstrRes
+instance AOC.Common.Intcode.AsIErr AOC.Common.Intcode.IErr
+instance AOC.Common.Intcode.AsVMErr AOC.Common.Intcode.IErr
+instance GHC.Show.Show AOC.Common.Intcode.IErr
+instance GHC.Classes.Ord AOC.Common.Intcode.IErr
+instance GHC.Classes.Eq AOC.Common.Intcode.IErr
+instance GHC.Exception.Type.Exception AOC.Common.Intcode.IErr
+instance AOC.Common.Intcode.AsVMErr AOC.Common.Intcode.VMErr
+instance GHC.Show.Show AOC.Common.Intcode.VMErr
+instance GHC.Classes.Ord AOC.Common.Intcode.VMErr
+instance GHC.Classes.Eq AOC.Common.Intcode.VMErr
+instance GHC.Show.Show AOC.Common.Intcode.Instr
+instance GHC.Enum.Enum AOC.Common.Intcode.Instr
+instance GHC.Classes.Ord AOC.Common.Intcode.Instr
+instance GHC.Classes.Eq AOC.Common.Intcode.Instr
+instance GHC.Show.Show AOC.Common.Intcode.Mode
+instance GHC.Enum.Enum AOC.Common.Intcode.Mode
+instance GHC.Classes.Ord AOC.Common.Intcode.Mode
+instance GHC.Classes.Eq AOC.Common.Intcode.Mode
+instance GHC.Show.Show AOC.Common.Intcode.Memory
+instance GHC.Exception.Type.Exception AOC.Common.Intcode.VMErr
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -5036,6 +5122,20 @@ infixr 5 :|
 --   because it works in <i>O(1)</i> rather than <i>O(log n)</i>
 stimesIdempotentMonoid :: (Integral b, Monoid a) => b -> a -> a
 
+-- | The class of monad transformers. Instances should satisfy the
+--   following laws, which state that <a>lift</a> is a monad
+--   transformation:
+--   
+--   <ul>
+--   <li><pre><a>lift</a> . <a>return</a> = <a>return</a></pre></li>
+--   <li><pre><a>lift</a> (m &gt;&gt;= f) = <a>lift</a> m &gt;&gt;=
+--   (<a>lift</a> . f)</pre></li>
+--   </ul>
+class MonadTrans (t :: Type -> Type -> Type -> Type)
+
+-- | Lift a computation from the argument monad to the constructed monad.
+lift :: (MonadTrans t, Monad m) => m a -> t m a
+
 -- | A state transformer monad parameterized by:
 --   
 --   <ul>
@@ -5064,20 +5164,6 @@ StateT :: (s -> m (a, s)) -> StateT s a
 --   exiting on the first exception.
 newtype ExceptT e (m :: Type -> Type) a
 ExceptT :: m (Either e a) -> ExceptT e a
-
--- | The class of monad transformers. Instances should satisfy the
---   following laws, which state that <a>lift</a> is a monad
---   transformation:
---   
---   <ul>
---   <li><pre><a>lift</a> . <a>return</a> = <a>return</a></pre></li>
---   <li><pre><a>lift</a> (m &gt;&gt;= f) = <a>lift</a> m &gt;&gt;=
---   (<a>lift</a> . f)</pre></li>
---   </ul>
-class MonadTrans (t :: Type -> Type -> Type -> Type)
-
--- | Lift a computation from the argument monad to the constructed monad.
-lift :: (MonadTrans t, Monad m) => m a -> t m a
 
 -- | A map of integers to values <tt>a</tt>.
 data IntMap a
@@ -17871,6 +17957,9 @@ type Point = V2 Int
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
 
+-- | Strict drop
+drop' :: Int -> [a] -> [a]
+
 -- | Iterate until a <a>Nothing</a> is produced
 iterateMaybe :: (a -> Maybe a) -> a -> [a]
 
@@ -17902,6 +17991,10 @@ countTrue :: Foldable f => (a -> Bool) -> f a -> Int
 
 -- | Build a frequency map
 freqs :: (Foldable f, Ord a) => f a -> Map a Int
+
+-- | Look up a count from a frequency map, defaulting to zero if item is
+--   not foudn
+lookupFreq :: Ord a => a -> Map a Int -> Int
 
 -- | Build a reverse frequency map
 revFreq :: (Foldable f, Ord a) => f a -> IntMap (NESet a)
@@ -18034,6 +18127,10 @@ parseTokStreamT_ :: (Alternative f, Foldable t, Monad m) => ParsecT e (TokStream
 
 -- | Skip every result until this token matches
 nextMatch :: MonadParsec e s m => m a -> m a
+toNatural :: Integral a => a -> Maybe Natural
+
+-- | Lattice points for line between points, not including endpoints
+lineTo :: Point -> Point -> [Point]
 
 -- | Errors that might happen when running a <a>:~&gt;</a> on some input.
 data SolutionError
@@ -18380,124 +18477,6 @@ module AOC.Challenge.Day12
 module AOC.Challenge.Day11
 
 
--- | Day 10. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day10
-
-
--- | Day 9. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day09
-
-
--- | Day 8. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day08
-
-
--- | Day 7. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day07
-
-
--- | Day 6. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day06
-
-
--- | Day 5. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day05
-day05a :: Memory :~> Int
-day05b :: Memory :~> Int
-
--- | Magically fills a fixed-shape <a>Applicative</a> with each mode from a
---   mode op int.
-fillModes :: (Traversable t, Applicative t) => Int -> t Mode
-instance GHC.Show.Show AOC.Challenge.Day05.InstrRes
-instance GHC.Show.Show AOC.Challenge.Day05.Instr
-instance GHC.Enum.Enum AOC.Challenge.Day05.Instr
-instance GHC.Classes.Ord AOC.Challenge.Day05.Instr
-instance GHC.Classes.Eq AOC.Challenge.Day05.Instr
-instance GHC.Show.Show AOC.Challenge.Day05.Mode
-instance GHC.Enum.Enum AOC.Challenge.Day05.Mode
-instance GHC.Classes.Ord AOC.Challenge.Day05.Mode
-instance GHC.Classes.Eq AOC.Challenge.Day05.Mode
-instance GHC.Show.Show AOC.Challenge.Day05.Memory
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18546,6 +18525,44 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
 
 
+-- | Day 10. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day10
+day10a :: NESet Point :~> Int
+day10b :: NESet Point :~> Point
+
+
+-- | Day 9. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day09
+day09a :: Memory :~> Int
+day09b :: Memory :~> Int
+
+
+-- | Day 8. See <a>AOC.Solver</a> for the types used in this module!
+--   
+--   After completing the challenge, it is recommended to:
+module AOC.Challenge.Day08
+day08a :: String :~> Int
+day08b :: [String] :~> String
+
+
+-- | Day 7. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day07
+day07a :: Memory :~> Int
+day07b :: Memory :~> Int
+
+
+-- | Day 6. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day06
+day06a :: Map String String :~> Int
+day06b :: Map String String :~> Int
+
+
+-- | Day 5. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day05
+day05a :: Memory :~> Int
+day05b :: Memory :~> Int
+
+
 -- | Day 4. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day04
 day04a :: [Int] :~> Int
@@ -18562,7 +18579,6 @@ day03b :: NonEmpty Path :~> Int
 module AOC.Challenge.Day02
 day02a :: Memory :~> Int
 day02b :: Memory :~> (Int, Int)
-instance GHC.Show.Show AOC.Challenge.Day02.Memory
 
 
 -- | Day 1. See <a>AOC.Solver</a> for the types used in this module!
@@ -18746,13 +18762,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1Jcr
-mainRunOpts :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr MainRunOpts
-mroBench :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
-mroInput :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
-mroSpec :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr TestSpec
-mroTest :: HasMainRunOpts c_a1Jcr => Lens' c_a1Jcr Bool
+class HasMainRunOpts c_a1PMD
+mainRunOpts :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD MainRunOpts
+mroBench :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
+mroInput :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
+mroSpec :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD TestSpec
+mroTest :: HasMainRunOpts c_a1PMD => Lens' c_a1PMD Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18765,10 +18781,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1JiZ
-mainViewOpts :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ TestSpec
-mvoWait :: HasMainViewOpts c_a1JiZ => Lens' c_a1JiZ Bool
+class HasMainViewOpts c_a1PTb
+mainViewOpts :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb MainViewOpts
+mvoSpec :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb TestSpec
+mvoWait :: HasMainViewOpts c_a1PTb => Lens' c_a1PTb Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18789,12 +18805,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1Jni
-mainSubmitOpts :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
-msoLock :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
-msoSpec :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1Jni => Lens' c_a1Jni Bool
+class HasMainSubmitOpts c_a1PXu
+mainSubmitOpts :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
+msoLock :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
+msoSpec :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a1PXu => Lens' c_a1PXu Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

@@ -12,19 +12,22 @@ module AOC.Challenge.Day11 (
   , day11b
   ) where
 
-import           AOC.Common                (Dir(..), dirPoint, Point, displayAsciiMap)
+import           AOC.Common                (Dir(..), dirPoint, Point)
 import           AOC.Common.Intcode        (Memory, parseMem, stepForeverAndDie, untilHalt)
+import           AOC.Common.OCR            (parseLetters)
 import           AOC.Solver                ((:~>)(..))
 import           Control.DeepSeq           (NFData)
 import           Control.Monad             (forever)
 import           Control.Monad.State       (MonadState, gets, execState, modify)
-import           Data.Conduino             (Pipe, (.|), runPipe, awaitSurely, yield)
+import           Data.Conduino             (Pipe, (.|), runPipe, awaitSurely)
 import           Data.Functor              ((<&>))
 import           Data.Map                  (Map)
 import           Data.Void                 (Void)
 import           GHC.Generics              (Generic)
+import           Linear.V2                 (V2(..))
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
+import qualified Data.Set                  as S
 
 data Hull = Hull { hDir :: Dir, hPos :: Point, hMap :: Map Point Color }
   deriving (Eq, Ord, Show, Generic)
@@ -92,10 +95,11 @@ day11a = MkSol
 day11b :: Memory :~> Map Point Color
 day11b = MkSol
     { sParse = parseMem
-    , sShow  = ("\n" <>)
-             . unlines . reverse . lines
-             . displayAsciiMap ' '
-             . fmap (\case White -> '#'; Black -> ' ')
+    , sShow  = parseLetters . S.map (* V2 1 (-1)) . M.keysSet . M.filter (== White)
+    -- , sShow  = ("\n" <>)
+    --          . unlines . reverse . lines
+    --          . displayAsciiMap ' '
+    --          . fmap (\case White -> '#'; Black -> ' ')
     , sSolve = \m -> case execState (runPipe (fullPipe m)) (singletonHull White) of
         Hull _ _ mp -> Just mp
     }

@@ -24,10 +24,8 @@ import           Data.Functor              ((<&>))
 import           Data.Map                  (Map)
 import           Data.Void                 (Void)
 import           GHC.Generics              (Generic)
-import           Linear.V2                 (V2(..))
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
-import qualified Data.Set                  as S
 
 data Hull = Hull
     { hDir :: Dir
@@ -99,7 +97,7 @@ day11a = MkSol
 day11b :: Memory :~> Map Point Color
 day11b = MkSol
     { sParse = parseMem
-    , sShow  = parseLetters . S.map (* V2 1 (-1)) . M.keysSet . M.filter (== White)
+    , sShow  = parseLetters . M.keysSet . M.filter (== White)
     , sSolve = \m -> Just . hMap
                    $ execState (runPipe (fullPipe m)) (singletonHull White)
     }

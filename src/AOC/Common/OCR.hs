@@ -10,18 +10,17 @@ import           Control.Lens
 import           Control.Monad
 import           Data.Bifunctor
 import           Data.Foldable
-import           Data.List
-import           Data.Map          (Map)
-import           Data.Profunctor
+import           Data.Map           (Map)
+import           Data.Ord
 import           Data.Semigroup
-import           Data.Set          (Set)
-import           Data.Set.NonEmpty (NESet)
+import           Data.Set           (Set)
+import           Data.Set.NonEmpty  (NESet)
 import           Linear
-import           Text.Heredoc      (here)
-import qualified Control.Foldl     as F
-import qualified Data.Map          as M
-import qualified Data.Set          as S
-import qualified Data.Set.NonEmpty as NES
+import           Text.Heredoc       (here)
+import qualified Control.Foldl      as F
+import qualified Data.Map           as M
+import qualified Data.Set           as S
+import qualified Data.Set.NonEmpty  as NES
 
 -- | The set of unconnected shapes, indexed by their original center of
 -- mass
@@ -48,9 +47,17 @@ contiguousShapesBy f = toList . M.mapKeys f . contiguousShapes
 parseLetters
     :: Set Point
     -> String
-parseLetters = map (\c -> M.findWithDefault '?' c letterMap)
-             . toList
-             . contiguousShapesBy (view _x)
+parseLetters letters = snd . minimumBy (comparing fst) $ attempts
+  where
+    attempts =
+        [ (score :: Int, res)
+        | refl <- [id, over _x negate]
+        , rots <- [id, perp, negate, negate . perp]
+        , let ls = S.map (rots . refl) letters
+              (Sum score, res) = tryMe ls
+        ]
+    tryMe = traverse (\c -> maybe (Sum 1, '?') (Sum 0,) . M.lookup c $ letterMap)
+          . contiguousShapesBy (view _x)
 
 -- | A map of a set of "on" points (for a 4x6 grid) to the letter they
 -- represent

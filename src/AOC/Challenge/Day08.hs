@@ -15,7 +15,6 @@ module AOC.Challenge.Day08 (
   ) where
 
 import           AOC.Common      (parseAsciiMap, countTrue)
-import           AOC.Common.OCR
 import           AOC.Common.OCR  (parseLetters)
 import           AOC.Solver      ((:~>)(..), dyno_)
 import           Control.Monad   (guard)

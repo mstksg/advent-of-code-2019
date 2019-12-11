@@ -213,8 +213,8 @@ intcodeVM m0 = do
       Right nextWith    -> do
         inp <- await
         case inp of
-          Nothing -> pure ()    -- no more input so what can you do, right?
-          Just i  -> intcodeVM (nextWith i)
+          Nothing -> pure ()                    -- no more input so what can you do, right?
+          Just i  -> intcodeVM (nextWith i)     -- recurse!
   where
     (outs, next) = runMemory m0
 ```

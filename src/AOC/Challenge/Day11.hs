@@ -29,7 +29,11 @@ import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
 import qualified Data.Set                  as S
 
-data Hull = Hull { hDir :: Dir, hPos :: Point, hMap :: Map Point Color }
+data Hull = Hull
+    { hDir :: Dir
+    , hPos :: Point
+    , hMap :: Map Point Color
+    }
   deriving (Eq, Ord, Show, Generic)
 instance NFData Hull
 
@@ -57,10 +61,10 @@ sensor = C.repeatM . gets $ \(Hull _ p h) ->
 
 -- | The consumer of signals.  Takes 0's and 1's to indicate color to paint
 -- and direction to turn and step.
-paint
+motor
     :: MonadState Hull m
     => Pipe Int Void Void m Void
-paint = forever $ do
+motor = forever $ do
     color <- awaitSurely <&> \case
       0 -> Black
       1 -> White
@@ -82,25 +86,21 @@ fullPipe
     -> Pipe () Void u m ()
 fullPipe m = untilHalt $ sensor
                       .| stepForeverAndDie m
-                      .| paint
+                      .| motor
 
 day11a :: Memory :~> Int
 day11a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = \m -> case execState (runPipe (fullPipe m)) emptyHull of
-        Hull _ _ mp -> Just $ M.size mp
+    , sSolve = \m -> Just . M.size . hMap
+                   $ execState (runPipe (fullPipe m)) emptyHull
     }
 
 day11b :: Memory :~> Map Point Color
 day11b = MkSol
     { sParse = parseMem
     , sShow  = parseLetters . S.map (* V2 1 (-1)) . M.keysSet . M.filter (== White)
-    -- , sShow  = ("\n" <>)
-    --          . unlines . reverse . lines
-    --          . displayAsciiMap ' '
-    --          . fmap (\case White -> '#'; Black -> ' ')
-    , sSolve = \m -> case execState (runPipe (fullPipe m)) (singletonHull White) of
-        Hull _ _ mp -> Just mp
+    , sSolve = \m -> Just . hMap
+                   $ execState (runPipe (fullPipe m)) (singletonHull White)
     }
 

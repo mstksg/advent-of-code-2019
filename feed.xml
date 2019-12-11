@@ -7,11 +7,126 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Tue, 10 Dec 2019 14:22:18 EST</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2019 02:26:26 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Tue, 10 Dec 2019 14:22:18 EST</pubDate>
+    <pubDate>Wed, 11 Dec 2019 02:26:26 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
+    <item>
+      <title>Day 11</title>
+      <description>&lt;h2 id=&quot;day-11&quot;&gt;Day 11&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day11.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/11&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day11.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day11.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Okay, so I have a bit of backlog on my intcode-related posts (days 5, 7, and 9). But we’ve gotten to the point where the incode implementation isn’t the interesting part, but how we &lt;em&gt;use&lt;/em&gt; it is, so maybe it’s time for a fresh start :)&lt;/p&gt;
+&lt;p&gt;This challenge affirmed my choice to use &lt;em&gt;&lt;a href=&quot;https://hackage.haskell.org/package/conduit&quot;&gt;conduit&lt;/a&gt;&lt;/em&gt; to model my Intcode VM. (I actually use &lt;em&gt;&lt;a href=&quot;https://hackage.haskell.org/package/conduino&quot;&gt;conduino&lt;/a&gt;&lt;/em&gt;, my own lightweight alternative to &lt;em&gt;conduit&lt;/em&gt;, because it was able to handle something in Day 7 that I couldn’t easily get &lt;em&gt;conduit&lt;/em&gt; to handle. But since &lt;em&gt;conduit&lt;/em&gt; is an actual industry-ready library that is commonly used, I’m going to write this tutorial in terms of it instead)&lt;/p&gt;
+&lt;p&gt;For those unfamiliar with &lt;em&gt;conduit&lt;/em&gt;, &lt;code&gt;ConduitT i o&lt;/code&gt; is a monad transformer (like &lt;code&gt;StateT s&lt;/code&gt;, or &lt;code&gt;ReaderT r&lt;/code&gt;, or &lt;code&gt;WriterT w&lt;/code&gt;, etc.) that offers two new primitives:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;await ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; i o m (&lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; i)&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;yield ::&lt;/span&gt; o &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; i o m ()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This &lt;em&gt;should&lt;/em&gt; feel very similar to similar actions from &lt;code&gt;StateT&lt;/code&gt;, &lt;code&gt;ReaderT&lt;/code&gt;, and &lt;code&gt;WriterT&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- similar in form to &amp;#39;await&amp;#39;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;get ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;StateT&lt;/span&gt;  s m s&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;ask ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ReaderT&lt;/span&gt; r m r&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- similar in form to &amp;#39;yield&amp;#39;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;put  ::&lt;/span&gt; s &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;StateT&lt;/span&gt;  s m ()&lt;/span&gt;
+&lt;span id=&quot;cb2-7&quot;&gt;&lt;a href=&quot;#cb2-7&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;tell ::&lt;/span&gt; w &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;WriterT&lt;/span&gt; w m ()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;You can think of &lt;code&gt;await&lt;/code&gt; like reading from an input pipe, like &lt;em&gt;stdin&lt;/em&gt;: you pick off the next item the pipe is delivering you. You can think of &lt;code&gt;yield&lt;/code&gt; like writing to an output pipe, like &lt;em&gt;stdout&lt;/em&gt;. You can then combine conduits to create new conduits, like &lt;code&gt;c1 .| c2&lt;/code&gt; – it feeds the output of &lt;code&gt;c1&lt;/code&gt; into the input of &lt;code&gt;c2&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;p&gt;So for a type like &lt;code&gt;ConduitT i o m a&lt;/code&gt;, &lt;code&gt;i&lt;/code&gt; is the input stream’s type, &lt;code&gt;o&lt;/code&gt; is the output stream’s type, &lt;code&gt;m&lt;/code&gt; is the underlying monad, and &lt;code&gt;a&lt;/code&gt; is the result type that is yielded when computation finishes.&lt;/p&gt;
+&lt;p&gt;My VM machine is essentially:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;intcodeVM ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; m &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Given some starting memory state, you return a &lt;code&gt;ConduitT Int Int m Memory&lt;/code&gt;: take &lt;code&gt;Int&lt;/code&gt;s as input, output &lt;code&gt;Int&lt;/code&gt;s, and when it’s done, output the finished &lt;code&gt;Memory&lt;/code&gt; once we halt.&lt;/p&gt;
+&lt;p&gt;So we have our transforming pipe…what sort of input does it need, and how are we handling the output?&lt;/p&gt;
+&lt;p&gt;The input stream is relatively simple. Let’s put together a hull state:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;         &lt;span class=&quot;co&quot;&gt;-- V2, from linear library&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Color&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Black&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;White&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-3&quot;&gt;&lt;a href=&quot;#cb4-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-4&quot;&gt;&lt;a href=&quot;#cb4-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-5&quot;&gt;&lt;a href=&quot;#cb4-5&quot;&gt;&lt;/a&gt;    {&lt;span class=&quot;ot&quot;&gt; hDir ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;         &lt;span class=&quot;co&quot;&gt;-- ^ unit-length direction vector&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-6&quot;&gt;&lt;a href=&quot;#cb4-6&quot;&gt;&lt;/a&gt;    ,&lt;span class=&quot;ot&quot;&gt; hPos ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-7&quot;&gt;&lt;a href=&quot;#cb4-7&quot;&gt;&lt;/a&gt;    ,&lt;span class=&quot;ot&quot;&gt; hMap ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Color&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-8&quot;&gt;&lt;a href=&quot;#cb4-8&quot;&gt;&lt;/a&gt;    }&lt;/span&gt;
+&lt;span id=&quot;cb4-9&quot;&gt;&lt;a href=&quot;#cb4-9&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-10&quot;&gt;&lt;a href=&quot;#cb4-10&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;emptyHull ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-11&quot;&gt;&lt;a href=&quot;#cb4-11&quot;&gt;&lt;/a&gt;emptyHull &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; M.empty&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The underlying monad of our &lt;code&gt;Conduit&lt;/code&gt; (that all components will be able to access) will be &lt;code&gt;State Hull&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Our input pipe is will read the current hull point and output &lt;code&gt;0&lt;/code&gt; or &lt;code&gt;1&lt;/code&gt; based on black or white:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;sensor ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; i &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;) a&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;sensor &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; forever &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; _ p m &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; get&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; M.lookup p m &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; yield &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;     &lt;span class=&quot;co&quot;&gt;-- black&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-6&quot;&gt;&lt;a href=&quot;#cb5-6&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Black&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; yield &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt;     &lt;span class=&quot;co&quot;&gt;-- black&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-7&quot;&gt;&lt;a href=&quot;#cb5-7&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;White&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; yield &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;     &lt;span class=&quot;co&quot;&gt;-- white&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Our input pipe will read the input of &lt;code&gt;intcodeVM&lt;/code&gt; and adjust the state appropriately — it’s slightly trickier because we have to parse the input and modify the state. &lt;code&gt;await&lt;/code&gt; returns a &lt;code&gt;Maybe&lt;/code&gt;, so if we get two &lt;code&gt;Just&lt;/code&gt;’s then we make our changes and repeat it all over again. Otherwise, we’re done.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;motors ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; o (&lt;span class=&quot;dt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;) ()&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;motors &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;    color &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;fmap&lt;/span&gt; parseColor &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; await&lt;/span&gt;
+&lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;    turn  &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;fmap&lt;/span&gt; parseTurn  &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; await&lt;/span&gt;
+&lt;span id=&quot;cb6-5&quot;&gt;&lt;a href=&quot;#cb6-5&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; (color, turn) &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-6&quot;&gt;&lt;a href=&quot;#cb6-6&quot;&gt;&lt;/a&gt;      (&lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; c, &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; t) &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-7&quot;&gt;&lt;a href=&quot;#cb6-7&quot;&gt;&lt;/a&gt;        modify &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; \(&lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; d p m) &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-8&quot;&gt;&lt;a href=&quot;#cb6-8&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; d&amp;#39; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; t d&lt;/span&gt;
+&lt;span id=&quot;cb6-9&quot;&gt;&lt;a href=&quot;#cb6-9&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;kw&quot;&gt;in&lt;/span&gt;  &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; d&amp;#39; (p &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; d&amp;#39;) (M.insert p c m)&lt;/span&gt;
+&lt;span id=&quot;cb6-10&quot;&gt;&lt;a href=&quot;#cb6-10&quot;&gt;&lt;/a&gt;        motors&lt;/span&gt;
+&lt;span id=&quot;cb6-11&quot;&gt;&lt;a href=&quot;#cb6-11&quot;&gt;&lt;/a&gt;      _                &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; ()   &lt;span class=&quot;co&quot;&gt;-- we&amp;#39;re done!&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-12&quot;&gt;&lt;a href=&quot;#cb6-12&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-13&quot;&gt;&lt;a href=&quot;#cb6-13&quot;&gt;&lt;/a&gt;    parseColor &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Black&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-14&quot;&gt;&lt;a href=&quot;#cb6-14&quot;&gt;&lt;/a&gt;    parseColor &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;White&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-15&quot;&gt;&lt;a href=&quot;#cb6-15&quot;&gt;&lt;/a&gt;    parseTurn  &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x y) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;y)   x     &lt;span class=&quot;co&quot;&gt;-- turn left&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-16&quot;&gt;&lt;a href=&quot;#cb6-16&quot;&gt;&lt;/a&gt;    parseTurn  &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; x y) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt;   y  (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;x)    &lt;span class=&quot;co&quot;&gt;-- turn right&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And that’s it!&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb7&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb7-1&quot;&gt;&lt;a href=&quot;#cb7-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;fullBot ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Conduit&lt;/span&gt; i o (&lt;span class=&quot;dt&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;) ()&lt;/span&gt;
+&lt;span id=&quot;cb7-2&quot;&gt;&lt;a href=&quot;#cb7-2&quot;&gt;&lt;/a&gt;fullBot m &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; sensor&lt;/span&gt;
+&lt;span id=&quot;cb7-3&quot;&gt;&lt;a href=&quot;#cb7-3&quot;&gt;&lt;/a&gt;         &lt;span class=&quot;op&quot;&gt;.|&lt;/span&gt; intcodeVM m&lt;/span&gt;
+&lt;span id=&quot;cb7-4&quot;&gt;&lt;a href=&quot;#cb7-4&quot;&gt;&lt;/a&gt;         &lt;span class=&quot;op&quot;&gt;.|&lt;/span&gt; motors&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can run a full pipeline using &lt;code&gt;runConduit&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb8&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb8-1&quot;&gt;&lt;a href=&quot;#cb8-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb8-2&quot;&gt;&lt;a href=&quot;#cb8-2&quot;&gt;&lt;/a&gt;part1 m &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; M.size m&lt;/span&gt;
+&lt;span id=&quot;cb8-3&quot;&gt;&lt;a href=&quot;#cb8-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb8-4&quot;&gt;&lt;a href=&quot;#cb8-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; _ p m &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; execState (runConduit (fullBot m)) emptyHull&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Part 2 is the same thing but we start on a painted hull:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb9&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb9-1&quot;&gt;&lt;a href=&quot;#cb9-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;whiteHull ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb9-2&quot;&gt;&lt;a href=&quot;#cb9-2&quot;&gt;&lt;/a&gt;whiteHull &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; (M.singleton &lt;span class=&quot;dv&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;White&lt;/span&gt;)&lt;/span&gt;
+&lt;span id=&quot;cb9-3&quot;&gt;&lt;a href=&quot;#cb9-3&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb9-4&quot;&gt;&lt;a href=&quot;#cb9-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part1 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Map&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Color&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb9-5&quot;&gt;&lt;a href=&quot;#cb9-5&quot;&gt;&lt;/a&gt;part1 m &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; m&lt;/span&gt;
+&lt;span id=&quot;cb9-6&quot;&gt;&lt;a href=&quot;#cb9-6&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb9-7&quot;&gt;&lt;a href=&quot;#cb9-7&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;Hull&lt;/span&gt; _ _ m &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; execState (runConduit (fullBot m)) whiteHull&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The nice thing I like about the conduit method is that it lends itself really well to “hooking up” the machine with input streams and output processing! For a machine that basically simulates stdin and stdout, it works very well, I think! You only need to think:&lt;/p&gt;
+&lt;ol type=&quot;1&quot;&gt;
+&lt;li&gt;How am I generating input?&lt;/li&gt;
+&lt;li&gt;How am I processing output?&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;And your entire program will just be &lt;code&gt;generator .| intcodeVM m .| processor&lt;/code&gt;. This also worked pretty well as a mental model for Day 7 as well, because we can easily pipe multiple independent machines: &lt;code&gt;intcodeVM m .| intcodeVM m .| intcodeVM m&lt;/code&gt;, and they will all maintain separate and independent memories as they feed items to each other. &lt;em&gt;conduit&lt;/em&gt; handles all of the actual message passing, and all you have to do is assemble your pipeline and let it churn away!&lt;/p&gt;
+&lt;p&gt;Note that even if you didn’t structure your intcode VM as a Conduit, it’s pretty easy to “turn it into” a &lt;code&gt;ConduitT Int Int&lt;/code&gt;. Integrating it into conduit is nice even if you didn’t intend to do it originally, using basic do notation and combinations of &lt;code&gt;await&lt;/code&gt; and &lt;code&gt;yield&lt;/code&gt; and recursion.&lt;/p&gt;
+&lt;h3 id=&quot;day-11-benchmarks&quot;&gt;Day 11 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 11a
+benchmarking...
+time                 703.9 ms   (686.9 ms .. 719.0 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 698.5 ms   (692.7 ms .. 700.6 ms)
+std dev              4.108 ms   (1.441 ms .. 5.031 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+
+&amp;gt;&amp;gt; Day 11b
+benchmarking...
+time                 49.01 ms   (48.41 ms .. 49.76 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 48.61 ms   (48.37 ms .. 49.08 ms)
+std dev              625.2 μs   (186.6 μs .. 1.027 ms)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-11</link>
+      <pubDate>Wed, 11 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
     <item>
       <title>Day 10</title>
       <description>&lt;h2 id=&quot;day-10&quot;&gt;Day 10&lt;/h2&gt;

@@ -1107,7 +1107,9 @@ sensor = forever $ do
       Just White -> yield 1     -- white
 ```
 
-Our input pipe will read the input of `intcodeVM` and adjust the state
+It'll just keep on reading and yielding, forever and ever.
+
+Our output pipe will read the input of `intcodeVM` and adjust the state
 appropriately --- it's slightly trickier because we have to parse the input and
 modify the state.  `await` returns a `Maybe`, so if we get two `Just`'s then we
 make our changes and repeat it all over again.  Otherwise, we're done.
@@ -1122,8 +1124,9 @@ motors = do
         modify $ \(Hull d p m) ->
           let d' = t d
           in  Hull d' (p + d') (M.insert p c m)
-        motors
-      _                -> pure ()   -- we're done!
+        motors                      -- recurse
+      _                ->
+        pure ()                     -- we're done!
   where
     parseColor 0 = Black
     parseColor 1 = White

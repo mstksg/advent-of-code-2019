@@ -209,7 +209,7 @@ intcodeVM :: Memory -> ConduitT Int Int m Memory
 intcodeVM m0 = do
     mapM_ yield outs
     case next of
-      Left  finalMemory -> pure finalMemory
+      Left  finalMemory -> pure finalMemory     -- halt!
       Right nextWith    -> do
         inp <- await
         case inp of

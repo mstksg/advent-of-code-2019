@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Wed, 11 Dec 2019 03:28:40 EST</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2019 03:39:05 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Wed, 11 Dec 2019 03:28:40 EST</pubDate>
+    <pubDate>Wed, 11 Dec 2019 03:39:05 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -128,7 +128,7 @@ that file instead!
 &lt;span id=&quot;cb12-2&quot;&gt;&lt;a href=&quot;#cb12-2&quot;&gt;&lt;/a&gt;intcodeVM m0 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb12-3&quot;&gt;&lt;a href=&quot;#cb12-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;fu&quot;&gt;mapM_&lt;/span&gt; yield outs&lt;/span&gt;
 &lt;span id=&quot;cb12-4&quot;&gt;&lt;a href=&quot;#cb12-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; next &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
-&lt;span id=&quot;cb12-5&quot;&gt;&lt;a href=&quot;#cb12-5&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Left&lt;/span&gt;  finalMemory &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; finalMemory&lt;/span&gt;
+&lt;span id=&quot;cb12-5&quot;&gt;&lt;a href=&quot;#cb12-5&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Left&lt;/span&gt;  finalMemory &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; finalMemory     &lt;span class=&quot;co&quot;&gt;-- halt!&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb12-6&quot;&gt;&lt;a href=&quot;#cb12-6&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Right&lt;/span&gt; nextWith    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
 &lt;span id=&quot;cb12-7&quot;&gt;&lt;a href=&quot;#cb12-7&quot;&gt;&lt;/a&gt;        inp &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; await&lt;/span&gt;
 &lt;span id=&quot;cb12-8&quot;&gt;&lt;a href=&quot;#cb12-8&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; inp &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;

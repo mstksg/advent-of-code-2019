@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="">{-# LANGUAGE QuasiQuotes #-}
+
+module AOC.Common.OCR (
+    parseLetters
+  ) where
+
+import           AOC.Common
+import           Control.Monad
+import           Data.Bifunctor
+import           Data.List
+import           Data.Map       (Map)
+import           Data.Semigroup
+import           Data.Set       (Set)
+import           Linear
+import           Text.Heredoc   (here)
+import qualified Data.Map       as M
+import qualified Data.Set       as S
+
+parseLetters
+    :: Set Point
+    -&gt; String
+parseLetters = map (\c -&gt; M.findWithDefault '?' c letterMap) . unfoldr peel
+
+-- | A map of a set of &quot;on&quot; points (for a 4x6 grid) to the letter they
+-- represent
+letterMap :: Map (Set Point) Char
+letterMap = M.fromList
+          . uncurry (zipWith (flip (,)))
+          . second (unfoldr peel . M.keysSet . parseAsciiMap (guard . (== '#')))
+          $ rawLetterforms
+
+peel :: Set Point -&gt; Maybe (Set Point, Set Point)
+peel ps = do
+    Min xMin &lt;- flip foldMap ps $ \(V2 x _) -&gt; Just (Min x)
+    let ps' = subtract (V2 xMin 0) `S.map` ps
+    pure $ S.partition (\(V2 x _) -&gt; x &lt; 4) ps'
+
+
+-- | don't include y since it is a weird length...
+rawLetterforms :: (String, String)
+rawLetterforms = (&quot;ABCEFGHJKLPRUZ&quot;, drop 1 [here|
+.##.###..##.########.##.#..#..###..##...###.###.#..#####
+</span><span class="hs-cpp">#..##..##..##...#...#..##..#...##.#.#...#..##..##..#...#
+#..####.#...###.###.#...####...###..#...#..##..##..#..#.
+#####..##...#...#...#.###..#...##.#.#...###.###.#..#.#..
+#..##..##..##...#...#..##..##..##.#.#...#...#.#.#..##...
+#..####..##.#####....####..#.##.#..######...#..#.##.####
+</span><span class="hs-special">|]</span><span class="hs-special">)</span><span>
+</span><a name="line-49"></a></pre></body></html>

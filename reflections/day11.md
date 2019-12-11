@@ -177,3 +177,47 @@ Note that even if you didn't structure your intcode VM as a Conduit, it's
 pretty easy to "turn it into" a `ConduitT Int Int`.  Integrating it into
 conduit is nice even if you didn't intend to do it originally, using basic do
 notation and combinations of `await` and `yield` and recursion.
+
+#### Writing your `intcodeVM` conduit
+
+Is this you?  Do you have your intcode VM written in a way that doesn't really
+support streaming input easily, but want to convert it into a conduit?  Are you
+worried you will have to throw everything away and start from scratch?
+
+Fear not --- there is a way to wrap an existing intcode VM implementation in
+`Conduit` so you can get that sweet `intcodeVM m :: Conduit Int Int m Memory`
+action!
+
+All you need to do is, using your existing implementation, write this function:
+
+```haskell
+type Memory         -- contains current position, register state, and base
+
+runMemory
+    :: Memory                   -- ^ initial memory
+    -> ( [Int]                  -- ^ output emitted before halt or input asked
+       , Either
+           Memory               -- ^ either a halted machine ...
+           (Int -> Memory)      -- ^ ... or a continuation awaiting one input
+       )
+```
+
+From there, you can construct `intcodeVM` like this:
+
+```haskell
+intcodeVM :: Memory -> ConduitT Int Int m Memory
+intcodeVM m0 = do
+    mapM_ yield outs
+    case next of
+      Left  finalMemory -> pure finalMemory
+      Right nextWith    -> do
+        inp <- await
+        case inp of
+          Nothing -> pure ()    -- no more input so what can you do, right?
+          Just i  -> intcodeVM (nextWith i)
+  where
+    (outs, next) = runMemory m0
+```
+
+And there you have it!  You can now do the rest of the code described in this
+post :)

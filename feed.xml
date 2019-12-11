@@ -7,9 +7,9 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Wed, 11 Dec 2019 02:56:38 EST</lastBuildDate>
+    <lastBuildDate>Wed, 11 Dec 2019 03:28:40 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Wed, 11 Dec 2019 02:56:38 EST</pubDate>
+    <pubDate>Wed, 11 Dec 2019 03:28:40 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
     <item>
@@ -110,6 +110,33 @@ that file instead!
 &lt;/ol&gt;
 &lt;p&gt;And your entire program will just be &lt;code&gt;generator .| intcodeVM m .| processor&lt;/code&gt;. This also worked pretty well as a mental model for Day 7 as well, because we can easily pipe multiple independent machines: &lt;code&gt;intcodeVM m .| intcodeVM m .| intcodeVM m&lt;/code&gt;, and they will all maintain separate and independent memories as they feed items to each other. &lt;em&gt;conduit&lt;/em&gt; handles all of the actual message passing, and all you have to do is assemble your pipeline and let it churn away!&lt;/p&gt;
 &lt;p&gt;Note that even if you didn’t structure your intcode VM as a Conduit, it’s pretty easy to “turn it into” a &lt;code&gt;ConduitT Int Int&lt;/code&gt;. Integrating it into conduit is nice even if you didn’t intend to do it originally, using basic do notation and combinations of &lt;code&gt;await&lt;/code&gt; and &lt;code&gt;yield&lt;/code&gt; and recursion.&lt;/p&gt;
+&lt;h4 id=&quot;writing-your-intcodevm-conduit&quot;&gt;Writing your &lt;code&gt;intcodeVM&lt;/code&gt; conduit&lt;/h4&gt;
+&lt;p&gt;Is this you? Do you have your intcode VM written in a way that doesn’t really support streaming input easily, but want to convert it into a conduit? Are you worried you will have to throw everything away and start from scratch?&lt;/p&gt;
+&lt;p&gt;Fear not — there is a way to wrap an existing intcode VM implementation in &lt;code&gt;Conduit&lt;/code&gt; so you can get that sweet &lt;code&gt;intcodeVM m :: Conduit Int Int m Memory&lt;/code&gt; action!&lt;/p&gt;
+&lt;p&gt;All you need to do is, using your existing implementation, write this function:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb11&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb11-1&quot;&gt;&lt;a href=&quot;#cb11-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;         &lt;span class=&quot;co&quot;&gt;-- contains current position, register state, and base&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-2&quot;&gt;&lt;a href=&quot;#cb11-2&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-3&quot;&gt;&lt;a href=&quot;#cb11-3&quot;&gt;&lt;/a&gt;runMemory&lt;/span&gt;
+&lt;span id=&quot;cb11-4&quot;&gt;&lt;a href=&quot;#cb11-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;    ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;                   &lt;span class=&quot;co&quot;&gt;-- ^ initial memory&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-5&quot;&gt;&lt;a href=&quot;#cb11-5&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; ( [&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]                  &lt;span class=&quot;co&quot;&gt;-- ^ output emitted before halt or input asked&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-6&quot;&gt;&lt;a href=&quot;#cb11-6&quot;&gt;&lt;/a&gt;       , &lt;span class=&quot;dt&quot;&gt;Either&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-7&quot;&gt;&lt;a href=&quot;#cb11-7&quot;&gt;&lt;/a&gt;           &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;               &lt;span class=&quot;co&quot;&gt;-- ^ either a halted machine ...&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-8&quot;&gt;&lt;a href=&quot;#cb11-8&quot;&gt;&lt;/a&gt;           (&lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;)      &lt;span class=&quot;co&quot;&gt;-- ^ ... or a continuation awaiting one input&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb11-9&quot;&gt;&lt;a href=&quot;#cb11-9&quot;&gt;&lt;/a&gt;       )&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;From there, you can construct &lt;code&gt;intcodeVM&lt;/code&gt; like this:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb12&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb12-1&quot;&gt;&lt;a href=&quot;#cb12-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;intcodeVM ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;ConduitT&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; m &lt;span class=&quot;dt&quot;&gt;Memory&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-2&quot;&gt;&lt;a href=&quot;#cb12-2&quot;&gt;&lt;/a&gt;intcodeVM m0 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-3&quot;&gt;&lt;a href=&quot;#cb12-3&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;fu&quot;&gt;mapM_&lt;/span&gt; yield outs&lt;/span&gt;
+&lt;span id=&quot;cb12-4&quot;&gt;&lt;a href=&quot;#cb12-4&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; next &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-5&quot;&gt;&lt;a href=&quot;#cb12-5&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Left&lt;/span&gt;  finalMemory &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; finalMemory&lt;/span&gt;
+&lt;span id=&quot;cb12-6&quot;&gt;&lt;a href=&quot;#cb12-6&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;dt&quot;&gt;Right&lt;/span&gt; nextWith    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-7&quot;&gt;&lt;a href=&quot;#cb12-7&quot;&gt;&lt;/a&gt;        inp &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; await&lt;/span&gt;
+&lt;span id=&quot;cb12-8&quot;&gt;&lt;a href=&quot;#cb12-8&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; inp &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-9&quot;&gt;&lt;a href=&quot;#cb12-9&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; ()    &lt;span class=&quot;co&quot;&gt;-- no more input so what can you do, right?&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-10&quot;&gt;&lt;a href=&quot;#cb12-10&quot;&gt;&lt;/a&gt;          &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; i  &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; intcodeVM (nextWith i)&lt;/span&gt;
+&lt;span id=&quot;cb12-11&quot;&gt;&lt;a href=&quot;#cb12-11&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb12-12&quot;&gt;&lt;a href=&quot;#cb12-12&quot;&gt;&lt;/a&gt;    (outs, next) &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; runMemory m0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;And there you have it! You can now do the rest of the code described in this post :)&lt;/p&gt;
 &lt;h3 id=&quot;day-11-benchmarks&quot;&gt;Day 11 Benchmarks&lt;/h3&gt;
 &lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 11a
 benchmarking...

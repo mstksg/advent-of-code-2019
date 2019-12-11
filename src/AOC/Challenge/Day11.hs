@@ -61,10 +61,10 @@ sensor = C.repeatM . gets $ \(Hull _ p h) ->
 
 -- | The consumer of signals.  Takes 0's and 1's to indicate color to paint
 -- and direction to turn and step.
-motor
+painterMover
     :: MonadState Hull m
     => Pipe Int Void Void m Void
-motor = forever $ do
+painterMover = forever $ do
     color <- awaitSurely <&> \case
       0 -> Black
       1 -> White
@@ -86,7 +86,7 @@ fullPipe
     -> Pipe () Void u m ()
 fullPipe m = untilHalt $ sensor
                       .| stepForeverAndDie m
-                      .| motor
+                      .| painterMover
 
 day11a :: Memory :~> Int
 day11a = MkSol

@@ -12,6 +12,15 @@ that is commonly used, I'm going to write this tutorial in terms of it instead)
 [conduit]: https://hackage.haskell.org/package/conduit
 [conduino]: https://hackage.haskell.org/package/conduino
 
+For a "preview" of the end, my final code is more or less:
+
+```haskell
+fullBot :: Memory -> Conduit i o (State Hull) ()
+fullBot m = sensor
+         .| intcodeVM m
+         .| painterMover
+```
+
 For those unfamiliar with *conduit*, `ConduitT i o` is a monad transformer
 (like `StateT s`, or `ReaderT r`, or `WriterT w`, etc.) that offers two new
 primitives:
@@ -98,8 +107,8 @@ modify the state.  `await` returns a `Maybe`, so if we get two `Just`'s then we
 make our changes and repeat it all over again.  Otherwise, we're done.
 
 ```haskell
-motors :: ConduitT Int o (State Hull) ()
-motors = do
+painterMover :: ConduitT Int o (State Hull) ()
+painterMover = do
     color <- fmap parseColor <$> await
     turn  <- fmap parseTurn  <$> await
     case (color, turn) of
@@ -107,7 +116,7 @@ motors = do
         modify $ \(Hull d p m) ->
           let d' = t d
           in  Hull d' (p + d') (M.insert p c m)
-        motors                      -- recurse
+        painterMover                -- recurse
       _                ->
         pure ()                     -- we're done!
   where
@@ -123,8 +132,7 @@ And that's it!
 fullBot :: Memory -> Conduit i o (State Hull) ()
 fullBot m = sensor
          .| intcodeVM m
-         .| motors
-
+         .| painterMover
 ```
 
 We can run a full pipeline using `runConduit`:

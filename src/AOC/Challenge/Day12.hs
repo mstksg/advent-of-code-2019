@@ -18,7 +18,7 @@ import           Data.Char          (isDigit)
 import           Data.List          (elemIndex)
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Semigroup     (Sum(..))
-import           Linear hiding      (transpose)
+import           Linear             (V3(..), V4(..))
 import           Text.Read          (readMaybe)
 import qualified Data.List.NonEmpty as NE
 

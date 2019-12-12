@@ -53,7 +53,7 @@ step ps = update <$> ps <*> getAccels ps
     update (Phase x v) a = Phase (x + v') v'
       where
         v' = v + a
-      
+
 day12a :: V4 (Phase Point) :~> Int
 day12a = MkSol
     { sParse = \str -> do
@@ -67,7 +67,7 @@ day12a = MkSol
     }
   where
     energy (Phase x v) = sum (abs x) * sum (abs v)
-        
+
 
 -- here we run three independent simulations of 4 one-dimensional planets
 day12b :: V3 (V4 (Phase Int)) :~> Int
@@ -85,6 +85,3 @@ day12b = MkSol
 -- 0)
 findCycle :: (Eq a, Num a) => [V4 (Phase a)] -> Maybe Int
 findCycle = fmap ((*2) . (+1)) . findIndex ((== 0) . fmap pVel)
-
--- countRepeat :: Eq a => NonEmpty a -> Maybe Int
--- countRepeat (x :| xs) = (+ 1) <$> elemIndex x xs

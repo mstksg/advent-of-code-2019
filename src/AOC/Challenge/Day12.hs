@@ -12,21 +12,19 @@ module AOC.Challenge.Day12 (
   , day12b
   ) where
 
-import           AOC.Common           ((!!!), clearOut)
-import           AOC.Solver           ((:~>)(..), dyno_)
-import           AOC.Util             (firstJust)
-import           Control.Lens         (view)
-import           Control.Monad        (guard)
-import           Data.Char            (isDigit)
-import           Data.List            (inits, tails)
-import           Data.Semigroup       (Sum(..))
-import           Linear hiding        (transpose)
-import           Text.Read            (readMaybe)
+import           AOC.Common     ((!!!), clearOut)
+import           AOC.Solver     ((:~>)(..), dyno_)
+import           AOC.Util       (firstJust)
+import           Control.Monad  (guard)
+import           Data.Char      (isDigit)
+import           Data.List      (inits, tails)
+import           Data.Semigroup (Sum(..))
+import           Linear hiding  (transpose)
+import           Text.Read      (readMaybe)
 
--- type Phase = V2
 type Point = V3 Int
 
-data Phase a = Phase { pPos :: a, pVel :: a }
+data Phase a = Phase { pPos :: !a, pVel :: !a }
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 parsePos :: String -> Maybe (Phase Point)
@@ -81,9 +79,10 @@ day12b = MkSol
     , sShow  = show
     , sSolve = fmap (foldl1 lcm)
              . traverse (countFirstCycle . iterate step)
+             -- ^ find the cycle in each three independent simulations
     }
 
 countFirstCycle :: Eq a => [a] -> Maybe Int
-countFirstCycle xs = firstJust go . drop 1 $ zip (inits xs) (tails xs)
+countFirstCycle xs = firstJust go . drop 1 $ zip3 [0..] (inits xs) (tails xs)
   where
-    go (as, bs) = length as <$ guard (and (zipWith (==) as bs))
+    go (n, as, bs) = n <$ guard (and (zipWith (==) as bs))

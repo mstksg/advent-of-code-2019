@@ -15,8 +15,7 @@ module AOC.Challenge.Day12 (
 import           AOC.Common         ((!!!), clearOut)
 import           AOC.Solver         ((:~>)(..), dyno_)
 import           Data.Char          (isDigit)
-import           Data.List          (elemIndex)
-import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.List          (findIndex)
 import           Data.Semigroup     (Sum(..))
 import           Linear             (V3(..), V4(..))
 import           Text.Read          (readMaybe)
@@ -78,9 +77,14 @@ day12b = MkSol
         pure . traverse sequenceA $ V4 a b c d
     , sShow  = show
     , sSolve = fmap (foldl1 lcm)
-             . traverse (countRepeat . NE.iterate step)
+             . traverse (findCycle . NE.tail . NE.iterate step)
              -- ^ find the cycle in each three independent simulations
     }
 
-countRepeat :: Eq a => NonEmpty a -> Maybe Int
-countRepeat (x :| xs) = (+ 1) <$> elemIndex x xs
+-- | The cycle is halfway done when the velocities invert (that is, become
+-- 0)
+findCycle :: (Eq a, Num a) => [V4 (Phase a)] -> Maybe Int
+findCycle = fmap ((*2) . (+1)) . findIndex ((== 0) . fmap pVel)
+
+-- countRepeat :: Eq a => NonEmpty a -> Maybe Int
+-- countRepeat (x :| xs) = (+ 1) <$> elemIndex x xs

@@ -12,15 +12,15 @@ module AOC.Challenge.Day12 (
   , day12b
   ) where
 
-import           AOC.Common     ((!!!), clearOut)
-import           AOC.Solver     ((:~>)(..), dyno_)
-import           AOC.Util       (firstJust)
-import           Control.Monad  (guard)
-import           Data.Char      (isDigit)
-import           Data.List      (inits, tails)
-import           Data.Semigroup (Sum(..))
-import           Linear hiding  (transpose)
-import           Text.Read      (readMaybe)
+import           AOC.Common         ((!!!), clearOut)
+import           AOC.Solver         ((:~>)(..), dyno_)
+import           Data.Char          (isDigit)
+import           Data.List          (elemIndex)
+import           Data.List.NonEmpty (NonEmpty(..))
+import           Data.Semigroup     (Sum(..))
+import           Linear hiding      (transpose)
+import           Text.Read          (readMaybe)
+import qualified Data.List.NonEmpty as NE
 
 type Point = V3 Int
 
@@ -78,11 +78,9 @@ day12b = MkSol
         pure . traverse sequenceA $ V4 a b c d
     , sShow  = show
     , sSolve = fmap (foldl1 lcm)
-             . traverse (countFirstCycle . iterate step)
+             . traverse (countRepeat . NE.iterate step)
              -- ^ find the cycle in each three independent simulations
     }
 
-countFirstCycle :: Eq a => [a] -> Maybe Int
-countFirstCycle xs = firstJust go . drop 1 $ zip3 [0..] (inits xs) (tails xs)
-  where
-    go (n, as, bs) = n <$ guard (and (zipWith (==) as bs))
+countRepeat :: Eq a => NonEmpty a -> Maybe Int
+countRepeat (x :| xs) = (+ 1) <$> elemIndex x xs

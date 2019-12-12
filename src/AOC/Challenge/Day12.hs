@@ -23,13 +23,16 @@ import           Data.Semigroup       (Sum(..))
 import           Linear hiding        (transpose)
 import           Text.Read            (readMaybe)
 
-type Phase = V2
+-- type Phase = V2
 type Point = V3 Int
+
+data Phase a = Phase { pPos :: a, pVel :: a }
+  deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 parsePos :: String -> Maybe (Phase Point)
 parsePos str = do
     [x,y,z] <- traverse readMaybe . words . clearOut p $ str
-    pure $ V2 (V3 x y z) 0
+    pure $ Phase { pPos = V3 x y z, pVel = 0 }
   where
     p '-' = False
     p c   = not (isDigit c)
@@ -40,9 +43,9 @@ getAccels
     -> V4 a
 getAccels xs = fmap acc xs
   where
-    acc (V2 x _) = getSum
-                 . foldMap (Sum . signum . subtract x . view _x)
-                 $ xs
+    acc (Phase x _) = getSum
+                    . foldMap (Sum . signum . subtract x . pPos)
+                    $ xs
 
 step
     :: Num a
@@ -50,7 +53,7 @@ step
     -> V4 (Phase a)
 step ps = update <$> ps <*> getAccels ps
   where
-    update (V2 x v) a = V2 (x + v') v'
+    update (Phase x v) a = Phase (x + v') v'
       where
         v' = v + a
       
@@ -66,7 +69,7 @@ day12a = MkSol
              . iterate step
     }
   where
-    energy (V2 x v) = sum (abs x) * sum (abs v)
+    energy (Phase x v) = sum (abs x) * sum (abs v)
         
 
 -- here we run three independent simulations of 4 one-dimensional planets

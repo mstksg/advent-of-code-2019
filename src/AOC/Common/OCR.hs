@@ -2,6 +2,8 @@
 
 module AOC.Common.OCR (
     parseLetters
+  , parseLettersSafe
+  , parseLettersAll
   , contiguousShapes
   ) where
 
@@ -10,6 +12,7 @@ import           Control.Lens
 import           Control.Monad
 import           Data.Bifunctor
 import           Data.Foldable
+import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Map           (Map)
 import           Data.Ord
 import           Data.Semigroup
@@ -18,7 +21,9 @@ import           Data.Set.NonEmpty  (NESet)
 import           Linear
 import           Text.Heredoc       (here)
 import qualified Control.Foldl      as F
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map           as M
+import qualified Data.Map.NonEmpty  as NEM
 import qualified Data.Set           as S
 import qualified Data.Set.NonEmpty  as NES
 
@@ -44,13 +49,13 @@ contiguousShapesBy
     -> [NESet Point]
 contiguousShapesBy f = toList . M.mapKeys f . contiguousShapes
 
-parseLetters
+parseLettersAll
     :: Set Point
-    -> String
-parseLetters letters = snd . minimumBy (comparing fst) $ attempts
+    -> NonEmpty String
+parseLettersAll letters = snd $ NEM.findMin attempts
   where
-    attempts =
-        [ (score :: Int, res)
+    NEM.IsNonEmpty attempts = M.fromListWith (<>)
+        [ (score :: Int, res :| [])
         | refl <- [id, over _x negate]
         , rots <- [id, perp, negate, negate . perp]
         , let ls = S.map (rots . refl) letters
@@ -58,6 +63,20 @@ parseLetters letters = snd . minimumBy (comparing fst) $ attempts
         ]
     tryMe = traverse (\c -> maybe (Sum 1, '?') (Sum 0,) . M.lookup c $ letterMap)
           . contiguousShapesBy (view _x)
+
+
+parseLetters
+    :: Set Point
+    -> String
+parseLetters = NE.head . parseLettersAll
+
+parseLettersSafe
+    :: Set Point
+    -> Maybe String
+parseLettersSafe pts = x <$ guard (NES.size (NES.fromList ls) == 1)
+  where
+    ls@(x :| _) = parseLettersAll pts
+
 
 -- | A map of a set of "on" points (for a 4x6 grid) to the letter they
 -- represent

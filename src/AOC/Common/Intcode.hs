@@ -10,6 +10,7 @@
 
 module AOC.Common.Intcode (
     Memory(..)
+  , mRegLens
   , VM
   , stepForever
   , stepForeverAndDie
@@ -33,6 +34,7 @@ import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.State
 import           Data.Conduino
+import           Data.Generics.Labels      ()
 import           Data.List.Split
 import           Data.Map                  (Map)
 import           Data.Traversable
@@ -78,6 +80,9 @@ makeClassyPrisms ''IErr
 
 instance AsVMErr IErr where
     _VMErr = _IEVM
+
+mRegLens :: Natural -> Lens' Memory Int
+mRegLens i = #mRegs . at i . non 0
 
 
 instrMap :: Map Int Instr

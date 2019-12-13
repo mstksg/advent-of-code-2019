@@ -14,7 +14,6 @@ import           Data.Bifunctor
 import           Data.Foldable
 import           Data.List.NonEmpty (NonEmpty(..))
 import           Data.Map           (Map)
-import           Data.Ord
 import           Data.Semigroup
 import           Data.Set           (Set)
 import           Data.Set.NonEmpty  (NESet)

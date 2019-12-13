@@ -48,6 +48,7 @@ default-extensions:
 - MultiParamTypeClasses
 - MultiWayIf
 - NumDecimals
+- OverloadedLabels
 - PartialTypeSignatures
 - PatternGuards
 - PatternSynonyms
@@ -86,6 +87,7 @@ library:
   - finite-typelits
   - foldl
   - free
+  - generic-lens
   - groups
   - hashable
   - haskeline
@@ -117,6 +119,7 @@ library:
   - transformers
   - vector
   - vector-sized
+  - vty
   - yaml
 
 executables:

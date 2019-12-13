@@ -11,17 +11,19 @@ module AOC.Common.Conduino (
   , fuseUpstream
   , (&|)
   , (|.)
+  , iterM
   ) where
 
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.Except
-import           Control.Monad.Trans.Free
+import           Control.Monad.Trans.Free hiding (iterM)
 import           Control.Monad.Trans.State
 import           Data.Conduino
 import           Data.Conduino.Internal
-import           Data.Sequence              (Seq(..))
-import qualified Data.Sequence              as Seq
+import           Data.Sequence                   (Seq(..))
+import qualified Data.Conduino.Combinators       as C
+import qualified Data.Sequence                   as Seq
 
 -- | Loop a pipe into itself.
 --
@@ -94,3 +96,6 @@ infixr 2 |.
 
 deriving instance MonadPlus m => Alternative (Pipe a c u m)
 deriving instance MonadPlus m => MonadPlus (Pipe a c u m)
+
+iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
+iterM f = C.mapM (\x -> x <$ f x)

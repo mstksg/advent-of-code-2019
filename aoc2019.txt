@@ -31,6 +31,7 @@ fuseUpstream :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
 infixr 2 &|
 (|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
 infixr 2 |.
+iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
 instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
 instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
 
@@ -343,6 +344,12 @@ instance (GHC.Classes.Ord k, GHC.Classes.Ord p) => Control.Lens.At.Ixed (Data.Or
 
 module AOC.Common.OCR
 parseLetters :: Set Point -> String
+parseLettersSafe :: Set Point -> Maybe String
+parseLettersAll :: Set Point -> NonEmpty String
+
+-- | The set of unconnected shapes, indexed by their original center of
+--   mass
+contiguousShapes :: Set Point -> Map (V2 Double) (NESet Point)
 
 module AOC.Common.Intcode
 data Memory
@@ -350,6 +357,7 @@ Mem :: Natural -> Int -> Map Natural Int -> Memory
 [mPos] :: Memory -> Natural
 [mBase] :: Memory -> Int
 [mRegs] :: Memory -> Map Natural Int
+mRegLens :: Natural -> Lens' Memory Int
 type VM = Pipe Int Int Void
 stepForever :: (AsVMErr e, MonadError e m) => Memory -> Pipe Int Int Void m Memory
 stepForeverAndDie :: MonadError IErr m => Memory -> Pipe Int Int Void m Void
@@ -364,15 +372,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aWJa
-_VMErr :: AsVMErr r_aWJa => Prism' r_aWJa VMErr
-_VMEBadMode :: AsVMErr r_aWJa => Prism' r_aWJa Int
-_VMEBadInstr :: AsVMErr r_aWJa => Prism' r_aWJa Int
-_VMEBadPos :: AsVMErr r_aWJa => Prism' r_aWJa Int
-class AsIErr r_aWSQ
-_IErr :: AsIErr r_aWSQ => Prism' r_aWSQ IErr
-_IENoInput :: AsIErr r_aWSQ => Prism' r_aWSQ ()
-_IEVM :: AsIErr r_aWSQ => Prism' r_aWSQ VMErr
+class AsVMErr r_aY7F
+_VMErr :: AsVMErr r_aY7F => Prism' r_aY7F VMErr
+_VMEBadMode :: AsVMErr r_aY7F => Prism' r_aY7F Int
+_VMEBadInstr :: AsVMErr r_aY7F => Prism' r_aY7F Int
+_VMEBadPos :: AsVMErr r_aY7F => Prism' r_aY7F Int
+class AsIErr r_aYhl
+_IErr :: AsIErr r_aYhl => Prism' r_aYhl IErr
+_IENoInput :: AsIErr r_aYhl => Prism' r_aYhl ()
+_IEVM :: AsIErr r_aYhl => Prism' r_aYhl VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -16591,10 +16599,6 @@ V2 :: !a -> !a -> V2 a
 newtype V1 a
 V1 :: a -> V1 a
 
--- | A variant of <a>modify</a> in which the computation is strict in the
---   new state.
-modify' :: MonadState s m => (s -> s) -> m ()
-
 -- | Monadic state transformer.
 --   
 --   Maps an old state to a new state inside a state monad. The old state
@@ -16608,6 +16612,10 @@ modify' :: MonadState s m => (s -> s) -> m ()
 --   This says that <tt>modify (+1)</tt> acts over any Monad that is a
 --   member of the <tt>MonadState</tt> class, with an <tt>Int</tt> state.
 modify :: MonadState s m => (s -> s) -> m ()
+
+-- | A variant of <a>modify</a> in which the computation is strict in the
+--   new state.
+modify' :: MonadState s m => (s -> s) -> m ()
 
 -- | The parameterizable exception monad.
 --   
@@ -18465,40 +18473,6 @@ module AOC.Challenge.Day15
 module AOC.Challenge.Day14
 
 
--- | Day 13. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day13
-
-
--- | Day 12. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day12
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18552,6 +18526,36 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 13. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day13
+day13a :: Memory :~> Int
+day13b :: Memory :~> Int
+playDay13 :: String -> IO ()
+instance GHC.Base.Monoid AOC.Challenge.Day13.Display
+instance GHC.Base.Semigroup AOC.Challenge.Day13.Display
+instance GHC.Generics.Generic AOC.Challenge.Day13.Display
+instance GHC.Base.Monoid AOC.Challenge.Day13.AI
+instance GHC.Base.Semigroup AOC.Challenge.Day13.AI
+instance GHC.Generics.Generic AOC.Challenge.Day13.AI
+instance GHC.Generics.Generic AOC.Challenge.Day13.Tile
+instance GHC.Enum.Enum AOC.Challenge.Day13.Tile
+instance GHC.Classes.Ord AOC.Challenge.Day13.Tile
+instance GHC.Classes.Eq AOC.Challenge.Day13.Tile
+instance Control.DeepSeq.NFData AOC.Challenge.Day13.Tile
+
+
+-- | Day 12. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day12
+day12a :: V4 (Phase Point) :~> Int
+day12b :: V3 (V4 (Phase Int)) :~> Int
+instance Data.Traversable.Traversable AOC.Challenge.Day12.Phase
+instance Data.Foldable.Foldable AOC.Challenge.Day12.Phase
+instance GHC.Base.Functor AOC.Challenge.Day12.Phase
+instance GHC.Classes.Ord a => GHC.Classes.Ord (AOC.Challenge.Day12.Phase a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (AOC.Challenge.Day12.Phase a)
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day12.Phase a)
 
 
 -- | Day 11. See <a>AOC.Solver</a> for the types used in this module!
@@ -18808,13 +18812,13 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a1VET
-mainRunOpts :: HasMainRunOpts c_a1VET => Lens' c_a1VET MainRunOpts
-mroBench :: HasMainRunOpts c_a1VET => Lens' c_a1VET Bool
-mroInput :: HasMainRunOpts c_a1VET => Lens' c_a1VET (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a1VET => Lens' c_a1VET Bool
-mroSpec :: HasMainRunOpts c_a1VET => Lens' c_a1VET TestSpec
-mroTest :: HasMainRunOpts c_a1VET => Lens' c_a1VET Bool
+class HasMainRunOpts c_a27JU
+mainRunOpts :: HasMainRunOpts c_a27JU => Lens' c_a27JU MainRunOpts
+mroBench :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
+mroInput :: HasMainRunOpts c_a27JU => Lens' c_a27JU (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
+mroSpec :: HasMainRunOpts c_a27JU => Lens' c_a27JU TestSpec
+mroTest :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18827,10 +18831,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a1VLr
-mainViewOpts :: HasMainViewOpts c_a1VLr => Lens' c_a1VLr MainViewOpts
-mvoSpec :: HasMainViewOpts c_a1VLr => Lens' c_a1VLr TestSpec
-mvoWait :: HasMainViewOpts c_a1VLr => Lens' c_a1VLr Bool
+class HasMainViewOpts c_a27Qs
+mainViewOpts :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs MainViewOpts
+mvoSpec :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs TestSpec
+mvoWait :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18851,12 +18855,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a1VPK
-mainSubmitOpts :: HasMainSubmitOpts c_a1VPK => Lens' c_a1VPK MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a1VPK => Lens' c_a1VPK Bool
-msoLock :: HasMainSubmitOpts c_a1VPK => Lens' c_a1VPK Bool
-msoSpec :: HasMainSubmitOpts c_a1VPK => Lens' c_a1VPK ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a1VPK => Lens' c_a1VPK Bool
+class HasMainSubmitOpts c_a27UL
+mainSubmitOpts :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
+msoLock :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
+msoSpec :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

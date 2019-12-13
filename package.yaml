@@ -102,6 +102,7 @@ library:
   - monad-loops
   - mtl
   - nonempty-containers >= 0.3.3.0
+  - one-liner-instances
   - pandoc
   - parallel
   - parsec

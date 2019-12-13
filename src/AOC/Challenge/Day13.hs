@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE TypeApplications   #-}
 
 -- |
 -- Module      : AOC.Challenge.Day13
@@ -15,72 +17,70 @@ module AOC.Challenge.Day13 (
   , playDay13
   ) where
 
-import           AOC.Common                (Point, displayAsciiMap, firstJust, countTrue)
+import           AOC.Common                (Point, displayAsciiMap)
 import           AOC.Common.Conduino       (iterM)
-import           AOC.Common.Intcode        (parseMem, Memory(..), IErr, mRegLens, stepForever, untilHalt)
+import           AOC.Common.Intcode        (parseMem, Memory(..), VMErr, mRegLens, stepForever, untilHalt)
 import           AOC.Solver                ((:~>)(..))
-import           Control.Applicative       ((<|>))
+import           Control.Applicative       (empty)
 import           Control.DeepSeq           (NFData)
-import           Control.Lens              ((&), (.~), view, set)
-import           Control.Monad             (guard)
+import           Control.Lens              ((&), (.~), set)
+import           Control.Monad             (join)
+import           Control.Monad.IO.Class    (liftIO)
 import           Control.Monad.State       (get, put, evalState)
-import           Control.Monad.Trans.Class (lift)
 import           Control.Monad.Trans.Maybe (MaybeT(..))
-import           Data.Conduino             ((.|), Pipe, runPipe, runPipePure, yield, await)
+import           Data.Coerce               (coerce)
+import           Data.Conduino             ((.|), Pipe, runPipe, yield, await)
 import           Data.Foldable             (forM_)
-import           Data.Functor              (void)
 import           Data.Map                  (Map)
+import           Data.Monoid.OneLiner      (GMonoid(..))
+import           Data.Semigroup            (Last(..), Max(..), Dual(..))
+import           Data.Set                  (Set)
 import           GHC.Generics              (Generic)
-import           Linear.V2                 (V2(..), _x)
+import           Linear.V2                 (V2(..))
+import           Linear.V3                 (V3(..))
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
+import qualified Data.Set                  as S
 import qualified Graphics.Vty              as V
 
-data Tile = Empt | Wall | Block | Paddle | Ball
+data Tile = Blank | Wall | Block | Paddle | Ball
   deriving (Eq, Ord, Enum, Generic)
 instance NFData Tile
 
 tileMap :: Map Int Tile
-tileMap = M.fromList $ zip [0..] [Empt ..]
+tileMap = M.fromList $ zip [0..] [Blank ..]
 
-data Display = Disp
-    { dispScore  :: !(Maybe Int)
-    , dispScreen :: !(Map Point Tile)
-    }
-
-instance Semigroup Display where
-    Disp o1 e1 <> Disp o2 e2 = Disp (o2 <|> o1) (e2 <> e1)
-instance Monoid Display where
-    mempty = Disp Nothing M.empty
-
-display :: Monad m => Pipe Int Display u m ()
-display = void (runMaybeT parseOutput)
-       .| C.scan buildDisplay (Disp Nothing M.empty)
+displayWith
+    :: (Monoid o, Monad m)
+    => (Either Int (Point, Tile) -> o)  -- ^ what do we want to aggregate?
+    -> Pipe Int o u m ()
+displayWith f = parseOutput
+             .| C.map f
+             .| C.scan (<>) mempty
   where
     parseOutput = do
-      x <- MaybeT await
-      y <- MaybeT await
-      z <- MaybeT await
-      if (x, y) == (-1, 0)
-        then lift . yield $ Left z
-        else forM_ (M.lookup z tileMap) $ \t ->
-               lift . yield $ Right (V2 x y, t)
-      parseOutput
-    buildDisplay d = \case
-      Left i      -> d { dispScore  = Just i }
-      Right (p,t) -> d { dispScreen = M.insert p t (dispScreen d) }
+      outs <- sequenceA $ V3 await await await
+      forM_ (sequenceA outs) $ \(V3 x y z) -> do
+        if (x, y) == (-1, 0)
+          then yield (Left z)
+          else forM_ (M.lookup z tileMap) $ \t ->
+                 yield (Right (V2 x y, t))
+        parseOutput
 
 day13a :: Memory :~> Int
 day13a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = Just . countTrue (== Block) . getTiles
+    , sSolve = fmap S.size . getTiles
     }
   where
-    getTiles m = runPipePure $ C.repeat 0
-                            .| untilHalt (stepForever @IErr m)
-                            .| display
-                            .| (dispScreen <$> C.fold)
+    getTiles m = join . runPipe $
+        empty
+     .| untilHalt (stepForever @VMErr m)
+     .| displayWith (\case Right (p, Block) -> S.singleton p
+                           _                -> mempty
+                    )
+     .| C.last
 
 
 day13b :: Memory :~> Int
@@ -92,60 +92,92 @@ day13b = MkSol
         pure scr
     }
 
+data AI = AI { aiScore  :: !(Maybe (Last Int))
+             , aiPaddle :: !(Maybe (Last Int))
+             , aiBall   :: !(Maybe (Last Int))
+             , aiBlocks :: !(Set Point)
+             , aiBlanks :: !(Set Point)
+             }
+  deriving Generic
+  deriving Semigroup via (GMonoid AI)
+  deriving Monoid    via (GMonoid AI)
+
 ai :: Memory -> Maybe (Maybe Int, Int)
 ai m = flip evalState (Nothing, Nothing) . runPipe $
          C.repeatM controller
-      .| untilHalt (stepForever @IErr m)
-      .| display
-      .| iterM (put . committer)
-      .| (fmap getOut <$> C.last)
+      .| untilHalt (stepForever @VMErr m)
+      .| displayWith aggregator
+      .| iterM (\AI{..} -> put . coerce $ ( aiPaddle, aiBall ))
+      .| (fmap outScore <$> C.last)
   where
     controller = do
       (paddlePos, ballPos) <- get
       case (,) <$> paddlePos <*> ballPos of
         Nothing     -> pure 0
         Just (p, b) -> pure $ signum (b - p)
-    getOut (Disp scr mp) = (scr, countTrue (== Block) mp)
-    committer (Disp _ mp) = ( view _x <$> findItem Paddle
-                            , view _x <$> findItem Ball
-                            )
-      where
-        findItem c = firstJust (\(k,v) -> k <$ guard (c == v))
-                   $ M.toList mp
+    aggregator = \case
+      Left  s                -> mempty { aiScore  = Just (Last s) }
+      Right (V2 x _, Paddle) -> mempty { aiPaddle = Just (Last x) }
+      Right (V2 x _, Ball  ) -> mempty { aiBall   = Just (Last x) }
+      Right (p     , Block ) -> mempty { aiBlocks = S.singleton p }
+      Right (p     , Blank ) -> mempty { aiBlanks = S.singleton p }
+      _                      -> mempty
+    outScore AI{..} = (coerce aiScore, S.size $ aiBlocks S.\\ aiBlanks)
+
+
+data Display = Disp
+    { dispScore  :: !(Maybe (Max Int))
+    , dispScreen :: !(Dual (Map Point Tile))
+    }
+  deriving Generic
+  deriving Semigroup via (GMonoid Display)
+  deriving Monoid    via (GMonoid Display)
 
 playDay13 :: String -> IO ()
 playDay13 str = do
     Just m <- pure $ parseMem str
     cfg    <- V.standardIOConfig
     vty    <- V.mkVty cfg
-    runPipe $ C.repeatM (inputter vty)
-           .| untilHalt (stepForever @IErr (m & mRegLens 0 .~ 2))
-           .| display
-           .| C.map render
-           .| C.mapM (V.update vty . V.picForImage . mkImage)
-           .| C.sinkNull
+    disp   <- fmap join . runMaybeT . runPipe $
+            C.repeatM (inputter vty)
+         .| untilHalt (stepForever @VMErr (m & mRegLens 0 .~ 2))
+         .| displayWith aggregator
+         .| iterM (liftIO . V.update vty . V.picForImage . mkImage . render)
+         .| C.last
     V.shutdown vty
+    forM_ (dispScore =<< disp) $ \(Max s) ->
+      putStrLn $ "final score: " ++ show s
   where
     inputter vty = do
-      l <- V.nextEvent vty
+      l <- liftIO $ V.nextEvent vty
       case l of
-        V.EvKey V.KLeft _ -> pure (-1)
-        V.EvKey V.KDown _ -> pure 0
-        V.EvKey V.KRight _ -> pure 1
-        _              -> pure 0
+        V.EvKey V.KLeft       _ -> pure (-1)
+        V.EvKey V.KRight      _ -> pure 1
+        V.EvKey V.KEsc        _ -> empty
+        V.EvKey (V.KChar 'a') _ -> pure (-1)
+        V.EvKey (V.KChar 'd') _ -> pure 1
+        V.EvKey (V.KChar 'q') _ -> empty
+        _                       -> pure 0
     render Disp{..} = unlines
-      [ displayAsciiMap ' ' $ fmap tileChar dispScreen
+      [ displayAsciiMap ' ' $ fmap tileChar (coerce dispScreen)
       , case dispScore of
-          Nothing -> "No score"
-          Just s  -> show s
+          Nothing      -> "No score"
+          Just (Max s) -> show s
+      , "←/a   left"
+      , "↓/s   neutral"
+      , "→/d   right"
+      , "esc/q quit"
       ]
+    aggregator = \case
+      Left  s      -> mempty { dispScore  = Just (Max s)           }
+      Right (p, t) -> mempty { dispScreen = Dual $ M.singleton p t }
     mkImage = V.vertCat . map (V.string mempty) . lines
 
 tileChar :: Tile -> Char
 tileChar = \case
-    Empt -> ' '
-    Wall -> '|'
-    Block -> '#'
+    Blank  -> ' '
+    Wall   -> '|'
+    Block  -> '#'
     Paddle -> '-'
-    Ball -> 'o'
+    Ball   -> 'o'
 

@@ -78,7 +78,7 @@ day12b = MkSol
     , sShow  = show
     , sSolve = fmap (foldl1 lcm)
              . traverse (findCycle . NE.tail . NE.iterate step)
-             -- ^ find the cycle in each three independent simulations
+             -- find the cycle in each three independent simulations
     }
 
 -- | The cycle is halfway done when the velocities invert (that is, become

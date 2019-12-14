@@ -32,9 +32,9 @@ import           Control.Exception
 import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
+import           Data.Generics.Labels ()
 import           Control.Monad.State
 import           Data.Conduino
-import           Data.Generics.Labels      ()
 import           Data.List.Split
 import           Data.Map                  (Map)
 import           Data.Traversable

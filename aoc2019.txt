@@ -32,13 +32,14 @@ infixr 2 &|
 (|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
 infixr 2 |.
 iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
+feedPipe :: Monad m => [i] -> Pipe i o u m a -> m ([o], Either (i -> Pipe i o u m a) a)
 instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
 instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
 
 module AOC.Common.Search
 
 -- | A* Search
-aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe (p, [n])
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> (n -> Bool) -> Maybe (p, [n])
 binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
 exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
 
@@ -153,6 +154,9 @@ fixedPoint :: Eq a => (a -> a) -> a -> a
 
 -- | Flood fill from a starting set
 floodFill :: Ord a => (a -> Set a) -> Set a -> Set a
+
+-- | Flood fill from a starting set, counting the number of steps
+floodFillCount :: Ord a => (a -> Set a) -> Set a -> (Int, Set a)
 
 -- | Count the number of items in a container where the predicate is true.
 countTrue :: Foldable f => (a -> Bool) -> f a -> Int
@@ -329,6 +333,7 @@ instance GHC.Generics.Generic AOC.Common.ScanPoint
 instance GHC.Num.Num AOC.Common.ScanPoint
 instance GHC.Show.Show AOC.Common.ScanPoint
 instance GHC.Classes.Eq AOC.Common.ScanPoint
+instance GHC.Enum.Enum AOC.Common.Dir
 instance GHC.Generics.Generic AOC.Common.Dir
 instance GHC.Classes.Ord AOC.Common.Dir
 instance GHC.Classes.Eq AOC.Common.Dir
@@ -369,6 +374,8 @@ stepForever :: (AsVMErr e, MonadError e m) => Memory -> Pipe Int Int Void m Memo
 stepForeverAndDie :: MonadError IErr m => Memory -> Pipe Int Int Void m Void
 untilHalt :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m ()
 parseMem :: String -> Maybe Memory
+untilFalse :: Monad m => m Bool -> m ()
+step :: (AsVMErr e, MonadError e m, MonadState Memory m) => Pipe Int Int Void m Bool
 yieldAndDie :: MonadError IErr m => o -> Pipe i o u m a
 yieldAndPass :: o -> Pipe o o u m u
 data VMErr
@@ -378,15 +385,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aYpd
-_VMErr :: AsVMErr r_aYpd => Prism' r_aYpd VMErr
-_VMEBadMode :: AsVMErr r_aYpd => Prism' r_aYpd Int
-_VMEBadInstr :: AsVMErr r_aYpd => Prism' r_aYpd Int
-_VMEBadPos :: AsVMErr r_aYpd => Prism' r_aYpd Int
-class AsIErr r_aYyT
-_IErr :: AsIErr r_aYyT => Prism' r_aYyT IErr
-_IENoInput :: AsIErr r_aYyT => Prism' r_aYyT ()
-_IEVM :: AsIErr r_aYyT => Prism' r_aYyT VMErr
+class AsVMErr r_aZhS
+_VMErr :: AsVMErr r_aZhS => Prism' r_aZhS VMErr
+_VMEBadMode :: AsVMErr r_aZhS => Prism' r_aZhS Int
+_VMEBadInstr :: AsVMErr r_aZhS => Prism' r_aZhS Int
+_VMEBadPos :: AsVMErr r_aZhS => Prism' r_aZhS Int
+class AsIErr r_aZry
+_IErr :: AsIErr r_aZry => Prism' r_aZry IErr
+_IENoInput :: AsIErr r_aZry => Prism' r_aZry ()
+_IEVM :: AsIErr r_aZry => Prism' r_aZry VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -17937,7 +17944,7 @@ pattern ModifiedJulianDay :: () => () => Integer -> Day
 toModifiedJulianDay :: Day -> Integer
 
 -- | A* Search
-aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe (p, [n])
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> (n -> Bool) -> Maybe (p, [n])
 binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
 exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
 
@@ -18131,6 +18138,9 @@ meanVar :: Fractional a => Fold a (a, a)
 
 -- | Flood fill from a starting set
 floodFill :: Ord a => (a -> Set a) -> Set a -> Set a
+
+-- | Flood fill from a starting set, counting the number of steps
+floodFillCount :: Ord a => (a -> Set a) -> Set a -> (Int, Set a)
 
 -- | Find the minimum and maximum x and y from a collection of points.
 --   
@@ -18451,23 +18461,6 @@ module AOC.Challenge.Day17
 module AOC.Challenge.Day16
 
 
--- | Day 15. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day15
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18521,6 +18514,22 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 15. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day15
+day15a :: Memory :~> Int
+day15b :: Memory :~> Int
+instance GHC.Generics.Generic AOC.Challenge.Day15.Spot
+instance GHC.Show.Show AOC.Challenge.Day15.Spot
+instance GHC.Classes.Ord AOC.Challenge.Day15.Spot
+instance GHC.Classes.Eq AOC.Challenge.Day15.Spot
+instance GHC.Generics.Generic AOC.Challenge.Day15.Tile
+instance GHC.Show.Show AOC.Challenge.Day15.Tile
+instance GHC.Classes.Ord AOC.Challenge.Day15.Tile
+instance GHC.Classes.Eq AOC.Challenge.Day15.Tile
+instance Control.DeepSeq.NFData AOC.Challenge.Day15.Spot
+instance Control.DeepSeq.NFData AOC.Challenge.Day15.Tile
 
 
 module AOC.Challenge.Day14
@@ -18820,14 +18829,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a29Qb
-mainRunOpts :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb MainRunOpts
-mroActual :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
-mroBench :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
-mroInput :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
-mroSpec :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb TestSpec
-mroTest :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
+class HasMainRunOpts c_a2cs3
+mainRunOpts :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 MainRunOpts
+mroActual :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 Bool
+mroBench :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 Bool
+mroInput :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 Bool
+mroSpec :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 TestSpec
+mroTest :: HasMainRunOpts c_a2cs3 => Lens' c_a2cs3 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18840,10 +18849,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a29XG
-mainViewOpts :: HasMainViewOpts c_a29XG => Lens' c_a29XG MainViewOpts
-mvoSpec :: HasMainViewOpts c_a29XG => Lens' c_a29XG TestSpec
-mvoWait :: HasMainViewOpts c_a29XG => Lens' c_a29XG Bool
+class HasMainViewOpts c_a2czy
+mainViewOpts :: HasMainViewOpts c_a2czy => Lens' c_a2czy MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2czy => Lens' c_a2czy TestSpec
+mvoWait :: HasMainViewOpts c_a2czy => Lens' c_a2czy Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18864,12 +18873,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2a1Z
-mainSubmitOpts :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
-msoLock :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
-msoSpec :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
+class HasMainSubmitOpts c_a2cDR
+mainSubmitOpts :: HasMainSubmitOpts c_a2cDR => Lens' c_a2cDR MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2cDR => Lens' c_a2cDR Bool
+msoLock :: HasMainSubmitOpts c_a2cDR => Lens' c_a2cDR Bool
+msoSpec :: HasMainSubmitOpts c_a2cDR => Lens' c_a2cDR ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2cDR => Lens' c_a2cDR Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

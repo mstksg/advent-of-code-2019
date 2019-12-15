@@ -20,7 +20,7 @@ module AOC.Common.Conduino
 --   <li>Yields all outputted values downstream, effectively duplicating
 --   them.</li>
 --   </ul>
-feedbackP :: (Monad m, Show x) => Pipe x x u m a -> Pipe x x u m a
+feedbackP :: Monad m => Pipe x x u m a -> Pipe x x u m a
 runStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m (a, s)
 execStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m s
 evalStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m a
@@ -378,15 +378,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aYk4
-_VMErr :: AsVMErr r_aYk4 => Prism' r_aYk4 VMErr
-_VMEBadMode :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
-_VMEBadInstr :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
-_VMEBadPos :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
-class AsIErr r_aYtK
-_IErr :: AsIErr r_aYtK => Prism' r_aYtK IErr
-_IENoInput :: AsIErr r_aYtK => Prism' r_aYtK ()
-_IEVM :: AsIErr r_aYtK => Prism' r_aYtK VMErr
+class AsVMErr r_aYpd
+_VMErr :: AsVMErr r_aYpd => Prism' r_aYpd VMErr
+_VMEBadMode :: AsVMErr r_aYpd => Prism' r_aYpd Int
+_VMEBadInstr :: AsVMErr r_aYpd => Prism' r_aYpd Int
+_VMEBadPos :: AsVMErr r_aYpd => Prism' r_aYpd Int
+class AsIErr r_aYyT
+_IErr :: AsIErr r_aYyT => Prism' r_aYyT IErr
+_IENoInput :: AsIErr r_aYyT => Prism' r_aYyT ()
+_IEVM :: AsIErr r_aYyT => Prism' r_aYyT VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -18820,14 +18820,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a29ML
-mainRunOpts :: HasMainRunOpts c_a29ML => Lens' c_a29ML MainRunOpts
-mroActual :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
-mroBench :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
-mroInput :: HasMainRunOpts c_a29ML => Lens' c_a29ML (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
-mroSpec :: HasMainRunOpts c_a29ML => Lens' c_a29ML TestSpec
-mroTest :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
+class HasMainRunOpts c_a29Qb
+mainRunOpts :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb MainRunOpts
+mroActual :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
+mroBench :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
+mroInput :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
+mroSpec :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb TestSpec
+mroTest :: HasMainRunOpts c_a29Qb => Lens' c_a29Qb Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18840,10 +18840,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a29Ug
-mainViewOpts :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug MainViewOpts
-mvoSpec :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug TestSpec
-mvoWait :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug Bool
+class HasMainViewOpts c_a29XG
+mainViewOpts :: HasMainViewOpts c_a29XG => Lens' c_a29XG MainViewOpts
+mvoSpec :: HasMainViewOpts c_a29XG => Lens' c_a29XG TestSpec
+mvoWait :: HasMainViewOpts c_a29XG => Lens' c_a29XG Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18864,12 +18864,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a29Yz
-mainSubmitOpts :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
-msoLock :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
-msoSpec :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
+class HasMainSubmitOpts c_a2a1Z
+mainSubmitOpts :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
+msoLock :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
+msoSpec :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2a1Z => Lens' c_a2a1Z Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

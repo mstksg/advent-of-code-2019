@@ -47,6 +47,13 @@ packages:
   original:
     hackage: conduino-0.2.0.0
 - completed:
+    hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
+    pantry-tree:
+      size: 213
+      sha256: c4176cc3fc9ad39f2a9fc7eb4346c87b6e60b70ba23d8e2adbdfc81fe544b808
+  original:
+    hackage: astar-0.3.0.0
+- completed:
     hackage: list-transformer-1.0.6@sha256:e214728decb4844b1c6ea0e3243324cfc11ad6da5629d16f06b92f00b6a5bed0,1455
     pantry-tree:
       size: 280

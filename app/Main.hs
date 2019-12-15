@@ -128,6 +128,11 @@ parseOpts inputCache = do
     parseRun    :: Parser MainRunOpts
     parseRun = do
         _mroSpec <- parseTestSpec
+        _mroActual <- fmap not . switch . mconcat $
+          [ long "skip"
+          , short 's'
+          , help "Do not run the actual input, but still run tests or benchmarks"
+          ]
         _mroTest <- switch . mconcat $
           [ long "test"
           , short 't'

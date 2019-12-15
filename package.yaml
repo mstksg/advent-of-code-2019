@@ -76,6 +76,9 @@ library:
   - bytestring
   - comonad
   - conduino
+  - astar
+  - unordered-containers
+  - hashable
   - conduit
   - containers
   - criterion
@@ -131,6 +134,7 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -O2
     dependencies:
     - ansi-terminal
     - aoc2019

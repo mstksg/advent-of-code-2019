@@ -18,6 +18,7 @@ module AOC.Common (
     iterateMaybe
   , loopMaybe
   , loopMaybeM
+  , loopEither
   , firstJust
   , (!!!)
   , drop'
@@ -46,6 +47,9 @@ module AOC.Common (
   , maximumValByNE
   , minimumValNE
   , minimumValByNE
+  , listTup
+  , listTup3
+  , listTup4
   -- * Simple type util
   , deleteFinite
   , charFinite
@@ -156,6 +160,18 @@ loopMaybe f = go
     go !x = case f x of
       Nothing -> x
       Just !y -> go y
+
+-- | Apply function until a 'Left'.
+loopEither
+    :: (a -> Either r a)
+    -> a
+    -> r
+loopEither f = go
+  where
+    go !x = case f x of
+      Left  r  -> r
+      Right !y -> go y
+
 
 -- | Apply monadic function until 'Nothing' is produced, and return last produced
 -- value.
@@ -324,6 +340,19 @@ minimumValByNE c = minimumBy (c `on` snd)
 -- | Version of 'minimumVal' for nonempty maps.
 minimumValNE :: Ord b => NEMap a b -> (a, b)
 minimumValNE = minimumValByNE compare
+
+listTup :: [a] -> Maybe (a,a)
+listTup (x:y:_) = Just (x,y)
+listTup _       = Nothing
+
+
+listTup3 :: [a] -> Maybe (a,a,a)
+listTup3 (x:y:z:_) = Just (x,y,z)
+listTup3 _         = Nothing
+
+listTup4 :: [a] -> Maybe (a,a,a,a)
+listTup4 (x:y:z:k:_) = Just (x,y,z,k)
+listTup4 _           = Nothing
 
 -- | Delete a potential value from a 'Finite'.
 deleteFinite

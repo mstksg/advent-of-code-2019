@@ -66,11 +66,12 @@ data TestSpec = TSAll
   deriving Show
 
 -- | Options for 'mainRun'.
-data MainRunOpts = MRO { _mroSpec  :: !TestSpec
-                       , _mroTest  :: !Bool     -- ^ Run tests?  (Default: False)
-                       , _mroBench :: !Bool     -- ^ Benchmark?  (Default: False)
-                       , _mroLock  :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
-                       , _mroInput :: !(Day -> Part -> IO (Maybe String))   -- ^ Manually supply input (Default: always return Nothing)
+data MainRunOpts = MRO { _mroSpec   :: !TestSpec
+                       , _mroActual :: !Bool     -- ^ Run input?  (Defualt: True
+                       , _mroTest   :: !Bool     -- ^ Run tests?  (Default: False)
+                       , _mroBench  :: !Bool     -- ^ Benchmark?  (Default: False)
+                       , _mroLock   :: !Bool     -- ^ Lock in answer as correct?  (Default: False)
+                       , _mroInput  :: !(Day -> Part -> IO (Maybe String))   -- ^ Manually supply input (Default: always return Nothing)
                        }
 
 makeClassy ''MainRunOpts
@@ -95,11 +96,12 @@ makeClassy ''MainSubmitOpts
 
 -- | Default options for 'mainRun'.
 defaultMRO :: TestSpec -> MainRunOpts
-defaultMRO ts = MRO { _mroSpec  = ts
-                    , _mroTest  = False
-                    , _mroBench = False
-                    , _mroLock  = False
-                    , _mroInput = \_ _ -> pure Nothing
+defaultMRO ts = MRO { _mroSpec   = ts
+                    , _mroActual = True
+                    , _mroTest   = False
+                    , _mroBench  = False
+                    , _mroLock   = False
+                    , _mroInput  = \_ _ -> pure Nothing
                     }
 
 -- | Default options for 'mainView'.
@@ -158,7 +160,8 @@ mainRun Cfg{..} MRO{..} =  do
                       putStrLn ""
                   | otherwise            ->
                       putStrLn "(No parse)"
-          | otherwise -> (second . first) ((:[]) . show) <$> testCase False c inp (TM ans1 M.empty)
+          | _mroActual -> (second . first) ((:[]) . show) <$> testCase False c inp (TM ans1 M.empty)
+          | otherwise   -> pure (testRes, Left ["Actual input skipped"])
         Left e
           | _mroTest  -> pure (testRes, Left ["Ran tests, so no result"])
           | otherwise -> (testRes, Left e) <$ putStrLn "[INPUT ERROR]" <* mapM_ putStrLn e

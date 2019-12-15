@@ -17,7 +17,7 @@ module AOC.Challenge.Day15 (
 import           AOC.Common            (Point, Dir(..), floodFillCount, dirPoint)
 import           AOC.Common.Conduino   (feedPipe)
 import           AOC.Common.Intcode    (Memory, VMErr, parseMem, stepForever, untilHalt)
-import           AOC.Common.Search     (aStar)
+import           AOC.Common.Search     (bfs)
 import           AOC.Solver            ((:~>)(..))
 import           AOC.Util              (maybeAlt)
 import           Control.Applicative   (empty)
@@ -29,7 +29,6 @@ import           Data.Set              (Set)
 import           Data.Void             (Void)
 import           GHC.Generics          (Generic)
 import           Safe                  (lastMay)
-import qualified Data.Map              as M
 import qualified Data.Set              as S
 
 data Tile = Floor | Oxygen
@@ -46,15 +45,11 @@ instance NFData Spot
 type Bot = Int -> Pipe Int Int Void Identity ()
 
 -- | We use 'Arg' becase we only compare on the 'Spot', not the 'Bot'
-type AState = Arg Spot Bot
+type BotState = Arg Spot Bot
 
--- | Since heuristic is 0 and weights are 1, this is basically just a BFS.
--- But I'm using 'aStar' because I don't want to implement it from scratch
--- heh
-findOxygen :: Memory -> Maybe (Int, [AState])
-findOxygen mem = aStar
-    (const 0)
-    (M.fromSet (const 1) . stepAround)
+findOxygen :: Memory -> Maybe [BotState]
+findOxygen mem = bfs
+    stepAround
     (Arg (S 0 Floor) initBot)
     (\(Arg (S _ t) _) -> t == Oxygen)
   where
@@ -63,7 +58,7 @@ findOxygen mem = aStar
       where
         (_, Left c) = runIdentity $ feedPipe [] (untilHalt (stepForever @VMErr mem))
 
-stepAround :: AState -> Set AState
+stepAround :: BotState -> Set BotState
 stepAround (Arg S{..} bot) = S.fromList $ do
     dir            <- [ North .. ]
     let p = sCoord + dirPoint dir
@@ -85,7 +80,7 @@ day15a :: Memory :~> Int
 day15a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = fmap fst . findOxygen
+    , sSolve = fmap length . findOxygen
     }
 
 day15b :: Memory :~> Int
@@ -93,6 +88,6 @@ day15b = MkSol
     { sParse = parseMem
     , sShow  = show
     , sSolve = \m -> do
-        a0 <- lastMay . snd =<< findOxygen m
+        a0 <- lastMay =<< findOxygen m
         Just . fst $ floodFillCount stepAround (S.singleton a0)
     }

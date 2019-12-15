@@ -1,6 +1,7 @@
 
 module AOC.Common.Search (
     aStar
+  , bfs
   , binarySearch
   , exponentialSearch
   , binaryMinSearch
@@ -12,8 +13,12 @@ module AOC.Common.Search (
 import           Data.Bifunctor
 import           Data.Map       (Map)
 import           Data.OrdPSQ    (OrdPSQ)
+import           Data.Sequence  (Seq(..))
+import           Data.Set       (Set)
 import qualified Data.Map       as M
 import qualified Data.OrdPSQ    as Q
+import qualified Data.Sequence  as Seq
+import qualified Data.Set       as S
 
 data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of item to "parent"
                          , _asOpen    :: !(OrdPSQ n p (p, Maybe n))    -- ^ map of item to "parent", and cost-so-far
@@ -46,6 +51,38 @@ aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty
     processNeighbor curr currCost as0@AS{..} neighb moveCost
       | neighb `Q.member` _asOpen || neighb `M.member` _asClosed = as0
       | otherwise = addBack neighb (currCost + moveCost) (Just curr) as0
+
+data BFSState n = BS { _bsClosed  :: !(Map n (Maybe n))  -- ^ map of item to "parent"
+                     , _bsOpen    :: !(Seq n          ) -- ^ queue
+                     }
+
+-- | Breadth-first search, with loop detection
+bfs :: forall n. Ord n
+    => (n -> Set n)   -- ^ neighborhood
+    -> n              -- ^ start
+    -> (n -> Bool)    -- ^ target
+    -> Maybe [n]      -- ^ the shortest path, if it exists
+bfs ex x0 dest = reconstruct <$> go (addBack x0 Nothing (BS M.empty Seq.empty))
+  where
+    reconstruct :: (n, Map n (Maybe n)) -> [n]
+    reconstruct (goal, mp) = drop 1 . reverse $ goreco goal
+      where
+        goreco n = n : maybe [] goreco (mp M.! n)
+    go :: BFSState n -> Maybe (n, Map n (Maybe n))
+    go BS{..} = case _bsOpen of
+      Empty    -> Nothing
+      n :<| ns
+        | dest n    -> Just (n, _bsClosed)
+        | otherwise -> go . S.foldl' (processNeighbor n) (BS _bsClosed ns) $ ex n
+    addBack :: n -> Maybe n -> BFSState n -> BFSState n
+    addBack x up BS{..} = BS
+      { _bsClosed = M.insert x up _bsClosed
+      , _bsOpen   = _bsOpen :|> x
+      }
+    processNeighbor :: n -> BFSState n -> n -> BFSState n
+    processNeighbor curr bs0@BS{..} neighb
+      | neighb `M.member` _bsClosed = bs0
+      | otherwise                   = addBack neighb (Just curr) bs0
 
 binarySearch
     :: (Int -> Ordering)        -- LT: Too small, GT: Too big

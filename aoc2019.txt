@@ -38,7 +38,7 @@ instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe
 module AOC.Common.Search
 
 -- | A* Search
-aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe (p, [n])
 binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
 exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
 
@@ -122,6 +122,9 @@ loopMaybe :: (a -> Maybe a) -> a -> a
 -- | Apply monadic function until <a>Nothing</a> is produced, and return
 --   last produced value.
 loopMaybeM :: Monad m => (a -> m (Maybe a)) -> a -> m a
+
+-- | Apply function until a <a>Left</a>.
+loopEither :: (a -> Either r a) -> a -> r
 
 -- | Like <a>find</a>, but instead of taking an <tt>a -&gt; Bool</tt>,
 --   takes an <tt>a -&gt; Maybe b</tt> and returns the first success.
@@ -225,6 +228,9 @@ minimumValNE :: Ord b => NEMap a b -> (a, b)
 
 -- | Version of <a>minimumValBy</a> for nonempty maps.
 minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
+listTup :: [a] -> Maybe (a, a)
+listTup3 :: [a] -> Maybe (a, a, a)
+listTup4 :: [a] -> Maybe (a, a, a, a)
 
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
@@ -372,15 +378,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aY7F
-_VMErr :: AsVMErr r_aY7F => Prism' r_aY7F VMErr
-_VMEBadMode :: AsVMErr r_aY7F => Prism' r_aY7F Int
-_VMEBadInstr :: AsVMErr r_aY7F => Prism' r_aY7F Int
-_VMEBadPos :: AsVMErr r_aY7F => Prism' r_aY7F Int
-class AsIErr r_aYhl
-_IErr :: AsIErr r_aYhl => Prism' r_aYhl IErr
-_IENoInput :: AsIErr r_aYhl => Prism' r_aYhl ()
-_IEVM :: AsIErr r_aYhl => Prism' r_aYhl VMErr
+class AsVMErr r_aYk4
+_VMErr :: AsVMErr r_aYk4 => Prism' r_aYk4 VMErr
+_VMEBadMode :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
+_VMEBadInstr :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
+_VMEBadPos :: AsVMErr r_aYk4 => Prism' r_aYk4 Int
+class AsIErr r_aYtK
+_IErr :: AsIErr r_aYtK => Prism' r_aYtK IErr
+_IENoInput :: AsIErr r_aYtK => Prism' r_aYtK ()
+_IEVM :: AsIErr r_aYtK => Prism' r_aYtK VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -17931,7 +17937,7 @@ pattern ModifiedJulianDay :: () => () => Integer -> Day
 toModifiedJulianDay :: Day -> Integer
 
 -- | A* Search
-aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe [n]
+aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> n -> Maybe (p, [n])
 binarySearch :: (Int -> Ordering) -> Int -> Int -> Maybe Int
 exponentialSearch :: (Int -> Ordering) -> Int -> Maybe Int
 
@@ -18003,6 +18009,9 @@ iterateMaybe :: (a -> Maybe a) -> a -> [a]
 -- | Apply function until <a>Nothing</a> is produced, and return last
 --   produced value.
 loopMaybe :: (a -> Maybe a) -> a -> a
+
+-- | Apply function until a <a>Left</a>.
+loopEither :: (a -> Either r a) -> a -> r
 
 -- | Apply monadic function until <a>Nothing</a> is produced, and return
 --   last produced value.
@@ -18104,6 +18113,9 @@ minimumValByNE :: (b -> b -> Ordering) -> NEMap a b -> (a, b)
 
 -- | Version of <a>minimumVal</a> for nonempty maps.
 minimumValNE :: Ord b => NEMap a b -> (a, b)
+listTup :: [a] -> Maybe (a, a)
+listTup3 :: [a] -> Maybe (a, a, a)
+listTup4 :: [a] -> Maybe (a, a, a, a)
 
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
@@ -18456,23 +18468,6 @@ module AOC.Challenge.Day16
 module AOC.Challenge.Day15
 
 
--- | Day 14. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day14
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18526,6 +18521,16 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+module AOC.Challenge.Day14
+day14a :: Recipes :~> Int
+day14b :: Recipes :~> Int
+instance GHC.Generics.Generic AOC.Challenge.Day14.Basket
+instance GHC.Classes.Ord AOC.Challenge.Day14.Basket
+instance GHC.Classes.Eq AOC.Challenge.Day14.Basket
+instance GHC.Show.Show AOC.Challenge.Day14.Basket
+instance Control.DeepSeq.NFData AOC.Challenge.Day14.Basket
 
 
 -- | Day 13. See <a>AOC.Solver</a> for the types used in this module!
@@ -18798,8 +18803,11 @@ TSDayPart :: ChallengeSpec -> TestSpec
 
 -- | Options for <a>mainRun</a>.
 data MainRunOpts
-MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String) -> MainRunOpts
+MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String) -> MainRunOpts
 [_mroSpec] :: MainRunOpts -> !TestSpec
+
+-- | Run input? (Defualt: True
+[_mroActual] :: MainRunOpts -> !Bool
 
 -- | Run tests? (Default: False)
 [_mroTest] :: MainRunOpts -> !Bool
@@ -18812,13 +18820,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Maybe String)
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a27JU
-mainRunOpts :: HasMainRunOpts c_a27JU => Lens' c_a27JU MainRunOpts
-mroBench :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
-mroInput :: HasMainRunOpts c_a27JU => Lens' c_a27JU (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
-mroSpec :: HasMainRunOpts c_a27JU => Lens' c_a27JU TestSpec
-mroTest :: HasMainRunOpts c_a27JU => Lens' c_a27JU Bool
+class HasMainRunOpts c_a29ML
+mainRunOpts :: HasMainRunOpts c_a29ML => Lens' c_a29ML MainRunOpts
+mroActual :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
+mroBench :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
+mroInput :: HasMainRunOpts c_a29ML => Lens' c_a29ML (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
+mroSpec :: HasMainRunOpts c_a29ML => Lens' c_a29ML TestSpec
+mroTest :: HasMainRunOpts c_a29ML => Lens' c_a29ML Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18831,10 +18840,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a27Qs
-mainViewOpts :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs MainViewOpts
-mvoSpec :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs TestSpec
-mvoWait :: HasMainViewOpts c_a27Qs => Lens' c_a27Qs Bool
+class HasMainViewOpts c_a29Ug
+mainViewOpts :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug MainViewOpts
+mvoSpec :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug TestSpec
+mvoWait :: HasMainViewOpts c_a29Ug => Lens' c_a29Ug Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18855,12 +18864,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a27UL
-mainSubmitOpts :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
-msoLock :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
-msoSpec :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a27UL => Lens' c_a27UL Bool
+class HasMainSubmitOpts c_a29Yz
+mainSubmitOpts :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
+msoLock :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
+msoSpec :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a29Yz => Lens' c_a29Yz Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

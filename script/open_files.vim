@@ -23,12 +23,12 @@ let s:year = 2019
 function! OpenAoC(day)
     let l:daystr  = printf("%02d",a:day)
     let l:yearstr = printf("%04d",s:year)
-    let l:files = [ ("prompt/" . l:daystr . "a.md"),
-                  \("prompt/" . l:daystr . "b.md"),
-                  \("test-data/" . l:yearstr . "/" . l:daystr . "a.txt"),
-                  \("test-data/" . l:yearstr . "/" . l:daystr . "b.txt"),
-                  \("data/" . l:daystr . ".txt"),
-                  \("src/AOC/Challenge/Day" . l:daystr . ".hs")
+    let l:files = [ "prompt/" . l:daystr . "a.md",
+                  \"prompt/" . l:daystr . "b.md",
+                  \"test-data/" . l:yearstr . "/" . l:daystr . "a.txt",
+                  \"test-data/" . l:yearstr . "/" . l:daystr . "b.txt",
+                  \"data/" . l:daystr . ".txt",
+                  \"src/AOC/Challenge/Day" . l:daystr . ".hs"
                   \]
 
     for fn in l:files
@@ -39,7 +39,7 @@ endfunction
 let s:buffday = str2nr(matchstr(expand('%:t:r'), '\d\+'))
 
 if (s:buffday == 0)
-    echo "no file found in buffer; use :call OpenAoC(day) to open a day"
+    echo "no valid file found in buffer; use :call OpenAoC(day) to open a day"
 else
     echo "found day" . string(s:buffday)
     call OpenAoC(s:buffday)

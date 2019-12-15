@@ -16,6 +16,7 @@ module AOC.Common.Conduino (
 
 import           Control.Applicative
 import           Control.Monad
+import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free hiding (iterM)
 import           Control.Monad.Trans.State
@@ -31,18 +32,22 @@ import qualified Data.Sequence                   as Seq
 -- *  Will only ask for input upstream if output is stalled.
 -- *  Yields all outputted values downstream, effectively duplicating them.
 feedbackP
-    :: (Monad m, Show x)
+    :: Monad m
     => Pipe x x u m a
     -> Pipe x x u m a
-feedbackP = fromRecPipe . feedbackP_ Seq.empty . toRecPipe
-
-feedbackP_ :: (Monad m, Show x) => Seq x -> RecPipe x x u m a -> RecPipe x x u m a
-feedbackP_ inp (FreeT p) = FreeT $ p >>= \case
-    Pure x             -> pure $ Pure x
-    Free (PAwaitF f g) -> case inp of
-      Empty    -> pure $ Free (PAwaitF (feedbackP_ inp . f) (feedbackP_ inp . g))
-      i :<| is -> runFreeT $ feedbackP_ is (g i)
-    Free (PYieldF o q) -> pure $ Free $ PYieldF o (feedbackP_ (inp :|> o) q)
+feedbackP p = evalStateP Seq.empty $
+       popper
+    .| hoistPipe lift p
+    .| iterM (\x -> modify (:|> x))
+  where
+    popper = lift get >>= \case
+      Empty -> awaitEither >>= \case
+        Left r  -> pure r
+        Right x -> yield x >> popper
+      x :<| xs -> do
+        lift $ put xs
+        yield x
+        popper
 
 execStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m s
 execStateP s = fmap snd . runStateP s

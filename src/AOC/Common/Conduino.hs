@@ -12,6 +12,7 @@ module AOC.Common.Conduino (
   , (&|)
   , (|.)
   , iterM
+  , feedPipe
   ) where
 
 import           Control.Applicative
@@ -20,6 +21,7 @@ import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free hiding (iterM)
 import           Control.Monad.Trans.State
+import           Data.Bifunctor
 import           Data.Conduino
 import           Data.Conduino.Internal
 import           Data.Sequence                   (Seq(..))
@@ -104,3 +106,23 @@ deriving instance MonadPlus m => MonadPlus (Pipe a c u m)
 
 iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
 iterM f = C.mapM (\x -> x <$ f x)
+
+feedPipe
+    :: Monad m
+    => [i]
+    -> Pipe i o u m a
+    -> m ([o], Either (i -> Pipe i o u m a) a)
+feedPipe xs = (fmap . second . first . fmap) fromRecPipe . feedPipe_ xs . toRecPipe
+
+feedPipe_
+    :: Monad m
+    => [i]
+    -> RecPipe i o u m a
+    -> m ([o], Either (i -> RecPipe i o u m a) a)
+feedPipe_ xs (FreeT p) = p >>= \case
+    Pure y -> pure ([], Right y)
+    Free (PAwaitF _ g) -> case xs of
+      []   -> pure ([], Left g)
+      y:ys -> feedPipe_ ys (g y)
+    Free (PYieldF o q) -> first (o:) <$> feedPipe_ xs q
+

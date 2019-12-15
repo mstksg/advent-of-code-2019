@@ -73,12 +73,10 @@ library:
   - advent-of-code-api >= 0.2.7
   - aeson
   - ansi-terminal
+  - astar
   - bytestring
   - comonad
   - conduino
-  - astar
-  - unordered-containers
-  - hashable
   - conduit
   - containers
   - criterion
@@ -121,6 +119,7 @@ library:
   - th-abstraction
   - time
   - transformers
+  - unordered-containers
   - vector
   - vector-sized
   - vty

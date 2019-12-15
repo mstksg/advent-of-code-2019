@@ -16,6 +16,8 @@ module AOC.Common.Intcode (
   , stepForeverAndDie
   , untilHalt
   , parseMem
+  , untilFalse
+  , step
   , yieldAndDie
   , yieldAndPass
   , VMErr(..)

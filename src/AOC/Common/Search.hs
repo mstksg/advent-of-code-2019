@@ -25,19 +25,19 @@ aStar
     => (n -> p)         -- ^ heuristic
     -> (n -> Map n p)   -- ^ neighborhood
     -> n                -- ^ start
-    -> n                -- ^ target
-    -> Maybe (p, [n])        -- ^ the shortest path, if it exists, and its cost
+    -> (n -> Bool)      -- ^ target
+    -> Maybe (p, [n])   -- ^ the shortest path, if it exists, and its cost
 aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty Q.empty))
   where
-    reconstruct :: Map n (Maybe n) -> [n]
-    reconstruct mp = reverse $ goreco dest
+    reconstruct :: (n, Map n (Maybe n)) -> [n]
+    reconstruct (goal, mp) = reverse $ goreco goal
       where
         goreco n = n : maybe [] goreco (mp M.! n)
-    go :: AStarState n p -> Maybe (p, Map n (Maybe n))
+    go :: AStarState n p -> Maybe (p, (n, Map n (Maybe n)))
     go as0@AS{..} = Q.minView _asOpen >>= \(n,p,(g,up),queue') ->
       let closed' = M.insert n up _asClosed
-      in  if n == dest
-            then Just (p, closed')
+      in  if dest n
+            then Just (p, (n, closed'))
             else go . M.foldlWithKey' (processNeighbor n g) (as0 { _asOpen = queue', _asClosed = closed'  })
                     $ ex n
     addBack :: n -> p -> Maybe n -> AStarState n p -> AStarState n p

@@ -28,6 +28,7 @@ module AOC.Common (
   , firstRepeated
   , fixedPoint
   , floodFill
+  , floodFillCount
   , countTrue
   -- * Lists
   , freqs
@@ -389,14 +390,23 @@ floodFill
     => (a -> Set a)     -- ^ Expansion (be sure to limit allowed points)
     -> Set a            -- ^ Start points
     -> Set a            -- ^ Flood filled
-floodFill f = go S.empty
+floodFill f = snd . floodFillCount f
+
+-- | Flood fill from a starting set, counting the number of steps
+floodFillCount
+    :: Ord a
+    => (a -> Set a)     -- ^ Expansion (be sure to limit allowed points)
+    -> Set a            -- ^ Start points
+    -> (Int, Set a)     -- ^ Flood filled, with count of number of steps
+floodFillCount f = go 0 S.empty
   where
-    go !innr !outr
-        | S.null outr' = innr'
-        | otherwise     = go innr' outr'
+    go !n !innr !outr
+        | S.null outr' = (n, innr')
+        | otherwise    = go (n + 1) innr' outr'
       where
         innr' = S.union innr outr
         outr' = foldMap f outr `S.difference` innr'
+
 
 
 -- | 2D Coordinate
@@ -434,7 +444,7 @@ mulPoint :: Point -> Point -> Point
 mulPoint (V2 x y) (V2 u v) = V2 (x*u - y*v) (x*v + y*u)
 
 data Dir = North | East | South | West
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Ord, Generic, Enum)
 
 instance Hashable Dir
 instance NFData Dir

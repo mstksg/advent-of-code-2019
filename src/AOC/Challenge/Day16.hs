@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-
 -- |
 -- Module      : AOC.Challenge.Day16
 -- License     : BSD3
@@ -9,35 +6,76 @@
 -- Portability : non-portable
 --
 -- Day 16.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day16 (
-    -- day16a
-  -- , day16b
+    day16a
+  , day16b
   ) where
 
-import           AOC.Prelude
+import           AOC.Common          ((!!!), digitToIntSafe)
+import           AOC.Solver          ((:~>)(..))
+import           Control.Monad.ST    (runST)
+import           Control.Monad.State (evalStateT, modify, get)
+import           Data.Foldable       (forM_)
+import           Data.Maybe          (mapMaybe)
+import qualified Data.Vector         as V
+import qualified Data.Vector.Mutable as MV
 
-day16a :: _ :~> _
+day16a :: [Int] :~> [Int]
 day16a = MkSol
-    { sParse = Just
-    , sShow  = show
+    { sParse = Just . mapMaybe digitToIntSafe
+    , sShow  = concatMap show
     , sSolve = Just
+             . V.toList
+             . V.take 8
+             . (!!! 100)
+             . iterate stepVec
+             . V.fromList
     }
 
-day16b :: _ :~> _
+
+day16b :: [Int] :~> [Int]
 day16b = MkSol
-    { sParse = Just
-    , sShow  = show
-    , sSolve = Just
+    { sParse = Just . mapMaybe digitToIntSafe
+    , sShow  = concatMap show
+    , sSolve = \str -> Just $
+        let n   = read . concatMap show $ take 7 str    -- we hope this number is bigger than half length str
+            xs  = drop n . concat . replicate 10000 $ str
+        in  take 8
+              . reverse
+              . (!!! 100)
+              . iterate ezStep
+              . reverse
+              $ xs
     }
+
+-- | ez pz
+ezStep :: [Int] -> [Int]
+ezStep = map ((`mod` 10) . abs) . scanl1 (+)
+
+-- | needlessly over-optimized
+stepVec :: V.Vector Int -> V.Vector Int
+stepVec v = runST $ do
+    mv <- MV.replicate (V.length v) 0
+    flip evalStateT [] . flip V.imapM_ v $ \i x -> do
+      modify $ (newStep (i + 1) :) . map succStep
+      steps <- get
+      forM_ (zip [0..] steps) $ \(j, s) ->
+        forM_ (stepOut s) $ \q ->
+          MV.modify mv ((q * x) +) (i - j)
+    fmap ((`mod` 10) . abs) <$> V.freeze mv
+
+data Step = Step { sSize :: !Int, sPhase :: !Int }
+  deriving Show
+
+stepOut :: Step -> Maybe Int
+stepOut Step{..} = case (sPhase `div` sSize) `mod` 4 of
+    0 -> Just 1
+    2 -> Just (-1)
+    _ -> Nothing
+
+succStep :: Step -> Step
+succStep Step{..} = Step sSize (sPhase + 1)
+
+newStep :: Int -> Step
+newStep n = Step n 0

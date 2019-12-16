@@ -55,6 +55,7 @@ module AOC.Common (
   , deleteFinite
   , charFinite
   , _CharFinite
+  , digitToIntSafe
   , caeser
   , eitherItem
   , getDown
@@ -256,6 +257,9 @@ charFinite (ord->c) = asum
     [ (False,) <$> packFinite (fromIntegral (c - ord 'a'))
     , (True ,) <$> packFinite (fromIntegral (c - ord 'A'))
     ]
+
+digitToIntSafe :: Char -> Maybe Int
+digitToIntSafe c = digitToInt c <$ guard (isDigit c)
 
 -- | Prism for a 'Char' as @('Bool', 'Finite' 26)@, where the 'Finite' is
 -- the letter parsed as a number from 0 to 25, and the 'Bool' is lowercase

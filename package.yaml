@@ -115,10 +115,12 @@ library:
   - semigroupoids
   - split
   - template-haskell
+  - hmatrix
   - text
   - th-abstraction
   - time
   - transformers
+  - sparse-linear-algebra
   - unordered-containers
   - vector
   - vector-sized
@@ -134,6 +136,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -O2
+    - -j4
     dependencies:
     - ansi-terminal
     - aoc2019

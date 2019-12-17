@@ -171,4 +171,3 @@ part2 scaff b0 = listToMaybe (findProgs path) <&> \(a,b,c) ->     -- <&> is flip
   where
     path = findPath scaff b0
 ```
-

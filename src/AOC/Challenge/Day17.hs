@@ -86,13 +86,17 @@ day17b = MkSol
 findProgs :: Eq a => [a] -> Maybe ([a], [a], [a])
 findProgs p0 = listToMaybe $ do
     a <- validPrefix p0
+
     let withoutA = neSplitOn a p0
     b <- case withoutA of
         []        -> empty
         bs : _    -> validPrefix bs
-    c <- case concatMap (neSplitOn b) withoutA of
+
+    let withoutB = concatMap (neSplitOn b) withoutA
+    c <- case withoutB of
         []        -> empty
         c  : rest -> c <$ guard (all (== c) rest)
+
     pure (a, b, c)
   where
     neSplitOn x = filter (not . null) . splitOn x

@@ -21,10 +21,6 @@ import qualified Data.List.NonEmpty  as NE
 import qualified Data.Map            as M
 import qualified Data.Set            as S
 
-data Tile = Scaff | Robot Dir
-  deriving (Show, Eq, Ord, Generic)
-instance NFData Tile
-
 data AState = AS { asPos :: Point
                  , asDir :: Dir
                  }
@@ -102,8 +98,8 @@ findProgs p0 = listToMaybe $ do
 
     pure (a, b, c)
   where
-    neSplitOn x = filter (not . null) . splitOn x
     validPrefix = take 4 . filter (not . null) . inits
+    neSplitOn x = filter (not . null) . splitOn x
 
 chomp :: Eq a => [([a], b)] -> [a] -> [b]
 chomp progs = unfoldr go
@@ -114,18 +110,18 @@ chomp progs = unfoldr go
       ]
 
 
-
-data PathComp = PC { pcTurn :: Bool, pcStep :: Int }
-  deriving (Show, Eq, Ord, Generic)
-instance NFData PathComp
+type PathComp = Either Int Int
 
 showPC :: PathComp -> String
-showPC PC{..} = (if pcTurn then "R" else "L") ++ "," ++ show pcStep
+showPC = \case
+    Left  x -> "L," ++ show x
+    Right x -> "R," ++ show x
 
 findPath :: Set Point -> AState -> [PathComp]
 findPath scaff = mapMaybe process . chunksOf 2 . NE.group . unfoldr go
   where
-    process [Just b:|_, steps] = Just $ PC b (length steps)
+    process [Just b:|_, steps] = Just $ if b then Right (length steps)
+                                             else Left  (length steps)
     process _                  = Nothing
     go AS{..}
         | forward   `S.member` scaff = Just (Nothing   , AS forward asDir          )

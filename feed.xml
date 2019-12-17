@@ -7,11 +7,148 @@
     <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md</link>
     <copyright>Copyright 2019 Justin Le</copyright>
     <language>en-us</language>
-    <lastBuildDate>Sat, 14 Dec 2019 19:58:19 EST</lastBuildDate>
+    <lastBuildDate>Tue, 17 Dec 2019 05:17:42 EST</lastBuildDate>
     <managingEditor>justin@jle.im</managingEditor>
-    <pubDate>Sat, 14 Dec 2019 19:58:19 EST</pubDate>
+    <pubDate>Tue, 17 Dec 2019 05:17:42 EST</pubDate>
     <webMaster>justin@jle.im</webMaster>
     <generator>Shake + Template</generator>
+    <item>
+      <title>Day 17</title>
+      <description>&lt;h2 id=&quot;day-17&quot;&gt;Day 17&lt;/h2&gt;
+&lt;!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day17.md`.  If you want to edit this, edit
+that file instead!
+--&gt;
+&lt;p&gt;&lt;em&gt;&lt;a href=&quot;https://adventofcode.com/2019/day/17&quot;&gt;Prompt&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day17.hs&quot;&gt;Code&lt;/a&gt;&lt;/em&gt; / &lt;em&gt;&lt;a href=&quot;https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day17.html&quot;&gt;Rendered&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;It’s been a while since one of these! I spent a lot of last week traveling and it’s been tough getting through the backlog :)&lt;/p&gt;
+&lt;p&gt;For today I’m only going to be discussing some parts of the solution that I think are particularly interesting in Haskell: in particular, Part 2’s path construction and compression.&lt;/p&gt;
+&lt;p&gt;Once you have a set of points, it’s useful to try to figure out the path to the end. From the constraints of the problem, we can make an educated guess that our “pathfinding” has to be extremely simple in order to accommodate for the small program size we can give. Basically, it will be:&lt;/p&gt;
+&lt;ol type=&quot;1&quot;&gt;
+&lt;li&gt;Is there a spot in front of us? If so, step forward and repeat from step 1.&lt;/li&gt;
+&lt;li&gt;Otherwise, is there a spot to our left? If so, turn left and repeat from step 1.&lt;/li&gt;
+&lt;li&gt;Otherwise, is there a spot to our right? If so, turn right and repeat from step 1.&lt;/li&gt;
+&lt;li&gt;Otherwise, we’ve reached the end.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;I’m going to use &lt;code&gt;Set Point&lt;/code&gt; (where &lt;code&gt;Point&lt;/code&gt; is &lt;code&gt;V2 Int&lt;/code&gt;, for reasons discussed in earlier problems) to describe our scaffolding, and a data type to keep track of bot state. The directionality will be tracked by keeping a unit vector in the direction the bot is facing.&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb1&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb1-1&quot;&gt;&lt;a href=&quot;#cb1-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-2&quot;&gt;&lt;a href=&quot;#cb1-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;BotState&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;BS&lt;/span&gt; {&lt;span class=&quot;ot&quot;&gt; bsPos ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt;,&lt;span class=&quot;ot&quot;&gt; bsDir ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; }&lt;/span&gt;
+&lt;span id=&quot;cb1-3&quot;&gt;&lt;a href=&quot;#cb1-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Move&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;TurnLeft&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;GoForward&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;TurnRight&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-4&quot;&gt;&lt;a href=&quot;#cb1-4&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;deriving&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-5&quot;&gt;&lt;a href=&quot;#cb1-5&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-6&quot;&gt;&lt;a href=&quot;#cb1-6&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;findPath ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;BotState&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Move&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb1-7&quot;&gt;&lt;a href=&quot;#cb1-7&quot;&gt;&lt;/a&gt;findPath scaff &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; unfoldr go&lt;/span&gt;
+&lt;span id=&quot;cb1-8&quot;&gt;&lt;a href=&quot;#cb1-8&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-9&quot;&gt;&lt;a href=&quot;#cb1-9&quot;&gt;&lt;/a&gt;    go (&lt;span class=&quot;dt&quot;&gt;BS&lt;/span&gt; p0 d0&lt;span class=&quot;op&quot;&gt;@&lt;/span&gt;(&lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dx dy))&lt;/span&gt;
+&lt;span id=&quot;cb1-10&quot;&gt;&lt;a href=&quot;#cb1-10&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; forward   &lt;span class=&quot;ot&quot;&gt;`S.member`&lt;/span&gt; scaff &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;GoForward&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;BS&lt;/span&gt; forward d0       )&lt;/span&gt;
+&lt;span id=&quot;cb1-11&quot;&gt;&lt;a href=&quot;#cb1-11&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; leftward  &lt;span class=&quot;ot&quot;&gt;`S.member`&lt;/span&gt; scaff &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;TurnLeft&lt;/span&gt; , &lt;span class=&quot;dt&quot;&gt;BS&lt;/span&gt; p0      turnLeft )&lt;/span&gt;
+&lt;span id=&quot;cb1-12&quot;&gt;&lt;a href=&quot;#cb1-12&quot;&gt;&lt;/a&gt;        &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; rightward &lt;span class=&quot;ot&quot;&gt;`S.member`&lt;/span&gt; scaff &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; (&lt;span class=&quot;dt&quot;&gt;TurnRight&lt;/span&gt;, &lt;span class=&quot;dt&quot;&gt;BS&lt;/span&gt; p0      turnRight)&lt;/span&gt;
+&lt;span id=&quot;cb1-13&quot;&gt;&lt;a href=&quot;#cb1-13&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb1-14&quot;&gt;&lt;a href=&quot;#cb1-14&quot;&gt;&lt;/a&gt;        forward   &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; d0&lt;/span&gt;
+&lt;span id=&quot;cb1-15&quot;&gt;&lt;a href=&quot;#cb1-15&quot;&gt;&lt;/a&gt;        turnLeft  &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; dy    (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;dx)&lt;/span&gt;
+&lt;span id=&quot;cb1-16&quot;&gt;&lt;a href=&quot;#cb1-16&quot;&gt;&lt;/a&gt;        turnRight &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;V2&lt;/span&gt; (&lt;span class=&quot;op&quot;&gt;-&lt;/span&gt;dy) dx&lt;/span&gt;
+&lt;span id=&quot;cb1-17&quot;&gt;&lt;a href=&quot;#cb1-17&quot;&gt;&lt;/a&gt;        leftward  &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; turnLeft&lt;/span&gt;
+&lt;span id=&quot;cb1-18&quot;&gt;&lt;a href=&quot;#cb1-18&quot;&gt;&lt;/a&gt;        rightward &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; p0 &lt;span class=&quot;op&quot;&gt;+&lt;/span&gt; turnRight&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To turn our path into a “run-length encoding” of instructions, we will convert them into &lt;code&gt;Either Int Int&lt;/code&gt;, where &lt;code&gt;Left n&lt;/code&gt; means “turn left and go &lt;code&gt;n&lt;/code&gt; forward”, and &lt;code&gt;Right n&lt;/code&gt; means “turn right and go &lt;code&gt;n&lt;/code&gt; forwards”. The easiest way to do that is probably to use &lt;code&gt;group&lt;/code&gt; and &lt;code&gt;chunksOf&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb2&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb2-1&quot;&gt;&lt;a href=&quot;#cb2-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;pathToProg ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Move&lt;/span&gt;] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Either&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb2-2&quot;&gt;&lt;a href=&quot;#cb2-2&quot;&gt;&lt;/a&gt;pathToProg &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;traverse&lt;/span&gt; toInstr &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; chunksOf &lt;span class=&quot;dv&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;group&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-3&quot;&gt;&lt;a href=&quot;#cb2-3&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb2-4&quot;&gt;&lt;a href=&quot;#cb2-4&quot;&gt;&lt;/a&gt;    toInstr [[&lt;span class=&quot;dt&quot;&gt;TurnLeft&lt;/span&gt; ],fs] &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Left&lt;/span&gt;  (&lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; fs)&lt;/span&gt;
+&lt;span id=&quot;cb2-5&quot;&gt;&lt;a href=&quot;#cb2-5&quot;&gt;&lt;/a&gt;    toInstr [[&lt;span class=&quot;dt&quot;&gt;TurnRight&lt;/span&gt;],fs] &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Just&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Right&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;length&lt;/span&gt; fs)&lt;/span&gt;
+&lt;span id=&quot;cb2-6&quot;&gt;&lt;a href=&quot;#cb2-6&quot;&gt;&lt;/a&gt;    toInstr _                &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Nothing&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Alright, so now form a &lt;code&gt;Set Point&lt;/code&gt; and a &lt;code&gt;BotState&lt;/code&gt; starting point, we get the run-length encoding of our journey. However, we now need to turn that into repetitions of three distinct chunks, &lt;code&gt;A&lt;/code&gt;, &lt;code&gt;B&lt;/code&gt;, and &lt;code&gt;C&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;To do this, we can write a general combinator to turn &lt;em&gt;any&lt;/em&gt; &lt;code&gt;[a]&lt;/code&gt; into encodings in terms of &lt;code&gt;A&lt;/code&gt;, &lt;code&gt;B&lt;/code&gt;, and &lt;code&gt;C&lt;/code&gt; subprograms. Let’s call it:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb3&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb3-1&quot;&gt;&lt;a href=&quot;#cb3-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;findProgs ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; ([a], [a], [a])&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;If we start thinking about how we can pick these things, we notice some interesting properties. For example, for a string like &lt;code&gt;abcdefg&lt;/code&gt;, we have many possible options for &lt;code&gt;A&lt;/code&gt;: it’s either &lt;code&gt;a&lt;/code&gt; or &lt;code&gt;ab&lt;/code&gt; or &lt;code&gt;abc&lt;/code&gt; or &lt;code&gt;abcd&lt;/code&gt;, etc. &lt;code&gt;A&lt;/code&gt; must be a prefix of our string. However, once we “commit” to an &lt;code&gt;A&lt;/code&gt;, then that also gives us our possibilities for &lt;code&gt;b&lt;/code&gt;: in the same way, &lt;code&gt;b&lt;/code&gt; must be a prefix of the remaining string after we “eliminate” &lt;code&gt;A&lt;/code&gt;. So if we “pick” &lt;code&gt;A&lt;/code&gt; to be &lt;code&gt;abc&lt;/code&gt;, the &lt;code&gt;B&lt;/code&gt; can be either &lt;code&gt;d&lt;/code&gt; or &lt;code&gt;de&lt;/code&gt; or &lt;code&gt;def&lt;/code&gt; or &lt;code&gt;defg&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;p&gt;This sort of “if we pick this … then we can pick that … and if we pick that …” system is exactly what &lt;em&gt;Logic Programming&lt;/em&gt; is great for! And we can actually do some nice logic programing in Haskell using the List monad. I’ve actually written about using the list monad for this purpose &lt;a href=&quot;https://blog.jle.im/entries/series/+monadplus-success-failure-monads.html&quot;&gt;multiple&lt;/a&gt; [times][money] over the years.&lt;/p&gt;
+&lt;p&gt;So let’s lay out our full algorithm:&lt;/p&gt;
+&lt;ol type=&quot;1&quot;&gt;
+&lt;li&gt;We can pick &lt;code&gt;A&lt;/code&gt; from any prefix of our string.&lt;/li&gt;
+&lt;li&gt;Once we break out occurrences of our chosen &lt;code&gt;A&lt;/code&gt; from the string, we can now pick &lt;code&gt;B&lt;/code&gt; from any unbroken prefix of the remaining string.&lt;/li&gt;
+&lt;li&gt;Once we break out occurrences of our chosen &lt;code&gt;B&lt;/code&gt; from the string, we can now pick &lt;code&gt;C&lt;/code&gt; from any unbroken prefix of the remaining string.&lt;/li&gt;
+&lt;li&gt;Once we break out occurrences of our chosen &lt;code&gt;C&lt;/code&gt; from the string, we only have a “real” solution if there are no other unclaimed items in the string.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;This all translates pretty directly to usage of the &lt;code&gt;List&lt;/code&gt; monad. &lt;code&gt;findProgs&lt;/code&gt; will now return all valid &lt;code&gt;A&lt;/code&gt;/&lt;code&gt;B&lt;/code&gt;/&lt;code&gt;C&lt;/code&gt; pairs:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb4&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb4-1&quot;&gt;&lt;a href=&quot;#cb4-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;findProgs ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [([a], [a], [a])]&lt;/span&gt;
+&lt;span id=&quot;cb4-2&quot;&gt;&lt;a href=&quot;#cb4-2&quot;&gt;&lt;/a&gt;findProgs p0 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;do&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-3&quot;&gt;&lt;a href=&quot;#cb4-3&quot;&gt;&lt;/a&gt;    a &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; validPrefix p0&lt;/span&gt;
+&lt;span id=&quot;cb4-4&quot;&gt;&lt;a href=&quot;#cb4-4&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-5&quot;&gt;&lt;a href=&quot;#cb4-5&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; withoutA &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; splitOn&amp;#39; a p0&lt;/span&gt;
+&lt;span id=&quot;cb4-6&quot;&gt;&lt;a href=&quot;#cb4-6&quot;&gt;&lt;/a&gt;    b &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; withoutA &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-7&quot;&gt;&lt;a href=&quot;#cb4-7&quot;&gt;&lt;/a&gt;        []        &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; empty              &lt;span class=&quot;co&quot;&gt;-- &amp;#39;A&amp;#39; consumed everything, whoops&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-8&quot;&gt;&lt;a href=&quot;#cb4-8&quot;&gt;&lt;/a&gt;        bs &lt;span class=&quot;op&quot;&gt;:&lt;/span&gt; _    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; validPrefix bs&lt;/span&gt;
+&lt;span id=&quot;cb4-9&quot;&gt;&lt;a href=&quot;#cb4-9&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-10&quot;&gt;&lt;a href=&quot;#cb4-10&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; withoutB &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; splitOn&amp;#39; b &lt;span class=&quot;op&quot;&gt;=&amp;lt;&amp;lt;&lt;/span&gt; withoutA&lt;/span&gt;
+&lt;span id=&quot;cb4-11&quot;&gt;&lt;a href=&quot;#cb4-11&quot;&gt;&lt;/a&gt;    c &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; &lt;span class=&quot;kw&quot;&gt;case&lt;/span&gt; withoutB &lt;span class=&quot;kw&quot;&gt;of&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-12&quot;&gt;&lt;a href=&quot;#cb4-12&quot;&gt;&lt;/a&gt;        []        &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; empty              &lt;span class=&quot;co&quot;&gt;-- &amp;#39;A&amp;#39; and &amp;#39;B&amp;#39; consumed everything, whoops&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-13&quot;&gt;&lt;a href=&quot;#cb4-13&quot;&gt;&lt;/a&gt;        cs &lt;span class=&quot;op&quot;&gt;:&lt;/span&gt; _    &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; validPrefix cs&lt;/span&gt;
+&lt;span id=&quot;cb4-14&quot;&gt;&lt;a href=&quot;#cb4-14&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-15&quot;&gt;&lt;a href=&quot;#cb4-15&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;kw&quot;&gt;let&lt;/span&gt; withoutC &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; splitOn&amp;#39; c &lt;span class=&quot;op&quot;&gt;=&amp;lt;&amp;lt;&lt;/span&gt; withoutB&lt;/span&gt;
+&lt;span id=&quot;cb4-16&quot;&gt;&lt;a href=&quot;#cb4-16&quot;&gt;&lt;/a&gt;    guard &lt;span class=&quot;op&quot;&gt;$&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;null&lt;/span&gt; withoutC&lt;/span&gt;
+&lt;span id=&quot;cb4-17&quot;&gt;&lt;a href=&quot;#cb4-17&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-18&quot;&gt;&lt;a href=&quot;#cb4-18&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;fu&quot;&gt;pure&lt;/span&gt; (a, b, c)&lt;/span&gt;
+&lt;span id=&quot;cb4-19&quot;&gt;&lt;a href=&quot;#cb4-19&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-20&quot;&gt;&lt;a href=&quot;#cb4-20&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;co&quot;&gt;-- | Get all valid prefixes&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-21&quot;&gt;&lt;a href=&quot;#cb4-21&quot;&gt;&lt;/a&gt;    validPrefix &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;take&lt;/span&gt; &lt;span class=&quot;dv&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;null&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; inits&lt;/span&gt;
+&lt;span id=&quot;cb4-22&quot;&gt;&lt;a href=&quot;#cb4-22&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;co&quot;&gt;-- | a version of splitOn that only returns non-empty lists&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb4-23&quot;&gt;&lt;a href=&quot;#cb4-23&quot;&gt;&lt;/a&gt;    splitOn&amp;#39; x &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;filter&lt;/span&gt; (&lt;span class=&quot;fu&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;fu&quot;&gt;null&lt;/span&gt;) &lt;span class=&quot;op&quot;&gt;.&lt;/span&gt; splitOn x&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Note that here I am using a simple predicate to filter out subprograms that are “too long” (the &lt;code&gt;take 4&lt;/code&gt; in &lt;code&gt;validPrefix&lt;/code&gt;). For a more robust solution, we can do &lt;code&gt;validPrefix = filter validLength . inits&lt;/code&gt;, testing on the length of the strings that encode the programs.&lt;/p&gt;
+&lt;p&gt;And that is mostly it! We can reconstruct our original program by using iterated applications of &lt;code&gt;stripPrefix&lt;/code&gt;, taking whatever prefix is &lt;em&gt;valid&lt;/em&gt; at every point:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb5&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb5-1&quot;&gt;&lt;a href=&quot;#cb5-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- | Given an association list of subroutines and their &amp;quot;label&amp;quot;, iteratively&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-2&quot;&gt;&lt;a href=&quot;#cb5-2&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- chomp through a string replacing each occurence of the subroutine with the&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-3&quot;&gt;&lt;a href=&quot;#cb5-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;co&quot;&gt;-- label.&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-4&quot;&gt;&lt;a href=&quot;#cb5-4&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;chomp ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Eq&lt;/span&gt; a &lt;span class=&quot;ot&quot;&gt;=&amp;gt;&lt;/span&gt; [([a], b)] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [a] &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; [b]&lt;/span&gt;
+&lt;span id=&quot;cb5-5&quot;&gt;&lt;a href=&quot;#cb5-5&quot;&gt;&lt;/a&gt;chomp progs &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; unfoldr go&lt;/span&gt;
+&lt;span id=&quot;cb5-6&quot;&gt;&lt;a href=&quot;#cb5-6&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb5-7&quot;&gt;&lt;a href=&quot;#cb5-7&quot;&gt;&lt;/a&gt;    go xs &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; asum&lt;/span&gt;
+&lt;span id=&quot;cb5-8&quot;&gt;&lt;a href=&quot;#cb5-8&quot;&gt;&lt;/a&gt;      [ (r,) &lt;span class=&quot;op&quot;&gt;&amp;lt;$&amp;gt;&lt;/span&gt; stripPrefix prog xs&lt;/span&gt;
+&lt;span id=&quot;cb5-9&quot;&gt;&lt;a href=&quot;#cb5-9&quot;&gt;&lt;/a&gt;      &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; (prog, r) &lt;span class=&quot;ot&quot;&gt;&amp;lt;-&lt;/span&gt; progs&lt;/span&gt;
+&lt;span id=&quot;cb5-10&quot;&gt;&lt;a href=&quot;#cb5-10&quot;&gt;&lt;/a&gt;      ]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The nice thing about writing these functions “in general” (instead of just )&lt;/p&gt;
+&lt;p&gt;And our final solution is, given a set of scaffolding points and an initial bot state:&lt;/p&gt;
+&lt;div class=&quot;sourceCode&quot; id=&quot;cb6&quot;&gt;&lt;pre class=&quot;sourceCode haskell&quot;&gt;&lt;code class=&quot;sourceCode haskell&quot;&gt;&lt;span id=&quot;cb6-1&quot;&gt;&lt;a href=&quot;#cb6-1&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Prog&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;op&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;C&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-2&quot;&gt;&lt;a href=&quot;#cb6-2&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-3&quot;&gt;&lt;a href=&quot;#cb6-3&quot;&gt;&lt;/a&gt;&lt;span class=&quot;kw&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Output&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;O&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-4&quot;&gt;&lt;a href=&quot;#cb6-4&quot;&gt;&lt;/a&gt;    {&lt;span class=&quot;ot&quot;&gt; oProg ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Prog&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb6-5&quot;&gt;&lt;a href=&quot;#cb6-5&quot;&gt;&lt;/a&gt;    ,&lt;span class=&quot;ot&quot;&gt; oA    ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Either&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb6-6&quot;&gt;&lt;a href=&quot;#cb6-6&quot;&gt;&lt;/a&gt;    ,&lt;span class=&quot;ot&quot;&gt; oB    ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Either&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb6-7&quot;&gt;&lt;a href=&quot;#cb6-7&quot;&gt;&lt;/a&gt;    ,&lt;span class=&quot;ot&quot;&gt; oC    ::&lt;/span&gt; [&lt;span class=&quot;dt&quot;&gt;Either&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Int&lt;/span&gt;]&lt;/span&gt;
+&lt;span id=&quot;cb6-8&quot;&gt;&lt;a href=&quot;#cb6-8&quot;&gt;&lt;/a&gt;    }&lt;/span&gt;
+&lt;span id=&quot;cb6-9&quot;&gt;&lt;a href=&quot;#cb6-9&quot;&gt;&lt;/a&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-10&quot;&gt;&lt;a href=&quot;#cb6-10&quot;&gt;&lt;/a&gt;&lt;span class=&quot;ot&quot;&gt;part2 ::&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Set&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Point&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;BotState&lt;/span&gt; &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Maybe&lt;/span&gt; &lt;span class=&quot;dt&quot;&gt;Output&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-11&quot;&gt;&lt;a href=&quot;#cb6-11&quot;&gt;&lt;/a&gt;part2 scaff b0 &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; listToMaybe (findProgs path) &lt;span class=&quot;op&quot;&gt;&amp;lt;&amp;amp;&amp;gt;&lt;/span&gt; \(a,b,c) &lt;span class=&quot;ot&quot;&gt;-&amp;gt;&lt;/span&gt;     &lt;span class=&quot;co&quot;&gt;-- &amp;lt;&amp;amp;&amp;gt; is flip fmap&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-12&quot;&gt;&lt;a href=&quot;#cb6-12&quot;&gt;&lt;/a&gt;    &lt;span class=&quot;dt&quot;&gt;O&lt;/span&gt; { oProg &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; chomp [(a, &lt;span class=&quot;dt&quot;&gt;A&lt;/span&gt;), (b, &lt;span class=&quot;dt&quot;&gt;B&lt;/span&gt;), (c, &lt;span class=&quot;dt&quot;&gt;C&lt;/span&gt;)] path&lt;/span&gt;
+&lt;span id=&quot;cb6-13&quot;&gt;&lt;a href=&quot;#cb6-13&quot;&gt;&lt;/a&gt;      , oA    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; a&lt;/span&gt;
+&lt;span id=&quot;cb6-14&quot;&gt;&lt;a href=&quot;#cb6-14&quot;&gt;&lt;/a&gt;      , oB    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; b&lt;/span&gt;
+&lt;span id=&quot;cb6-15&quot;&gt;&lt;a href=&quot;#cb6-15&quot;&gt;&lt;/a&gt;      , oC    &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; c&lt;/span&gt;
+&lt;span id=&quot;cb6-16&quot;&gt;&lt;a href=&quot;#cb6-16&quot;&gt;&lt;/a&gt;      }&lt;/span&gt;
+&lt;span id=&quot;cb6-17&quot;&gt;&lt;a href=&quot;#cb6-17&quot;&gt;&lt;/a&gt;  &lt;span class=&quot;kw&quot;&gt;where&lt;/span&gt;&lt;/span&gt;
+&lt;span id=&quot;cb6-18&quot;&gt;&lt;a href=&quot;#cb6-18&quot;&gt;&lt;/a&gt;    path &lt;span class=&quot;ot&quot;&gt;=&lt;/span&gt; findPath scaff b0&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id=&quot;day-17-benchmarks&quot;&gt;Day 17 Benchmarks&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;&amp;gt;&amp;gt; Day 17a
+benchmarking...
+time                 466.7 ms   (418.7 ms .. 570.4 ms)
+                     0.994 R²   (0.991 R² .. 1.000 R²)
+mean                 431.1 ms   (421.1 ms .. 450.0 ms)
+std dev              18.73 ms   (272.7 μs .. 22.25 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+
+&amp;gt;&amp;gt; Day 17b
+benchmarking...
+time                 1.340 s    (1.250 s .. 1.443 s)
+                     0.999 R²   (0.997 R² .. NaN R²)
+mean                 1.315 s    (1.297 s .. 1.339 s)
+std dev              23.14 ms   (1.363 ms .. 28.53 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded&lt;/code&gt;&lt;/pre&gt;
+</description>
+      <link>https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-17</link>
+      <pubDate>Tue, 17 Dec 2019 01:00:00 EST</pubDate>
+    </item>
+
     <item>
       <title>Day 11</title>
       <description>&lt;h2 id=&quot;day-11&quot;&gt;Day 11&lt;/h2&gt;

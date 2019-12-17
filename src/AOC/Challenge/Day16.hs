@@ -39,8 +39,11 @@ day16b = MkSol
     { sParse = Just . mapMaybe digitToIntSafe
     , sShow  = concatMap show
     , sSolve = \str -> Just $
-        let n   = read . concatMap show $ take 7 str    -- we hope this number is bigger than half length str
-            xs  = drop n . concat . replicate 10000 $ str
+        let origLen = length str
+            n   = read . concatMap show $ take 7 str    -- we hope this number is bigger than half length str
+            startPoint = n `mod` origLen
+            endPoint   = origLen * 10000 - n
+            xs  = take endPoint . drop startPoint . cycle $ str
         in  take 8
               . reverse
               . (!!! 100)
@@ -51,7 +54,7 @@ day16b = MkSol
 
 -- | ez pz
 ezStep :: [Int] -> [Int]
-ezStep = map ((`mod` 10) . abs) . scanl1 (+)
+ezStep = map (`mod` 10) . scanl1 (+)
 
 -- | needlessly over-optimized
 stepVec :: V.Vector Int -> V.Vector Int

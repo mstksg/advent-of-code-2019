@@ -73,8 +73,10 @@ library:
   - advent-of-code-api >= 0.2.7
   - aeson
   - ansi-terminal
+  - array
   - astar
   - bytestring
+  - carray
   - comonad
   - conduino
   - conduit
@@ -84,17 +86,21 @@ library:
   - data-memocombinators
   - deepseq
   - directory
+  - fft
   - filepath
   - finite-typelits
   - foldl
   - free
   - generic-lens
+  - ghc-typelits-knownnat
+  - ghc-typelits-natnormalise
   - groups
   - hashable
   - haskeline
   - haskell-names
   - haskell-src-exts
   - heredoc
+  - hmatrix
   - hpack
   - lens
   - lens-regex-pcre
@@ -113,14 +119,13 @@ library:
   - psqueues
   - safe
   - semigroupoids
+  - sparse-linear-algebra
   - split
   - template-haskell
-  - hmatrix
   - text
   - th-abstraction
   - time
   - transformers
-  - sparse-linear-algebra
   - unordered-containers
   - vector
   - vector-sized

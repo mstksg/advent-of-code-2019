@@ -136,7 +136,7 @@ main = shakeArgs opts $ do
             hasRefl = not $ "coded" `isInfixOf` fp
         refl   <- if hasRefl
           then T.pack <$> readFile' (reflPath  d)
-          else pure "*Not yet written -- please check back later!*"
+          else pure "*Reflection not yet written -- please check back later!*"
         bench  <- T.pack <$> readFile' (benchPath d)
         let ctx = ctx0 <> M.fromList
               [ ("daylong"   , T.pack $ printf "%02d" d)

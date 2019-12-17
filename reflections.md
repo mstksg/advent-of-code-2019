@@ -496,7 +496,7 @@ that file instead!
 [d05g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day05.hs
 [d05h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day05.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 5 Benchmarks
 
@@ -743,7 +743,7 @@ that file instead!
 [d07g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day07.hs
 [d07h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day07.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 7 Benchmarks
 
@@ -905,7 +905,7 @@ that file instead!
 [d09g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day09.hs
 [d09h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day09.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 9 Benchmarks
 
@@ -1408,7 +1408,7 @@ that file instead!
 [d12g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day12.hs
 [d12h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day12.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 12 Benchmarks
 
@@ -1447,7 +1447,7 @@ that file instead!
 [d13g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day13.hs
 [d13h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day13.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 13 Benchmarks
 
@@ -1490,7 +1490,7 @@ that file instead!
 [d14g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day14.hs
 [d14h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day14.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 14 Benchmarks
 
@@ -1531,7 +1531,7 @@ that file instead!
 [d15g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day15.hs
 [d15h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day15.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 15 Benchmarks
 
@@ -1574,7 +1574,7 @@ that file instead!
 [d16g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day16.hs
 [d16h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day16.html
 
-*Not yet written -- please check back later!*
+*Reflection not yet written -- please check back later!*
 
 ### Day 16 Benchmarks
 

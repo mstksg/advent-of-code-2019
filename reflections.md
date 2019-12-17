@@ -1454,21 +1454,21 @@ part2 scaff b0 = listToMaybe (findProgs path) <&> \(a,b,c) ->     -- <&> is flip
 ```
 >> Day 17a
 benchmarking...
-time                 466.7 ms   (418.7 ms .. 570.4 ms)
-                     0.994 R²   (0.991 R² .. 1.000 R²)
-mean                 431.1 ms   (421.1 ms .. 450.0 ms)
-std dev              18.73 ms   (272.7 μs .. 22.25 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 47.27 μs   (46.96 μs .. 47.75 μs)
+                     0.997 R²   (0.993 R² .. 1.000 R²)
+mean                 47.81 μs   (47.13 μs .. 49.59 μs)
+std dev              3.244 μs   (746.8 ns .. 5.699 μs)
+variance introduced by outliers: 70% (severely inflated)
 
 * parsing and formatting times excluded
 
 >> Day 17b
 benchmarking...
-time                 1.340 s    (1.250 s .. 1.443 s)
-                     0.999 R²   (0.997 R² .. NaN R²)
-mean                 1.315 s    (1.297 s .. 1.339 s)
-std dev              23.14 ms   (1.363 ms .. 28.53 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 111.6 μs   (110.6 μs .. 113.6 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 111.9 μs   (111.1 μs .. 114.4 μs)
+std dev              4.845 μs   (1.746 μs .. 8.760 μs)
+variance introduced by outliers: 45% (moderately inflated)
 
 * parsing and formatting times excluded
 ```

@@ -46,36 +46,38 @@ parseMap m = do
       _   -> Nothing
 
 
-day17a :: Memory :~> Int
+day17a :: Set Point :~> Int
 day17a = MkSol
-    { sParse = parseMem
+    { sParse = fmap fst . parseMap <=< parseMem
     , sShow  = show
-    , sSolve = fmap (sum . S.map product . findNeighbs . fst) . parseMap
+    , sSolve = Just . sum . S.map product . findNeighbs
     }
   where
     findNeighbs scaff = S.filter allScaff scaff
       where
         allScaff = all (`S.member` scaff) . cardinalNeighbs
 
-day17b :: Memory :~> _
+day17b :: (Set Point, AState, Memory) :~> (String, Memory)
 day17b = MkSol
-    { sParse = parseMem
-    , sShow  = show
-    , sSolve = \(set (mRegLens 0) 2 -> m) -> do
+    { sParse = \str -> do
+        m <- set (mRegLens 0) 2 <$> parseMem str
         (scaff, as0) <- sequenceA =<< parseMap m
+        pure (scaff, as0, m)
+    , sShow  = \(map ord -> inp, m) -> foldMap show $ do
+        output <- fst <$> eitherToMaybe (feedPipe inp (stepForever @IErr m))
+        lastMay output
+    , sSolve = \(scaff, as0, m) -> do
         let path  = findPath scaff as0
         (a,b,c) <- findProgs path
         let mainProg = chomp [(a,"A"),(b,"B"),(c,"C")] path
-            inp      = map ord . unlines . map (intercalate ",") $
+            inp      = unlines . map (intercalate ",") $
               [ mainProg
               , showPC <$> a
               , showPC <$> b
               , showPC <$> c
               , ["n"]
               ]
-
-        output <- fst <$> eitherToMaybe (feedPipe inp (stepForever @IErr m))
-        lastMay output
+        pure (inp, m)
     }
 
 

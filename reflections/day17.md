@@ -83,7 +83,7 @@ actually written about using the list monad for this purpose [multiple][wgc]
 [times][money] over the years.
 
 [wgc]: https://blog.jle.im/entries/series/+monadplus-success-failure-monads.html
-[times]: https://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet.html
+[money]: https://blog.jle.im/entry/unique-sample-drawing-searches-with-list-and-statet.html
 
 So let's lay out our full algorithm:
 

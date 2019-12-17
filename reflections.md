@@ -1274,7 +1274,6 @@ that file instead!
 [d17g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day17.hs
 [d17h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day17.html
 
-
 It's been a while since one of these!  I spent a lot of last week traveling and
 it's been tough getting through the backlog :)
 

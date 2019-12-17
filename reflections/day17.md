@@ -1,4 +1,3 @@
-
 It's been a while since one of these!  I spent a lot of last week traveling and
 it's been tough getting through the backlog :)
 

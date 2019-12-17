@@ -95,7 +95,10 @@ findProgs p0 = listToMaybe $ do
     let withoutB = neSplitOn b =<< withoutA
     c <- case withoutB of
         []        -> empty
-        c  : rest -> c <$ guard (all (== c) rest)
+        cs : _    -> validPrefix cs
+
+    let withoutC = neSplitOn c =<< withoutB
+    guard $ null withoutC
 
     pure (a, b, c)
   where

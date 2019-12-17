@@ -36,6 +36,24 @@ feedPipe :: Monad m => [i] -> Pipe i o u m a -> m ([o], Either (i -> Pipe i o u 
 instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
 instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
 
+module AOC.Common.Numeric
+fft :: (FFTWReal a, Vector v (Complex a)) => Vector v n (Complex a) -> Vector v n (Complex a)
+ifft :: (FFTWReal a, Vector v (Complex a)) => Vector v n (Complex a) -> Vector v n (Complex a)
+
+-- | FFT-based convolution
+convolve :: (Vector v (Complex a), KnownNat n, 1 <= n, KnownNat m, 1 <= m, FFTWReal a) => Vector v n (Complex a) -> Vector v m (Complex a) -> Vector v ((n + m) - 1) (Complex a)
+
+-- | FFT-based real-valued convolution
+rconvolve :: (Vector v (Complex a), Vector v a, KnownNat n, 1 <= n, KnownNat m, 1 <= m, FFTWReal a) => Vector v n a -> Vector v m a -> Vector v ((n + m) - 1) a
+
+-- | FFT-based integral convolution
+zconvolve :: (Vector v (Complex Double), Vector v Double, Vector v a, KnownNat n, 1 <= n, KnownNat m, 1 <= m, Integral a) => Vector v n a -> Vector v m a -> Vector v ((n + m) - 1) a
+
+-- | Our API is polymorphic over the real data type. FFTW, at least in
+--   principle, supports single precision <a>Float</a>, double precision
+--   <a>Double</a> and long double <tt>CLDouble</tt> (presumable?).
+class (Storable a, RealFloat a) => FFTWReal a
+
 module AOC.Common.Search
 
 -- | A* Search
@@ -251,6 +269,7 @@ charFinite :: Char -> Maybe (Bool, Finite 26)
 --   and the <a>Bool</a> is lowercase (<a>False</a>) or uppercase
 --   (<a>True</a>).
 _CharFinite :: Prism' Char (Bool, Finite 26)
+digitToIntSafe :: Char -> Maybe Int
 
 -- | Caeser shift, preserving case. If you have an <a>Int</a> or
 --   <a>Integer</a>, convert into <a>Finite</a> using <a>modulo</a>.
@@ -300,6 +319,9 @@ South :: Dir
 West :: Dir
 parseDir :: Char -> Maybe Dir
 dirPoint :: Dir -> Point
+
+-- | <a>dirPoint</a> but with inverted y axis
+dirPoint' :: Dir -> Point
 
 -- | Multiply headings, taking North as straight, East as clockwise turn,
 --   West as counter-clockwise turn, and South as reverse.
@@ -388,15 +410,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_aZEb
-_VMErr :: AsVMErr r_aZEb => Prism' r_aZEb VMErr
-_VMEBadMode :: AsVMErr r_aZEb => Prism' r_aZEb Int
-_VMEBadInstr :: AsVMErr r_aZEb => Prism' r_aZEb Int
-_VMEBadPos :: AsVMErr r_aZEb => Prism' r_aZEb Int
-class AsIErr r_aZNR
-_IErr :: AsIErr r_aZNR => Prism' r_aZNR IErr
-_IENoInput :: AsIErr r_aZNR => Prism' r_aZNR ()
-_IEVM :: AsIErr r_aZNR => Prism' r_aZNR VMErr
+class AsVMErr r_a17Hl
+_VMErr :: AsVMErr r_a17Hl => Prism' r_a17Hl VMErr
+_VMEBadMode :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
+_VMEBadInstr :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
+_VMEBadPos :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
+class AsIErr r_a17R1
+_IErr :: AsIErr r_a17R1 => Prism' r_a17R1 IErr
+_IENoInput :: AsIErr r_a17R1 => Prism' r_a17R1 ()
+_IEVM :: AsIErr r_a17R1 => Prism' r_a17R1 VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -657,6 +679,14 @@ map :: () => (a -> b) -> [a] -> [b]
 --   that foo $ True where foo :: Bool -&gt; Int# is well-typed
 ($) :: () => (a -> b) -> a -> b
 infixr 0 $
+
+-- | The function <tt>coerce</tt> allows you to safely convert between
+--   values of types that have the same representation with no run-time
+--   overhead. In the simplest case you can use it instead of a newtype
+--   constructor, to go from the newtype's concrete type to the abstract
+--   type. But it also works in more complicated settings, e.g. converting
+--   a list of newtypes to a list of concrete types.
+coerce :: Coercible a b => a -> b
 
 -- | Conditional failure of <a>Alternative</a> computations. Defined by
 --   
@@ -1507,6 +1537,64 @@ type Type = Type
 
 -- | The kind of constraints, like <tt>Show a</tt>
 data Constraint
+
+-- | <tt>Coercible</tt> is a two-parameter class that has instances for
+--   types <tt>a</tt> and <tt>b</tt> if the compiler can infer that they
+--   have the same representation. This class does not have regular
+--   instances; instead they are created on-the-fly during type-checking.
+--   Trying to manually declare an instance of <tt>Coercible</tt> is an
+--   error.
+--   
+--   Nevertheless one can pretend that the following three kinds of
+--   instances exist. First, as a trivial base-case:
+--   
+--   <pre>
+--   instance Coercible a a
+--   </pre>
+--   
+--   Furthermore, for every type constructor there is an instance that
+--   allows to coerce under the type constructor. For example, let
+--   <tt>D</tt> be a prototypical type constructor (<tt>data</tt> or
+--   <tt>newtype</tt>) with three type arguments, which have roles
+--   <tt>nominal</tt>, <tt>representational</tt> resp. <tt>phantom</tt>.
+--   Then there is an instance of the form
+--   
+--   <pre>
+--   instance Coercible b b' =&gt; Coercible (D a b c) (D a b' c')
+--   </pre>
+--   
+--   Note that the <tt>nominal</tt> type arguments are equal, the
+--   <tt>representational</tt> type arguments can differ, but need to have
+--   a <tt>Coercible</tt> instance themself, and the <tt>phantom</tt> type
+--   arguments can be changed arbitrarily.
+--   
+--   The third kind of instance exists for every <tt>newtype NT = MkNT
+--   T</tt> and comes in two variants, namely
+--   
+--   <pre>
+--   instance Coercible a T =&gt; Coercible a NT
+--   </pre>
+--   
+--   <pre>
+--   instance Coercible T b =&gt; Coercible NT b
+--   </pre>
+--   
+--   This instance is only usable if the constructor <tt>MkNT</tt> is in
+--   scope.
+--   
+--   If, as a library author of a type constructor like <tt>Set a</tt>, you
+--   want to prevent a user of your module to write <tt>coerce :: Set T
+--   -&gt; Set NT</tt>, you need to set the role of <tt>Set</tt>'s type
+--   parameter to <tt>nominal</tt>, by writing
+--   
+--   <pre>
+--   type role Set nominal
+--   </pre>
+--   
+--   For more details about this feature, please refer to <a>Safe
+--   Coercions</a> by Joachim Breitner, Richard A. Eisenberg, Simon Peyton
+--   Jones and Stephanie Weirich.
+class a ~R# b => Coercible (a :: k0) (b :: k0)
 
 -- | Use <tt><a>Option</a> (<a>Last</a> a)</tt> to get the behavior of
 --   <a>Last</a> from <a>Data.Monoid</a>
@@ -18066,6 +18154,7 @@ getDown :: Down a -> a
 -- | Parse a letter into a number 0 to 25. Returns <a>False</a> if
 --   lowercase and <a>True</a> if uppercase.
 charFinite :: Char -> Maybe (Bool, Finite 26)
+digitToIntSafe :: Char -> Maybe Int
 
 -- | Prism for a <a>Char</a> as <tt>(<a>Bool</a>, <a>Finite</a> 26)</tt>,
 --   where the <a>Finite</a> is the letter parsed as a number from 0 to 25,
@@ -18164,6 +18253,9 @@ mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 -- | Treat as complex number multiplication. useful for rotations
 mulPoint :: Point -> Point -> Point
 dirPoint :: Dir -> Point
+
+-- | <a>dirPoint</a> but with inverted y axis
+dirPoint' :: Dir -> Point
 parseDir :: Char -> Maybe Dir
 
 -- | Multiply headings, taking North as straight, East as clockwise turn,
@@ -18433,40 +18525,6 @@ module AOC.Challenge.Day19
 module AOC.Challenge.Day18
 
 
--- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day17
-
-
--- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day16
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18520,6 +18578,24 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day17
+day17a :: Set Point :~> Int
+day17b :: (Set Point, AState, Memory) :~> (String, Memory)
+instance GHC.Generics.Generic AOC.Challenge.Day17.AState
+instance GHC.Classes.Ord AOC.Challenge.Day17.AState
+instance GHC.Classes.Eq AOC.Challenge.Day17.AState
+instance GHC.Show.Show AOC.Challenge.Day17.AState
+instance Control.DeepSeq.NFData AOC.Challenge.Day17.AState
+
+
+-- | Day 16. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day16
+day16a :: [Int] :~> [Int]
+day16b :: [Int] :~> [Int]
+instance GHC.Show.Show AOC.Challenge.Day16.Step
 
 
 -- | Day 15. See <a>AOC.Solver</a> for the types used in this module!
@@ -18835,14 +18911,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2cM4
-mainRunOpts :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 MainRunOpts
-mroActual :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 Bool
-mroBench :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 Bool
-mroInput :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 Bool
-mroSpec :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 TestSpec
-mroTest :: HasMainRunOpts c_a2cM4 => Lens' c_a2cM4 Bool
+class HasMainRunOpts c_a2oo8
+mainRunOpts :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 MainRunOpts
+mroActual :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 Bool
+mroBench :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 Bool
+mroInput :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 Bool
+mroSpec :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 TestSpec
+mroTest :: HasMainRunOpts c_a2oo8 => Lens' c_a2oo8 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18855,10 +18931,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2cTz
-mainViewOpts :: HasMainViewOpts c_a2cTz => Lens' c_a2cTz MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2cTz => Lens' c_a2cTz TestSpec
-mvoWait :: HasMainViewOpts c_a2cTz => Lens' c_a2cTz Bool
+class HasMainViewOpts c_a2ovD
+mainViewOpts :: HasMainViewOpts c_a2ovD => Lens' c_a2ovD MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2ovD => Lens' c_a2ovD TestSpec
+mvoWait :: HasMainViewOpts c_a2ovD => Lens' c_a2ovD Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18879,12 +18955,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2cXS
-mainSubmitOpts :: HasMainSubmitOpts c_a2cXS => Lens' c_a2cXS MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2cXS => Lens' c_a2cXS Bool
-msoLock :: HasMainSubmitOpts c_a2cXS => Lens' c_a2cXS Bool
-msoSpec :: HasMainSubmitOpts c_a2cXS => Lens' c_a2cXS ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2cXS => Lens' c_a2cXS Bool
+class HasMainSubmitOpts c_a2ozW
+mainSubmitOpts :: HasMainSubmitOpts c_a2ozW => Lens' c_a2ozW MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2ozW => Lens' c_a2ozW Bool
+msoLock :: HasMainSubmitOpts c_a2ozW => Lens' c_a2ozW Bool
+msoSpec :: HasMainSubmitOpts c_a2ozW => Lens' c_a2ozW ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2ozW => Lens' c_a2ozW Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

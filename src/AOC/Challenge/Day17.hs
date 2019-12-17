@@ -14,10 +14,23 @@ module AOC.Challenge.Day17 (
   , day17b
   ) where
 
-import           AOC.Common.Conduino
-import           AOC.Common.Intcode
-import           AOC.Prelude
-import qualified Data.List.NonEmpty  as NE
+import           AOC.Common          (Point, Dir(..), dirPoint', cardinalNeighbs, parseAsciiMap)
+import           AOC.Common.Conduino (feedPipe)
+import           AOC.Common.Intcode  (Memory, parseMem, IErr, stepForever, mRegLens)
+import           AOC.Solver          ((:~>)(..))
+import           AOC.Util            (eitherToMaybe)
+import           Control.Applicative (empty)
+import           Control.DeepSeq     (NFData)
+import           Control.Lens        (set)
+import           Control.Monad       (guard, (<=<))
+import           Data.Char           (chr, ord)
+import           Data.Foldable       (asum)
+import           Data.List           (group, unfoldr, inits, stripPrefix, intercalate)
+import           Data.List.Split     (chunksOf, splitOn)
+import           Data.Maybe          (mapMaybe, listToMaybe)
+import           Data.Set            (Set)
+import           GHC.Generics        (Generic)
+import           Safe                (lastMay)
 import qualified Data.Map            as M
 import qualified Data.Set            as S
 
@@ -29,7 +42,7 @@ instance NFData AState
 
 parseMap :: Memory -> Maybe (Set Point, Maybe AState)
 parseMap m = do
-    (os, _) <- eitherToMaybe $ feedPipe [] (stepForever @VMErr m)
+    (os, _) <- eitherToMaybe $ feedPipe [] (stepForever @IErr m)
     let mp    = parseAsciiMap parseTile (map chr os)
         scaff = M.keysSet mp
         sOut  = do
@@ -120,11 +133,13 @@ showPC = \case
     Right x -> "R," ++ show x
 
 findPath :: Set Point -> AState -> [PathComp]
-findPath scaff = mapMaybe process . chunksOf 2 . NE.group . unfoldr go
+findPath scaff = mapMaybe process . chunksOf 2 . group . unfoldr go
   where
-    process [Just b:|_, steps] = Just $ if b then Right (length steps)
-                                             else Left  (length steps)
-    process _                  = Nothing
+    process = \case
+      [Just turnRight :_, steps]
+        | turnRight -> Just $ Right (length steps)
+        | otherwise -> Just $ Left  (length steps)
+      _             -> Nothing
     go AS{..}
         | forward   `S.member` scaff = Just (Nothing   , AS forward asDir          )
         | turnLeft  `S.member` scaff = Just (Just False, AS asPos   (asDir <> West))

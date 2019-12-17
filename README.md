@@ -40,18 +40,18 @@ haddocks][haddock] --- more info below!
 | Day  2    | [x][d02r]   | [x][d02g] | [x][d02h]  | [x][d02b]  |
 | Day  3    | [x][d03r]   | [x][d03g] | [x][d03h]  | [x][d03b]  |
 | Day  4    | [x][d04r]   | [x][d04g] | [x][d04h]  | [x][d04b]  |
-| Day  5    |             |           |            |            |
+| Day  5    |             | [x][d05g] | [x][d05h]  | [x][d05b]  |
 | Day  6    | [x][d06r]   | [x][d06g] | [x][d06h]  | [x][d06b]  |
-| Day  7    |             |           |            |            |
+| Day  7    |             | [x][d07g] | [x][d07h]  | [x][d07b]  |
 | Day  8    | [x][d08r]   | [x][d08g] | [x][d08h]  | [x][d08b]  |
-| Day  9    |             |           |            |            |
+| Day  9    |             | [x][d09g] | [x][d09h]  | [x][d09b]  |
 | Day 10    | [x][d10r]   | [x][d10g] | [x][d10h]  | [x][d10b]  |
 | Day 11    | [x][d11r]   | [x][d11g] | [x][d11h]  | [x][d11b]  |
-| Day 12    |             |           |            |            |
-| Day 13    |             |           |            |            |
-| Day 14    |             |           |            |            |
-| Day 15    |             |           |            |            |
-| Day 16    |             |           |            |            |
+| Day 12    |             | [x][d12g] | [x][d12h]  | [x][d12b]  |
+| Day 13    |             | [x][d13g] | [x][d13h]  | [x][d13b]  |
+| Day 14    |             | [x][d14g] | [x][d14h]  | [x][d14b]  |
+| Day 15    |             | [x][d15g] | [x][d15h]  | [x][d15b]  |
+| Day 16    |             | [x][d16g] | [x][d16h]  | [x][d16b]  |
 | Day 17    | [x][d17r]   | [x][d17g] | [x][d17h]  | [x][d17b]  |
 | Day 18    |             |           |            |            |
 | Day 19    |             |           |            |            |
@@ -309,14 +309,23 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d04h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day04.html
 [d04r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-4
 [d04b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-4-benchmarks
+[d05g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day05.hs
+[d05h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day05.html
+[d05b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-5-benchmarks
 [d06g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day06.hs
 [d06h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day06.html
 [d06r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-6
 [d06b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-6-benchmarks
+[d07g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day07.hs
+[d07h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day07.html
+[d07b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-7-benchmarks
 [d08g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day08.hs
 [d08h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day08.html
 [d08r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8
 [d08b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-8-benchmarks
+[d09g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day09.hs
+[d09h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day09.html
+[d09b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-9-benchmarks
 [d10g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day10.hs
 [d10h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day10.html
 [d10r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-10
@@ -325,6 +334,21 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d11h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day11.html
 [d11r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-11
 [d11b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-11-benchmarks
+[d12g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day12.hs
+[d12h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day12.html
+[d12b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-12-benchmarks
+[d13g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day13.hs
+[d13h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day13.html
+[d13b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-13-benchmarks
+[d14g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day14.hs
+[d14h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day14.html
+[d14b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-14-benchmarks
+[d15g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day15.hs
+[d15h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day15.html
+[d15b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-15-benchmarks
+[d16g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day16.hs
+[d16h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day16.html
+[d16b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-16-benchmarks
 [d17g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day17.hs
 [d17h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day17.html
 [d17r]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-17

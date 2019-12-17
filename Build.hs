@@ -60,6 +60,8 @@ reflPath :: Int -> FilePath
 reflPath d = "reflections" </> printf "day%02d.md" d
 reflOutPath :: Int -> FilePath
 reflOutPath d = "_reflections" </> printf "day%02d.md" d
+reflOutCodedPath :: Int -> FilePath
+reflOutCodedPath d = "_reflections" </> printf "day%02d-coded.md" d
 reflXmlPath :: Int -> FilePath
 reflXmlPath d = "_reflections" </> printf "day%02d.xml" d
 benchPath :: Int -> FilePath
@@ -71,14 +73,18 @@ main = shakeArgs opts $ do
 
     "reflections.md" %> \fp -> do
         days   <- getDays
-        bodies <- forM (toList days) $ \d ->
-          T.pack <$> readFile' (reflOutPath d)
+        bodies <- forM (M.toList days) $ \(d, hasRefl) ->
+          if hasRefl
+            then T.pack <$> readFile' (reflOutPath d)
+            else T.pack <$> readFile' (reflOutCodedPath d)
         let yearUrls   = tUnlines' . flip foldMap otherYears $ \oy ->
               T.pack
                 (printf "[%04d]: https://github.com/%s/advent-of-code-%04d/blob/master/reflections.md" oy github oy)
                     <$ guard (oy /= year)
-            toc = flip map (toList days) $ \d ->
-                    printf "* [Day %d](#day-%d)" d d
+            toc = flip map (M.toList days) $ \(d, hasRefl) ->
+              if hasRefl
+                then printf "* [Day %d](#day-%d)" d d
+                else printf "* [Day %d](#day-%d) *(no reflection yet)*" d d
 
             ctx = ctx0 <> M.fromList
               [ ("toc" , T.pack $ unlines' toc         )
@@ -89,18 +95,21 @@ main = shakeArgs opts $ do
 
     "README.md" %> \fp -> do
         days <- getDays
-        let mkRow d
-              | d `S.member` days =
+        let mkRow d = case M.lookup d days of
+              Just True ->
                   printf "| Day %2d    | [x][d%02dr]   | [x][d%02dg] | [x][d%02dh]  | [x][d%02db]  |"
                     d d d d d
-              | otherwise         =
+              Just False ->
+                  printf "| Day %2d    |             | [x][d%02dg] | [x][d%02dh]  | [x][d%02db]  |"
+                    d d d d
+              Nothing    ->
                   printf "| Day %2d    |             |           |            |            |"
                     d
             table = unlines' $
                "| Challenge | Reflections | Code      | Rendered   | Benchmarks |"
              : "| --------- | ----------- | --------- | ---------- | ---------- |"
              : map mkRow [1..25]
-            links      = unlines' . concatMap mkLinks $ days
+            links      = unlines' . M.foldMapWithKey mkLinks $ days
             yearUrls   = tUnlines' . flip foldMap otherYears $ \oy ->
                 T.pack (printf "[%04d]: https://github.com/%s/advent-of-code-%04d" oy github oy)
                     <$ guard (oy /= year)
@@ -112,7 +121,7 @@ main = shakeArgs opts $ do
         writeTemplate fp ctx "template/README.md.template"
 
     "feed.xml" %> \fp -> do
-        days <- getDays
+        days <- reflectionDays
         bodies <- forM (reverse (toList days)) $ \d ->
           T.pack <$> readFile' (reflXmlPath d)
         time <- utcToZonedTime (read "EST") <$> liftIO getCurrentTime
@@ -123,8 +132,11 @@ main = shakeArgs opts $ do
         writeTemplate fp ctx "template/feed.xml.template"
 
     "_reflections/*.md" %> \fp -> do
-        let Just d = parseDayFp fp
-        refl   <- T.pack <$> readFile' (reflPath  d)
+        let Just d  = parseDayFp fp
+            hasRefl = not $ "coded" `isInfixOf` fp
+        refl   <- if hasRefl
+          then T.pack <$> readFile' (reflPath  d)
+          else pure "*Not yet written -- please check back later!*"
         bench  <- T.pack <$> readFile' (benchPath d)
         let ctx = ctx0 <> M.fromList
               [ ("daylong"   , T.pack $ printf "%02d" d)
@@ -158,10 +170,19 @@ main = shakeArgs opts $ do
 
     "clean" ~> do
       removeFilesAfter "_reflections" ["//*"]
-      removeFilesAfter "bench-out" ["//*"]
+      -- removeFilesAfter "bench-out" ["//*"]
       removeFilesAfter "_build" ["//*"]
   where
-    getDays = S.fromList . mapMaybe parseDayFp <$> getDirectoryFiles "reflections" ["*.md"]
+    reflectionDays = S.fromList . mapMaybe parseDayFp <$> getDirectoryFiles "reflections" ["*.md"]
+    codedDays      = do
+      ds <- mapMaybe parseDayFp <$> getDirectoryFiles codePath ["*.hs"]
+      fmap S.fromList . flip filterM ds $ \d -> do
+        let dayFile = codePath </> printf "Day%02d.hs" d
+        not . ("AOC.Prelude" `T.isInfixOf`) . T.pack <$> readFile' dayFile
+    getDays = do
+      rd <- M.fromSet (const True ) <$> reflectionDays
+      cd <- M.fromSet (const False) <$> codedDays
+      pure $ M.unionWith (||) rd cd
     writeTemplate fp ctx templ = do
       out <- flip substitute (ctx M.!) . T.pack <$> readFile' templ
       writeFileChanged fp (TL.unpack out)
@@ -172,15 +193,16 @@ yearLinks  = T.intercalate " / " . flip map (S.toList otherYears) $ \oy ->
                | otherwise  = "[%04d][]"
     in  T.pack $ printf "*%s*" (printf linker oy :: String)
 
-mkLinks :: Int -> [String]
-mkLinks d = [
-    printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
+mkLinks :: Int -> Bool -> [String]
+mkLinks d hasRef = catMaybes [
+    Just $ printf "[d%02dg]: https://github.com/mstksg/advent-of-code-%04d/blob/master/src/AOC/Challenge/Day%02d.hs"
       d year d
-  , printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
+  , Just $ printf "[d%02dh]: https://mstksg.github.io/advent-of-code-%04d/src/AOC.Challenge.Day%02d.html"
       d year d
-  , printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
-      d year d
-  , printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
+  , do guard hasRef
+       Just $ printf "[d%02dr]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d"
+         d year d
+  , Just $ printf "[d%02db]: https://github.com/mstksg/advent-of-code-%04d/blob/master/reflections.md#day-%d-benchmarks"
       d year d
   ]
 
@@ -188,3 +210,6 @@ unlines' :: [String] -> String
 unlines' = intercalate "\n"
 tUnlines' :: [Text] -> Text
 tUnlines' = T.intercalate "\n"
+
+codePath :: FilePath
+codePath = "src/AOC/Challenge"

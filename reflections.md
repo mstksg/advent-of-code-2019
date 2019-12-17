@@ -23,10 +23,18 @@ Table of Contents
 * [Day 2](#day-2)
 * [Day 3](#day-3)
 * [Day 4](#day-4)
+* [Day 5](#day-5) *(no reflection yet)*
 * [Day 6](#day-6)
+* [Day 7](#day-7) *(no reflection yet)*
 * [Day 8](#day-8)
+* [Day 9](#day-9) *(no reflection yet)*
 * [Day 10](#day-10)
 * [Day 11](#day-11)
+* [Day 12](#day-12) *(no reflection yet)*
+* [Day 13](#day-13) *(no reflection yet)*
+* [Day 14](#day-14) *(no reflection yet)*
+* [Day 15](#day-15) *(no reflection yet)*
+* [Day 16](#day-16) *(no reflection yet)*
 * [Day 17](#day-17)
 
 Day 1
@@ -473,6 +481,48 @@ std dev              162.2 μs   (71.70 μs .. 230.8 μs)
 
 
 
+Day 5
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day05.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d05p]* / *[Code][d05g]* / *[Rendered][d05h]*
+
+[d05p]: https://adventofcode.com/2019/day/5
+[d05g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day05.hs
+[d05h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day05.html
+
+*Not yet written -- please check back later!*
+
+### Day 5 Benchmarks
+
+```
+>> Day 05a
+benchmarking...
+time                 316.2 μs   (313.9 μs .. 320.4 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 316.6 μs   (315.4 μs .. 318.4 μs)
+std dev              5.020 μs   (2.998 μs .. 8.042 μs)
+
+* parsing and formatting times excluded
+
+>> Day 05b
+benchmarking...
+time                 511.9 μs   (506.9 μs .. 520.3 μs)
+                     0.999 R²   (0.997 R² .. 1.000 R²)
+mean                 510.6 μs   (507.6 μs .. 521.1 μs)
+std dev              15.77 μs   (5.826 μs .. 33.43 μs)
+variance introduced by outliers: 23% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
 Day 6
 ------
 
@@ -678,6 +728,47 @@ std dev              5.402 μs   (1.762 μs .. 9.913 μs)
 
 
 
+Day 7
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day07.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d07p]* / *[Code][d07g]* / *[Rendered][d07h]*
+
+[d07p]: https://adventofcode.com/2019/day/7
+[d07g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day07.hs
+[d07h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day07.html
+
+*Not yet written -- please check back later!*
+
+### Day 7 Benchmarks
+
+```
+>> Day 07a
+benchmarking...
+time                 22.76 ms   (22.40 ms .. 23.26 ms)
+                     0.998 R²   (0.997 R² .. 1.000 R²)
+mean                 22.61 ms   (22.44 ms .. 22.90 ms)
+std dev              485.3 μs   (315.8 μs .. 692.8 μs)
+
+* parsing and formatting times excluded
+
+>> Day 07b
+benchmarking...
+time                 95.12 ms   (94.05 ms .. 97.32 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 94.55 ms   (94.15 ms .. 96.27 ms)
+std dev              1.051 ms   (171.8 μs .. 1.694 ms)
+
+* parsing and formatting times excluded
+```
+
+
+
 Day 8
 ------
 
@@ -793,6 +884,49 @@ time                 269.0 μs   (268.4 μs .. 270.0 μs)
 mean                 269.7 μs   (268.8 μs .. 273.6 μs)
 std dev              5.521 μs   (1.130 μs .. 12.52 μs)
 variance introduced by outliers: 13% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 9
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day09.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d09p]* / *[Code][d09g]* / *[Rendered][d09h]*
+
+[d09p]: https://adventofcode.com/2019/day/9
+[d09g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day09.hs
+[d09h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day09.html
+
+*Not yet written -- please check back later!*
+
+### Day 9 Benchmarks
+
+```
+>> Day 09a
+benchmarking...
+time                 987.8 μs   (978.9 μs .. 1.004 ms)
+                     0.998 R²   (0.994 R² .. 1.000 R²)
+mean                 984.3 μs   (977.7 μs .. 1.001 ms)
+std dev              34.72 μs   (19.62 μs .. 62.59 μs)
+variance introduced by outliers: 24% (moderately inflated)
+
+* parsing and formatting times excluded
+
+>> Day 09b
+benchmarking...
+time                 1.658 s    (1.607 s .. 1.704 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 1.657 s    (1.652 s .. 1.665 s)
+std dev              7.983 ms   (1.036 ms .. 10.26 ms)
+variance introduced by outliers: 19% (moderately inflated)
 
 * parsing and formatting times excluded
 ```
@@ -1253,6 +1387,215 @@ time                 47.59 ms   (47.41 ms .. 47.72 ms)
                      1.000 R²   (1.000 R² .. 1.000 R²)
 mean                 47.69 ms   (47.61 ms .. 47.90 ms)
 std dev              251.3 μs   (51.33 μs .. 443.0 μs)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 12
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day12.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d12p]* / *[Code][d12g]* / *[Rendered][d12h]*
+
+[d12p]: https://adventofcode.com/2019/day/12
+[d12g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day12.hs
+[d12h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day12.html
+
+*Not yet written -- please check back later!*
+
+### Day 12 Benchmarks
+
+```
+>> Day 12a
+benchmarking...
+time                 352.8 μs   (351.2 μs .. 354.9 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 353.0 μs   (351.3 μs .. 358.1 μs)
+std dev              8.836 μs   (2.907 μs .. 17.23 μs)
+variance introduced by outliers: 18% (moderately inflated)
+
+>> Day 12b
+benchmarking...
+time                 18.13 ms   (17.89 ms .. 18.43 ms)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 18.52 ms   (18.23 ms .. 19.24 ms)
+std dev              983.5 μs   (224.9 μs .. 1.789 ms)
+variance introduced by outliers: 21% (moderately inflated)
+```
+
+
+
+Day 13
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day13.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d13p]* / *[Code][d13g]* / *[Rendered][d13h]*
+
+[d13p]: https://adventofcode.com/2019/day/13
+[d13g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day13.hs
+[d13h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day13.html
+
+*Not yet written -- please check back later!*
+
+### Day 13 Benchmarks
+
+```
+>> Day 13a
+benchmarking...
+time                 82.63 ms   (70.08 ms .. 90.05 ms)
+                     0.976 R²   (0.929 R² .. 1.000 R²)
+mean                 93.53 ms   (86.88 ms .. 113.6 ms)
+std dev              20.59 ms   (518.5 μs .. 33.79 ms)
+variance introduced by outliers: 68% (severely inflated)
+
+* parsing and formatting times excluded
+
+>> Day 13b
+benchmarking...
+time                 4.063 s    (3.984 s .. 4.159 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 4.008 s    (3.979 s .. 4.035 s)
+std dev              33.27 ms   (29.00 ms .. 35.95 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 14
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day14.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d14p]* / *[Code][d14g]* / *[Rendered][d14h]*
+
+[d14p]: https://adventofcode.com/2019/day/14
+[d14g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day14.hs
+[d14h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day14.html
+
+*Not yet written -- please check back later!*
+
+### Day 14 Benchmarks
+
+```
+>> Day 14a
+benchmarking...
+time                 197.1 μs   (196.7 μs .. 197.5 μs)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 197.5 μs   (196.9 μs .. 198.1 μs)
+std dev              2.000 μs   (1.213 μs .. 2.681 μs)
+
+* parsing and formatting times excluded
+
+>> Day 14b
+benchmarking...
+time                 11.24 ms   (11.21 ms .. 11.29 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 11.26 ms   (11.24 ms .. 11.30 ms)
+std dev              62.49 μs   (37.17 μs .. 97.55 μs)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 15
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day15.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d15p]* / *[Code][d15g]* / *[Rendered][d15h]*
+
+[d15p]: https://adventofcode.com/2019/day/15
+[d15g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day15.hs
+[d15h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day15.html
+
+*Not yet written -- please check back later!*
+
+### Day 15 Benchmarks
+
+```
+>> Day 15a
+benchmarking...
+time                 336.4 ms   (320.3 ms .. 353.3 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 339.2 ms   (334.9 ms .. 343.0 ms)
+std dev              5.396 ms   (2.140 ms .. 7.461 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+
+>> Day 15b
+benchmarking...
+time                 1.076 s    (1.070 s .. 1.088 s)
+                     1.000 R²   (NaN R² .. 1.000 R²)
+mean                 1.081 s    (1.078 s .. 1.085 s)
+std dev              4.462 ms   (1.488 ms .. 6.039 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 16
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day16.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d16p]* / *[Code][d16g]* / *[Rendered][d16h]*
+
+[d16p]: https://adventofcode.com/2019/day/16
+[d16g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day16.hs
+[d16h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day16.html
+
+*Not yet written -- please check back later!*
+
+### Day 16 Benchmarks
+
+```
+>> Day 16a
+benchmarking...
+time                 4.596 s    (4.510 s .. 4.638 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 4.541 s    (4.516 s .. 4.560 s)
+std dev              28.18 ms   (19.02 ms .. 33.53 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+
+>> Day 16b
+benchmarking...
+time                 14.23 s    (13.34 s .. 15.50 s)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 13.83 s    (13.65 s .. 14.02 s)
+std dev              243.1 ms   (71.92 ms .. 324.6 ms)
+variance introduced by outliers: 19% (moderately inflated)
 
 * parsing and formatting times excluded
 ```

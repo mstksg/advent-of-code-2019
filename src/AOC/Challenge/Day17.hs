@@ -92,7 +92,7 @@ findProgs p0 = listToMaybe $ do
         []        -> empty
         bs : _    -> validPrefix bs
 
-    let withoutB = concatMap (neSplitOn b) withoutA
+    let withoutB = neSplitOn b =<< withoutA
     c <- case withoutB of
         []        -> empty
         c  : rest -> c <$ guard (all (== c) rest)

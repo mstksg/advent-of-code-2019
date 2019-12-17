@@ -78,6 +78,7 @@ module AOC.Common (
   , Dir(..)
   , parseDir
   , dirPoint
+  , dirPoint'
   , mulDir
   -- * 2D Maps
   , memoPoint
@@ -458,6 +459,14 @@ dirPoint = \case
     North -> V2   0   1
     East  -> V2   1   0
     South -> V2   0 (-1)
+    West  -> V2 (-1)  0
+
+-- | 'dirPoint' but with inverted y axis
+dirPoint' :: Dir -> Point
+dirPoint' = \case
+    North -> V2   0 (-1)
+    East  -> V2   1   0
+    South -> V2   0   1
     West  -> V2 (-1)  0
 
 parseDir :: Char -> Maybe Dir

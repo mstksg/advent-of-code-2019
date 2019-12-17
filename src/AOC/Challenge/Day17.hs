@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE TypeApplications #-}
 
 -- |
 -- Module      : AOC.Challenge.Day17
@@ -9,17 +8,6 @@
 -- Portability : non-portable
 --
 -- Day 17.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day17 (
     day17a
@@ -29,94 +17,115 @@ module AOC.Challenge.Day17 (
 import           AOC.Common.Conduino
 import           AOC.Common.Intcode
 import           AOC.Prelude
-import           Data.Conduino
+import qualified Data.List.NonEmpty  as NE
 import qualified Data.Map            as M
-import qualified Data.Sequence       as Seq
 import qualified Data.Set            as S
-
-day17a :: _ :~> _
-day17a = MkSol
-    { sParse = parseMem
-    , sShow  = show
-    , sSolve = \m -> case feedPipe [] (stepForever @IErr m) of
-                       Left _ -> Nothing
-                       Right (map chr -> os, _) -> Just $
-                         let mp = parseAsciiMap charTile os
-                             neighbs = M.keysSet $ M.filterWithKey go mp
-                             go p Scaff = allScaff mp p
-                             go _ _     = False
-                         in  sum $ S.map (\(V2 x y) -> x * y) neighbs
-    }
 
 data Tile = Scaff | Robot Dir
   deriving (Show, Eq, Ord, Generic)
-
-allScaff mp p = all (\q -> M.lookup q mp == Just Scaff) (cardinalNeighbs p)
-
--- cardinalNeighbs :: Point -> [Point]
--- cardinalNeighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
-
 instance NFData Tile
 
-charTile = \case
-  '#' -> Just Scaff
-  '^' -> Just $ Robot North
-  '>' -> Just $ Robot East
-  'v' -> Just $ Robot South
-  '<' -> Just $ Robot West
-  _ -> Nothing
+data AState = AS { asPos :: Point
+                 , asDir :: Dir
+                 }
+  deriving (Show, Eq, Ord, Generic)
+instance NFData AState
 
-tileChar = \case
-  Scaff -> '#'
-  Robot North -> '^'
-  Robot East  -> '>'
-  Robot South  -> 'v'
-  Robot West  -> '<'
+parseMap :: Memory -> Maybe (Set Point, Maybe AState)
+parseMap m = do
+    (os, _) <- eitherToMaybe $ feedPipe [] (stepForever @VMErr m)
+    let mp    = parseAsciiMap parseTile (map chr os)
+        scaff = M.keysSet mp
+        sOut  = do
+          (p, d) <- listToMaybe . M.toList . M.mapMaybe id $ mp
+          pure (AS p d)
+    pure (scaff, sOut)
+  where
+    parseTile = \case
+      '#' -> Just Nothing
+      '^' -> Just (Just North)
+      '>' -> Just (Just East)
+      'v' -> Just (Just South)
+      '<' -> Just (Just West)
+      _   -> Nothing
 
 
-day17b :: _ :~> _
+day17a :: Memory :~> Int
+day17a = MkSol
+    { sParse = parseMem
+    , sShow  = show
+    , sSolve = fmap (sum . S.map product . findNeighbs . fst) . parseMap
+    }
+  where
+    findNeighbs scaff = S.filter allScaff scaff
+      where
+        allScaff = all (`S.member` scaff) . cardinalNeighbs
+
+day17b :: Memory :~> _
 day17b = MkSol
     { sParse = parseMem
     , sShow  = show
-    -- , sShow  = displayAsciiMap ' '
-    -- , sShow  = id
-    , sSolve = \m ->
-        let m' = m & mRegLens 0 .~ 2
-            inp = unlines
-                ["A,B,A,C,B,C,B,C,A,C"
-                ,"R,12,L,10,R,12"
-                ,"L,8,R,10,R,6"
-                ,"R,12,L,10,R,10,L,8"
-                ,"n"
-                ]
-        in  case feedPipe (map ord inp) (stepForever @IErr m') of
-              Right (o, _)   -> lastMay o
-              _              -> Nothing
+    , sSolve = \(set (mRegLens 0) 2 -> m) -> do
+        (scaff, as0) <- sequenceA =<< parseMap m
+        let path  = findPath scaff as0
+        (a,b,c) <- findProgs path
+        let mainProg = chomp [(a,"A"),(b,"B"),(c,"C")] path
+            inp      = map ord . unlines . map (intercalate ",") $
+              [ mainProg
+              , showPC <$> a
+              , showPC <$> b
+              , showPC <$> c
+              , ["n"]
+              ]
 
--- mRegLens :: Natural -> Lens' Memory Int
--- mRegLens i = #mRegs . at i . non 0
-
-              -- neighbs = M.keysSet $ M.filterWithKey go mp
-              -- go p Scaff = allScaff mp p
-              -- go _ _     = False
-          -- in  sum $ S.map (\(V2 x y) -> x * y) neighbs
-          -- let mp = parseAsciiMap charTile os
-          -- in  mp
-              -- neighbs = M.keysSet $ M.filterWithKey go mp
-              -- go p Scaff = allScaff mp p
-              -- go _ _     = False
-          -- in  sum $ S.map (\(V2 x y) -> x * y) neighbs
+        output <- fst <$> eitherToMaybe (feedPipe inp (stepForever @IErr m))
+        lastMay output
     }
 
-getNodes scaff p = case ns of
-    [x,y] -> guard (x /= (y <> South)) $> nss
-    _     -> Just nss
+
+findProgs :: Eq a => [a] -> Maybe ([a], [a], [a])
+findProgs p0 = listToMaybe $ do
+    a <- validPrefix p0
+    let withoutA = neSplitOn a p0
+    b <- case withoutA of
+        []        -> empty
+        bs : _    -> validPrefix bs
+    c <- case concatMap (neSplitOn b) withoutA of
+        []        -> empty
+        c  : rest -> c <$ guard (all (== c) rest)
+    pure (a, b, c)
   where
-    ns = catMaybes $ zip [North,East,South,West] (cardinalNeighbs p) <&> \(d,q) -> 
-        d <$ guard (q `S.member` scaff)
-    nss = S.fromList ns
-    -- n@[x] -> Just (S.fromList n)
-    -- n@[x,y] -> guard (not $ any (== EQ) (liftA2 compare x y)) $> S.fromList [x,y]
-    -- n@[_,_,_] -> Just (S.fromList n)
-    -- n@[_,_,_,_] -> Just (S.fromList n)
-    -- _   -> error "what"
+    neSplitOn x = filter (not . null) . splitOn x
+    validPrefix = take 4 . filter (not . null) . inits
+
+chomp :: Eq a => [([a], b)] -> [a] -> [b]
+chomp progs = unfoldr go
+  where
+    go xs = asum
+      [ (r,) <$> stripPrefix prog xs
+      | (prog, r) <- progs
+      ]
+
+
+
+data PathComp = PC { pcTurn :: Bool, pcStep :: Int }
+  deriving (Show, Eq, Ord, Generic)
+instance NFData PathComp
+
+showPC :: PathComp -> String
+showPC PC{..} = (if pcTurn then "R" else "L") ++ "," ++ show pcStep
+
+findPath :: Set Point -> AState -> [PathComp]
+findPath scaff = mapMaybe process . chunksOf 2 . NE.group . unfoldr go
+  where
+    process [Just b:|_, steps] = Just $ PC b (length steps)
+    process _                  = Nothing
+    go AS{..}
+        | forward   `S.member` scaff = Just (Nothing   , AS forward asDir          )
+        | turnLeft  `S.member` scaff = Just (Just False, AS asPos   (asDir <> West))
+        | turnRight `S.member` scaff = Just (Just True , AS asPos   (asDir <> East))
+        | otherwise                  = Nothing
+      where
+        forward   = asPos + dirPoint' asDir
+        turnLeft  = asPos + dirPoint' (asDir <> West)
+        turnRight = asPos + dirPoint' (asDir <> East)

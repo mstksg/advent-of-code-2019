@@ -146,7 +146,10 @@ chomp progs = unfoldr go
       ]
 ```
 
-The nice thing about writing these functions "in general" (instead of just )
+The nice thing about writing these functions "in general" (instead of just for
+`Either Int Int`) is that it forces us to ignore some of the unimportant
+details, and allows us only to use properties of lists (like lengths) and
+equality testing.
 
 And our final solution is, given a set of scaffolding points and an initial bot
 state:

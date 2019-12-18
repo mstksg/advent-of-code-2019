@@ -10,27 +10,30 @@
 module AOC.Challenge.Day16 (
     day16a
   , day16b
+  , binom99
   ) where
 
-import           AOC.Common          ((!!!), digitToIntSafe)
-import           AOC.Solver          ((:~>)(..))
-import           Control.Monad.ST    (runST)
-import           Control.Monad.State (evalStateT, modify, get)
-import           Data.Foldable       (forM_)
-import           Data.Maybe          (mapMaybe)
-import qualified Data.Vector         as V
-import qualified Data.Vector.Mutable as MV
+import           AOC.Common                   ((!!!), digitToIntSafe)
+import           AOC.Solver                   ((:~>)(..))
+import           Control.Monad
+import           Control.Monad.ST             (runST)
+import           Control.Monad.State          (evalStateT, get, put)
+import           Data.Foldable                (forM_)
+import           Data.List                    (tails, unfoldr)
+import           Data.Maybe                   (mapMaybe)
+import qualified Data.Vector.Storable         as VS
+import qualified Data.Vector.Storable.Mutable as MVS
 
 day16a :: [Int] :~> [Int]
 day16a = MkSol
     { sParse = Just . mapMaybe digitToIntSafe
     , sShow  = concatMap show
     , sSolve = Just
-             . V.toList
-             . V.take 8
+             . VS.toList
+             . VS.take 8
              . (!!! 100)
              . iterate stepVec
-             . V.fromList
+             . VS.fromList
     }
 
 
@@ -38,35 +41,46 @@ day16b :: [Int] :~> [Int]
 day16b = MkSol
     { sParse = Just . mapMaybe digitToIntSafe
     , sShow  = concatMap show
-    , sSolve = \str -> Just $
-        let origLen = length str
-            n   = read . concatMap show $ take 7 str    -- we hope this number is bigger than half length str
+    , sSolve = \str ->
+        let origLen    = length str
+            n          = read . concatMap show $ take 7 str
             startPoint = n `mod` origLen
             endPoint   = origLen * 10000 - n
-            xs  = take endPoint . drop startPoint . cycle $ str
-        in  take 8
-              . reverse
-              . (!!! 100)
-              . iterate ezStep
-              . reverse
-              $ xs
-    }
+            xs         = take endPoint . drop startPoint . cycle $ str
+            result     = map (`dot` binom99) (tails xs)
+            good       = n >= (origLen * 5000)
 
--- | ez pz
-ezStep :: [Int] -> [Int]
-ezStep = map (`mod` 10) . scanl1 (+)
+        in  take 8 result <$ guard good
+    }
+  where
+    dot xs ys = (`mod` 10) . sum . map (`mod` 10) $ zipWith (*) xs ys
+
+-- | Binomial(n+99,99)
+binom99 :: [Int]
+binom99 = fromIntegral . (`mod` 10) <$> unfoldr go (99, fac99)
+  where
+    fac99 :: Integer
+    fac99 = product [1..99]
+    go (id->(!n, !nfac)) = Just (x, (n', nfac'))
+      where
+        x     = nfac `div` fac99
+        n'    = n + 1
+        nfac' = (nfac `div` (n' - 99)) * n'
+
 
 -- | needlessly over-optimized
-stepVec :: V.Vector Int -> V.Vector Int
+stepVec :: VS.Vector Int -> VS.Vector Int
 stepVec v = runST $ do
-    mv <- MV.replicate (V.length v) 0
-    flip evalStateT [] . flip V.imapM_ v $ \i x -> do
-      modify $ (newStep (i + 1) :) . map succStep
-      steps <- get
+    mv <- MVS.replicate (VS.length v) 0
+    flip evalStateT (0,[]) . flip VS.mapM_ v $ \x -> do
+      (i, steps0) <- get
+      let !i'    = i + 1
+          !steps = newStep (i + 1) : map succStep steps0
+      put (i', steps)
       forM_ (zip [0..] steps) $ \(j, s) ->
         forM_ (stepOut s) $ \q ->
-          MV.modify mv ((q * x) +) (i - j)
-    fmap ((`mod` 10) . abs) <$> V.freeze mv
+          MVS.modify mv ((q * x) +) (i - j)
+    VS.map ((`mod` 10) . abs) <$> VS.freeze mv
 
 data Step = Step { sSize :: !Int, sPhase :: !Int }
   deriving Show

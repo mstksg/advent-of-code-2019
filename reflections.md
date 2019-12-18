@@ -1581,21 +1581,20 @@ that file instead!
 ```
 >> Day 16a
 benchmarking...
-time                 4.596 s    (4.510 s .. 4.638 s)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 4.541 s    (4.516 s .. 4.560 s)
-std dev              28.18 ms   (19.02 ms .. 33.53 ms)
+time                 789.6 ms   (599.9 ms .. 940.1 ms)
+                     0.993 R²   (0.976 R² .. NaN R²)
+mean                 785.7 ms   (770.1 ms .. 815.2 ms)
+std dev              28.98 ms   (1.666 ms .. 35.01 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 * parsing and formatting times excluded
 
 >> Day 16b
 benchmarking...
-time                 14.23 s    (13.34 s .. 15.50 s)
-                     0.999 R²   (0.998 R² .. 1.000 R²)
-mean                 13.83 s    (13.65 s .. 14.02 s)
-std dev              243.1 ms   (71.92 ms .. 324.6 ms)
-variance introduced by outliers: 19% (moderately inflated)
+time                 85.91 ms   (83.68 ms .. 88.66 ms)
+                     0.999 R²   (0.996 R² .. 1.000 R²)
+mean                 83.00 ms   (80.39 ms .. 84.47 ms)
+std dev              3.530 ms   (1.877 ms .. 5.352 ms)
 
 * parsing and formatting times excluded
 ```

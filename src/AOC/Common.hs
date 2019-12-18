@@ -21,6 +21,7 @@ module AOC.Common (
   , loopEither
   , firstJust
   , (!!!)
+  , (!?)
   , drop'
   , dup
   , scanlT
@@ -151,6 +152,11 @@ drop' n (x:xs) = x `seq` drop' (n - 1) xs
 -- | Iterate until a 'Nothing' is produced
 iterateMaybe :: (a -> Maybe a) -> a -> [a]
 iterateMaybe f x0 = x0 : unfoldr (fmap dup . f) x0
+
+(!?) :: [a] -> Int -> Maybe a
+[]     !? _ = Nothing
+(x:_ ) !? 0 = Just x
+(_:xs) !? n = xs !? (n - 1)
 
 -- | Apply function until 'Nothing' is produced, and return last produced
 -- value.

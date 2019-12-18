@@ -61,7 +61,7 @@ import qualified Text.Megaparsec.Char.Lexer as PL
 -- This will disable the check for NFData when using 'MkSomeSol' and assume
 -- no NFData in every case.
 checkIfNFData :: Bool
-checkIfNFData = True
+checkIfNFData = False
 
 -- | A specification for a specific challenge.  Should consist of a day and
 -- a lowercase character.

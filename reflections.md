@@ -36,6 +36,7 @@ Table of Contents
 * [Day 15](#day-15) *(no reflection yet)*
 * [Day 16](#day-16) *(no reflection yet)*
 * [Day 17](#day-17)
+* [Day 19](#day-19) *(no reflection yet)*
 
 Day 1
 ------
@@ -1814,6 +1815,49 @@ time                 111.6 μs   (110.6 μs .. 113.6 μs)
 mean                 111.9 μs   (111.1 μs .. 114.4 μs)
 std dev              4.845 μs   (1.746 μs .. 8.760 μs)
 variance introduced by outliers: 45% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 19
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day19.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d19p]* / *[Code][d19g]* / *[Rendered][d19h]*
+
+[d19p]: https://adventofcode.com/2019/day/19
+[d19g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day19.hs
+[d19h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day19.html
+
+*Reflection not yet written -- please check back later!*
+
+### Day 19 Benchmarks
+
+```
+>> Day 19a
+benchmarking...
+time                 3.767 s    (3.719 s .. 3.828 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 3.790 s    (3.777 s .. 3.803 s)
+std dev              14.50 ms   (8.252 ms .. 20.45 ms)
+variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+
+>> Day 19b
+benchmarking...
+time                 7.071 s    (6.956 s .. 7.209 s)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 7.139 s    (7.105 s .. 7.186 s)
+std dev              52.40 ms   (16.81 ms .. 67.49 ms)
+variance introduced by outliers: 19% (moderately inflated)
 
 * parsing and formatting times excluded
 ```

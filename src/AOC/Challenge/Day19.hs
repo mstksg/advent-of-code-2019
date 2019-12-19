@@ -1,6 +1,4 @@
 {-# LANGUAGE TypeApplications         #-}
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 -- |
 -- Module      : AOC.Challenge.Day19
@@ -10,51 +8,46 @@
 -- Portability : non-portable
 --
 -- Day 19.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day19 (
     day19a
   , day19b
   ) where
 
-import           AOC.Common.Conduino
-import           AOC.Common.Intcode
-import           AOC.Common.Search
-import           AOC.Prelude
-import           Data.Conduino
-import           Linear.V2
-import qualified Data.Conduino.Combinators as C
-import qualified Data.Map                  as M
-import qualified Data.Set                  as S
+import           AOC.Common          (Point, countTrue)
+import           AOC.Common.Intcode  (Memory, IErr, parseMem, stepForever, untilHalt)
+import           AOC.Common.Search   (binaryMinSearch, binaryFindMin)
+import           AOC.Solver          ((:~>)(..))
+import           AOC.Util            (firstJust)
+import           Control.Applicative (empty)
+import           Control.Lens        (view)
+import           Control.Monad       (guard, join)
+import           Data.Conduino       (runPipe, (.|), yield, await)
+import           Data.List           (find)
+import           Data.Map            (Map)
+import           Data.Maybe          (fromJust)
+import           Linear.V2           (V2(..), _x, _y)
+import qualified Data.Map            as M
+import qualified Data.Set            as S
 
-day19a :: _ :~> _
+day19a :: Memory :~> Int
 day19a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = \m -> Just $ countTrue (gobo m) (V2 <$> [0..49] <*> [0..49])
+    , sSolve = \m -> Just $ countTrue (checkBeam m) (V2 <$> [0..49] <*> [0..49])
     }
 
-gobo :: Memory -> Point -> Bool
-gobo m (V2 x y) = (== 1) . fromJust . join $
+checkBeam :: Memory -> Point -> Bool
+checkBeam m (V2 x y) = (== 1) . fromJust . join $
     runPipe $ (yield x *> yield y *> empty)
            .| untilHalt (stepForever @IErr m)
            .| await
 
 data Ranges = R
-    { xMins :: Map Int (Maybe Int)
-    , xMaxs :: Map Int (Maybe Int)
-    , yMins :: Map Int (Maybe Int)
-    , yMaxs :: Map Int (Maybe Int)
+    { xMins :: !(Map Int (Maybe Int))
+    , xMaxs :: !(Map Int (Maybe Int))
+    , yMins :: !(Map Int (Maybe Int))
+    , yMaxs :: !(Map Int (Maybe Int))
     }
 
 mkRanges :: Map Point Bool -> Ranges
@@ -78,12 +71,12 @@ mkRanges cache = R{..}
         Just (Just ym) -> subtract 1 <$> binaryMinSearch (not . (cache M.!) . V2 x) ym (ym + 250)
         _              -> Nothing
 
-day19b :: _ :~> _
+day19b :: Memory :~> (Int, Int)
 day19b = MkSol
     { sParse = parseMem
     , sShow  = \(x,y) -> show $ x * 10000 + y
     , sSolve = \m -> do
-        let cache   = M.fromSet (gobo m) (S.fromList $ V2 <$> [0..1500] <*> [0..1500])
+        let cache   = M.fromSet (checkBeam m) (S.fromList $ V2 <$> [0..1500] <*> [0..1500])
             R{..}   = mkRanges cache
             goodY y = do
                 guard $ (xmax - xmin + 1) >= 100

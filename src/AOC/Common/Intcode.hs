@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE QuasiQuotes               #-}
 {-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE Strict                    #-}
 {-# LANGUAGE TupleSections             #-}
 
 

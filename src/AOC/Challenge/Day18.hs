@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wno-unused-imports   #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -w                    #-}
 
 -- |
 -- Module      : AOC.Challenge.Day18
@@ -21,11 +22,10 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day18  where
--- module AOC.Challenge.Day18 (
---     day18a
---   , day18b
---   ) where
+module AOC.Challenge.Day18 (
+    day18a
+  , day18b
+  ) where
 
 import           AOC.Prelude
 import           Data.Tree     (Tree(..), Forest)

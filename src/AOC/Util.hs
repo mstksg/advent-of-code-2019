@@ -16,12 +16,15 @@ module AOC.Util (
   , firstJust
   , maybeToEither
   , maybeAlt
+  , traceShowIdMsg
+  , traceShowMsg
   ) where
 
 import           Control.Applicative
 import           Control.Monad.Except
 import           Data.Foldable
-import qualified Data.Text             as T
+import           Debug.Trace
+import qualified Data.Text            as T
 
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
@@ -49,3 +52,11 @@ firstJust p = asum . map p . toList
 -- | Generalize a 'Maybe' to any 'Alternative'
 maybeAlt :: Alternative m => Maybe a -> m a
 maybeAlt = maybe empty pure
+
+-- | Like 'traceShowId' but with an extra message
+traceShowIdMsg :: Show a => String -> a -> a
+traceShowIdMsg msg x = trace (msg ++ show x) x
+
+-- | Like 'traceShow' but with an extra message
+traceShowMsg :: Show a => String -> a -> b -> b
+traceShowMsg msg x = trace (msg ++ show x)

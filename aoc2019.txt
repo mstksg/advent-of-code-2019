@@ -130,6 +130,12 @@ maybeToEither :: MonadError e m => e -> Maybe a -> m a
 -- | Generalize a <a>Maybe</a> to any <a>Alternative</a>
 maybeAlt :: Alternative m => Maybe a -> m a
 
+-- | Like <a>traceShowId</a> but with an extra message
+traceShowIdMsg :: Show a => String -> a -> a
+
+-- | Like <a>traceShow</a> but with an extra message
+traceShowMsg :: Show a => String -> a -> b -> b
+
 
 -- | Common functions for solutions
 module AOC.Common
@@ -154,6 +160,7 @@ firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
+(!?) :: [a] -> Int -> Maybe a
 
 -- | Strict drop
 drop' :: Int -> [a] -> [a]
@@ -410,15 +417,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a17Hl
-_VMErr :: AsVMErr r_a17Hl => Prism' r_a17Hl VMErr
-_VMEBadMode :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
-_VMEBadInstr :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
-_VMEBadPos :: AsVMErr r_a17Hl => Prism' r_a17Hl Int
-class AsIErr r_a17R1
-_IErr :: AsIErr r_a17R1 => Prism' r_a17R1 IErr
-_IENoInput :: AsIErr r_a17R1 => Prism' r_a17R1 ()
-_IEVM :: AsIErr r_a17R1 => Prism' r_a17R1 VMErr
+class AsVMErr r_a17OZ
+_VMErr :: AsVMErr r_a17OZ => Prism' r_a17OZ VMErr
+_VMEBadMode :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
+_VMEBadInstr :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
+_VMEBadPos :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
+class AsIErr r_a17YG
+_IErr :: AsIErr r_a17YG => Prism' r_a17YG IErr
+_IENoInput :: AsIErr r_a17YG => Prism' r_a17YG ()
+_IEVM :: AsIErr r_a17YG => Prism' r_a17YG VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -18077,6 +18084,12 @@ firstJust :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
 -- | Generalize a <a>Maybe</a> to any <a>Alternative</a>
 maybeAlt :: Alternative m => Maybe a -> m a
 
+-- | Like <a>traceShowId</a> but with an extra message
+traceShowIdMsg :: Show a => String -> a -> a
+
+-- | Like <a>traceShow</a> but with an extra message
+traceShowMsg :: Show a => String -> a -> b -> b
+
 -- | Use a stream of tokens <tt>a</tt> as the underlying parser stream.
 --   Note that error messages for parser errors are going necessarily to be
 --   wonky.
@@ -18106,6 +18119,7 @@ drop' :: Int -> [a] -> [a]
 
 -- | Iterate until a <a>Nothing</a> is produced
 iterateMaybe :: (a -> Maybe a) -> a -> [a]
+(!?) :: [a] -> Int -> Maybe a
 
 -- | Apply function until <a>Nothing</a> is produced, and return last
 --   produced value.
@@ -18491,23 +18505,6 @@ module AOC.Challenge.Day21
 module AOC.Challenge.Day20
 
 
--- | Day 19. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day19
-
-
 -- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
 --   
 --   After completing the challenge, it is recommended to:
@@ -18523,6 +18520,20 @@ module AOC.Challenge.Day19
 --   will recommend what should go in place of the underscores.</li>
 --   </ul>
 module AOC.Challenge.Day18
+day18a :: _ :~> _
+day18b :: _ :~> _
+instance GHC.Generics.Generic AOC.Challenge.Day18.AState3
+instance GHC.Classes.Ord AOC.Challenge.Day18.AState3
+instance GHC.Classes.Eq AOC.Challenge.Day18.AState3
+instance GHC.Generics.Generic AOC.Challenge.Day18.AState
+instance GHC.Show.Show AOC.Challenge.Day18.AState
+instance GHC.Classes.Ord AOC.Challenge.Day18.AState
+instance GHC.Classes.Eq AOC.Challenge.Day18.AState
+instance GHC.Generics.Generic AOC.Challenge.Day18.Item
+instance GHC.Show.Show AOC.Challenge.Day18.Item
+instance GHC.Classes.Ord AOC.Challenge.Day18.Item
+instance GHC.Classes.Eq AOC.Challenge.Day18.Item
+instance GHC.Show.Show AOC.Challenge.Day18.AState3
 
 
 -- | Template Haskell for discovering all named challenges in a given
@@ -18578,6 +18589,12 @@ instance GHC.Classes.Ord AOC.Discover.ChallengeSpec
 instance GHC.Classes.Eq AOC.Discover.ChallengeSpec
 instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
+
+
+-- | Day 19. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day19
+day19a :: Memory :~> Int
+day19b :: Memory :~> (Int, Int)
 
 
 -- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
@@ -18914,14 +18931,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2oBq
-mainRunOpts :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq MainRunOpts
-mroActual :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq Bool
-mroBench :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq Bool
-mroInput :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq Bool
-mroSpec :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq TestSpec
-mroTest :: HasMainRunOpts c_a2oBq => Lens' c_a2oBq Bool
+class HasMainRunOpts c_a2vKr
+mainRunOpts :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr MainRunOpts
+mroActual :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr Bool
+mroBench :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr Bool
+mroInput :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr Bool
+mroSpec :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr TestSpec
+mroTest :: HasMainRunOpts c_a2vKr => Lens' c_a2vKr Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18934,10 +18951,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2oIV
-mainViewOpts :: HasMainViewOpts c_a2oIV => Lens' c_a2oIV MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2oIV => Lens' c_a2oIV TestSpec
-mvoWait :: HasMainViewOpts c_a2oIV => Lens' c_a2oIV Bool
+class HasMainViewOpts c_a2vRW
+mainViewOpts :: HasMainViewOpts c_a2vRW => Lens' c_a2vRW MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2vRW => Lens' c_a2vRW TestSpec
+mvoWait :: HasMainViewOpts c_a2vRW => Lens' c_a2vRW Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18958,12 +18975,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2oNe
-mainSubmitOpts :: HasMainSubmitOpts c_a2oNe => Lens' c_a2oNe MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2oNe => Lens' c_a2oNe Bool
-msoLock :: HasMainSubmitOpts c_a2oNe => Lens' c_a2oNe Bool
-msoSpec :: HasMainSubmitOpts c_a2oNe => Lens' c_a2oNe ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2oNe => Lens' c_a2oNe Bool
+class HasMainSubmitOpts c_a2vWf
+mainSubmitOpts :: HasMainSubmitOpts c_a2vWf => Lens' c_a2vWf MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2vWf => Lens' c_a2vWf Bool
+msoLock :: HasMainSubmitOpts c_a2vWf => Lens' c_a2vWf Bool
+msoSpec :: HasMainSubmitOpts c_a2vWf => Lens' c_a2vWf ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2vWf => Lens' c_a2vWf Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

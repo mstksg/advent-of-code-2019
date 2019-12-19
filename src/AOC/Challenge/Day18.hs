@@ -1,3 +1,5 @@
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE UndecidableInstances     #-}
 {-# OPTIONS_GHC -Wno-unused-imports   #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
@@ -21,269 +23,194 @@
 --     solution.  You can delete the type signatures completely and GHC
 --     will recommend what should go in place of the underscores.
 
-module AOC.Challenge.Day18  where
--- module AOC.Challenge.Day18 (
---     day18a
---   , day18b
---   ) where
+module AOC.Challenge.Day18 (
+    day18a
+  , day18b
+  ) where
 
 import           AOC.Prelude
-import           Data.Tree     (Tree(..), Forest)
+import           Data.Functor.Rep as R
 import           Linear.V4
 import           Linear.Vector
-import qualified Data.Map      as M
-import qualified Data.Sequence as Seq
-import qualified Data.Set      as S
-import qualified Data.Tree     as Tr
+import qualified Data.Map         as M
+import qualified Data.Set         as S
 
-data Item = IKey (Finite 26)
-          | IDoor (Finite 26)
-          | IChar
+data Item = IKey    F26
+          | IDoor   F26
+          | IWall
   deriving (Eq, Ord, Show, Generic)
+instance NFData Item
 
-data AState = A { aKeys  :: Set (Finite 26)
-                , aPos   :: Point
-                }
-  deriving (Eq, Ord, Show, Generic)
+makePrisms ''Item
 
-aHeuristic
-    :: Set (Finite 26)
-    -> AState
-    -> Int
-aHeuristic allKeys A{..} = S.size $ allKeys `S.difference` aKeys
+data Maze f = Maze
+    { mWalls  :: Set Point
+    , mKeys   :: Map Point F26
+    , mDoors  :: Map Point F26
+    , mKeyLoc :: Map F26  Point
+    , mStart  :: f Point
+    }
+  deriving (Generic)
+deriving instance Eq (f Point) => Eq (Maze f)
+deriving instance Ord (f Point) => Ord (Maze f)
+deriving instance Show (f Point) => Show (Maze f)
+instance NFData (f Point) => NFData (Maze f)
 
-aNeighb
-    :: Set Point    -- ^ walls
-    -> Map Point (Finite 26)   -- ^ doors
-    -> Map Point (Finite 26)  -- ^ keys
-    -> AState
-    -> Set AState
-aNeighb walls doors keys A{..} = S.fromList
-    [ A keys' p
-    | p <- cardinalNeighbs aPos
-    , p `S.notMember` illegal
-    , let keys' = case M.lookup p keys of
-                     Nothing -> aKeys
-                     Just c  -> c `S.insert` aKeys
-    ]
+toMaze :: Map Point Item -> Point -> Maze V1
+toMaze mp p = Maze{..}
   where
-    locked   = M.keysSet $ M.filter (`S.notMember` aKeys) doors
-    illegal  = walls `S.union` locked
+    mWalls  = M.keysSet . M.filter (== IWall) $ mp
+    mKeys   = M.mapMaybe (preview _IKey ) mp
+    mDoors  = M.mapMaybe (preview _IDoor) mp
+    mKeyLoc = M.fromList . map swap . M.toList $ mKeys
+    mStart  = V1 p
+
+type KeyMap = Map F26 (Int, Set F26)
+
+keysFrom :: Maze f -> Point -> KeyMap
+keysFrom Maze{..} = go 0 mWalls S.empty
+  where
+    go !dist seen doors p = addKey
+                           . M.unionsWith better
+                           $ map (go (dist + 1) seen' doors') neighbs
+      where
+        neighbs  = S.toList $ cardinalNeighbsSet p `S.difference` seen
+        seen'    = S.insert p seen
+        doors'   = addDoor $ case M.lookup p mDoors of
+                     Nothing -> doors
+                     Just d  -> S.insert d doors
+        keyHere  = M.lookup p mKeys
+        addDoor  = case keyHere of
+                     Nothing -> id
+                     Just c  -> S.insert c
+        addKey   = case keyHere of
+                     Nothing -> id
+                     Just c  -> M.insertWith better c (dist, doors)
+    better (a,x) (b,y)
+      | b < a     = (b, y)
+      | otherwise = (a, x)
+
+
+data KeyToKey f = K
+    { kStart :: f KeyMap
+    , kKeys  :: Map F26 KeyMap
+    }
+  deriving (Generic)
+deriving instance Show (f KeyMap) => Show (KeyToKey f)
+instance NFData (f KeyMap) => NFData (KeyToKey f)
+
+keyToKey :: Functor f => Maze f -> KeyToKey f
+keyToKey mz@Maze{..} = K
+    { kStart = keysFrom mz <$> mStart
+    , kKeys  = M.mapWithKey (\c -> M.delete c . keysFrom mz) mKeyLoc
+    }
+
+data AState f = AS
+    { aKeys :: !(Set F26)
+    , aPos  :: !(f (Maybe F26))
+    }
+  deriving (Generic)
+deriving instance Eq (f (Maybe F26)) => Eq (AState f)
+deriving instance Ord (f (Maybe F26)) => Ord (AState f)
+instance NFData (f (Maybe F26)) => NFData (AState f)
+
+instance Foldable f => Show (AState f) where
+    showsPrec _ AS{..} = 
+            showString "AS<"
+          . showString (foldMap ((:[]) . dispKey) aKeys)
+          . showString ","
+          . showString (foldMap ((:[]) . maybe '@' dispKey) aPos)
+          . showString ">"
+      where
+        dispKey = review _CharFinite . (False,)
+
+
+aHeuristic :: Maze f -> AState f -> Int
+aHeuristic Maze{..} AS{..} = M.size mKeyLoc - S.size aKeys
+
+aStep
+    :: forall f. (Foldable f, Representable f, Rep f ~ E f, Ord (AState f))
+    => KeyToKey f
+    -> AState f
+    -> Map (AState f) Int
+aStep K{..} AS{..} = M.fromList
+    [ (AS aKeys' aPos', cost)
+    | e <- toList $ tabulate @f id
+    , let p = aPos ^. el e
+    , (goal, (cost, doors)) <- M.toList $ case p of
+        Nothing -> kStart ^. el e
+        Just c  -> kKeys M.! c
+    , goal `S.notMember` aKeys
+    , S.null $ doors `S.difference` aKeys
+    , let aKeys' = S.insert goal aKeys
+          aPos'  = aPos & el e ?~ goal
+    ]
     
-flipMap :: Ord a => Map k a -> Map a k
-flipMap = M.fromList . map swap . M.toList
 
 day18a :: _ :~> _
 day18a = MkSol
-    { sParse = Just . parseAsciiMap pr
-    , sShow  = show . fst
-    , sSolve = \mp ->
-        let walls   = M.keysSet . M.filter isNothing $ mp
-            keys    = M.mapMaybe (\case Just (IKey c) -> Just c; _ -> Nothing) mp
-            allKeys = S.fromList . toList $ keys
-            doors   = M.mapMaybe (\case Just (IDoor c) -> Just c; _ -> Nothing) mp
-            (p0,_)  = M.findMin $ M.filter (== Just IChar) mp
-        in  aStar (aHeuristic allKeys)
-                  (M.fromSet (const 1) . aNeighb walls doors keys)
-                  (A S.empty p0)
-                  (\a -> aHeuristic allKeys a == 0)
+    { sParse = fmap (uncurry toMaze) . sequenceA . parseMap
+    , sShow  = show
+    , sSolve = \mz -> fst <$>
+        aStar (aHeuristic mz)
+              (aStep (keyToKey mz))
+              (AS S.empty (pure Nothing))
+              ((== 0) . aHeuristic mz)
+    }
 
+reMaze :: Maze V1 -> Maze V4
+reMaze m@Maze{..} = m
+    { mWalls = S.insert p0 mWalls
+    , mStart = (+p0) <$> V4 (V2 (-1) (-1))
+                            (V2   1  (-1))
+                            (V2 (-1)   1 )
+                            (V2   1    1 )
     }
   where
-    pr = \case
-      '#' -> Just Nothing
-      '@' -> Just $ Just IChar
-      c -> charFinite c <&> \(up, d) ->
-                if up then Just $ IDoor d
-                      else Just $ IKey  d
-             
-
-flattenMaze :: Set Point -> Map Point a -> Point -> Forest (Int, Maybe a)
-flattenMaze walls labels p00 = flattenForest . pruneForest isJust $ go (S.singleton p00) p00
-  where
-    go seen p0 =
-      [ Node (M.lookup p labels) (go seen' p)
-      | p <- S.toList . (`S.difference` seen) . (`S.difference` walls) . S.fromList . cardinalNeighbs $ p0
-      , let seen' = S.insert p seen
-      ]
-
-
-flattenForest :: forall a. Forest (Maybe a) -> Forest (Int, Maybe a)
-flattenForest = concatMap (go 1)
-  where
-    go i (Node Nothing [])  = []
-    go i (Node Nothing [x]) = go (i + 1) x
-    go i (Node Nothing [x,y])  = [Node (i, Nothing) (flattenForest [x,y])]
-    go i (Node Nothing [x,y,z])  = [Node (i, Nothing) (flattenForest [x,y,z])]
-    go i (Node (Just x) xs) = [Node (i, Just x) (flattenForest xs)]
-
-
-type TreeIx = Seq Int
-
-data AState3 = A3 { a3Keys  :: !(Set (Finite 26))
-                  , a3Pos   :: !(V4 TreeIx)
-                  }
-  deriving (Eq, Ord, Generic)
-
-instance Show AState3 where
-    showsPrec _ A3{..} = showString "A3< "
-                       . showString (foldMap ((:[]) . review _CharFinite . (False,)) a3Keys)
-                       . showString "\t, "
-                       . showsPrec 9 (toList <$> a3Pos)
-                       . showString " >"
-
-type ATree = Tree (Int, Maybe (Bool, Finite 26))
-
-ixTree :: TreeIx -> Tree a -> Maybe a
-ixTree Empty      (Node x _ ) = Just x
-ixTree (i :<| is) (Node _ xs) = ixTree is =<< (xs !? i)
-
-descendTree :: TreeIx -> Tree a -> Maybe (Tree a)
-descendTree Empty x = Just x
-descendTree (i :<| is) (Node _ xs) = (descendTree is =<<) . listToMaybe . drop i $ xs
-
-type FlatTree a = Map TreeIx (Tree a)
-
-genFlatTree :: Tree a -> FlatTree a
-genFlatTree = M.fromList . helpFlatTree
-  where
-    helpFlatTree t0@(Node _ xs) = (Seq.empty, t0) : concat (zipWith go [0..] xs)
-    go i = (map . first) (i :<|) . helpFlatTree
-
--- | Prune all branches where the predicate is false for every item
--- underneath
-pruneForest :: (a -> Bool) -> Forest a -> Forest a
-pruneForest p = concatMap go
-  where
-    go n@(Node x xs)
-        | null pf && not (p x) = []
-        | otherwise            = [Node x pf]
-      where
-        pf = concatMap go xs
-
-moveIx :: Tree (Int, a) -> TreeIx -> [((Int, TreeIx), a)]
-moveIx t0@(Node _ xs) = \case
-    Empty         -> (first . second) Seq.singleton <$> zipWith go [0..] xs
-    js@(is :|> i) -> do
-      Node (c, y) ys <- maybeToList $ descendTree is t0
-      Node (d, _) zs <- maybeToList $ ys !? i
-      ((d, is), y) : ((first . second) (js :|>) <$> zipWith go [0..] zs)
-  where
-    go i n@(Node (d, x) _) = ((d, i), x)
-
-moveIxFlat :: FlatTree (Int, a) -> TreeIx -> [((Int, TreeIx), a)]
-moveIxFlat t0 = \case
-    Empty         -> (first . second) Seq.singleton <$> zipWith go [0..] (Tr.subForest (t0 M.! Seq.empty))
-    js@(is :|> i) -> do
-      Node (c, y) ys <- maybeToList $ M.lookup is t0
-      Node (d, _) zs <- maybeToList $ ys !? i
-      ((d, is), y) : ((first . second) (js :|>) <$> zipWith go [0..] zs)
-  where
-    go i n@(Node (d, x) _) = ((d, i), x)
-
-keysUnder :: ATree -> Set (Finite 26)
-keysUnder = S.fromList . mapMaybe (fmap snd . mfilter (not . fst) . snd) . toList
-
-aHeuristic3
-    :: Int
-    -> AState3
-    -> Int
-aHeuristic3 allKeys A3{..} = S.size a3Keys - allKeys
-
-aNeighb3
-    :: V4 ATree
-    -> AState3
-    -> Map AState3 Int
-aNeighb3 trs (traceShowId->A3{..}) = M.fromList
-    [ (A3 keys' (a3Pos & el e .~ p), c)
-    | e <- [ex,ey,ez,ew]
-    , let tr = trs ^. el e
-    , ((c, p), item) <- moveIx tr (a3Pos ^. el e)
-    -- possible optimiaztion: do not go "up" ever, if upwards has no
-    -- relevant keys underneath it
-    , case item of
-        Just (True, c) -> c `S.member` a3Keys
-        _              -> True
-    , let keys' = case item of
-                    Just (False, c) -> c `S.insert` a3Keys
-                    _ -> a3Keys
-    ]
+    V1 p0  = mStart
 
 day18b :: _ :~> _
 day18b = MkSol
-    { sParse = Just . parseMaze
-    , sShow = show . fst
-    -- , sShow = show
-    -- , sShow = unlines . map show . snd
-    -- , sShow = show . second (map head . group) . (second . map) (foldMap ((:[]) . review _CharFinite . (False,)) . a3Keys)
-    -- , sShow = ("\n"++) . Tr.drawTree . fmap (show . (second . fmap) (review _CharFinite)) . view _x
-    -- , sShow = foldMap (("\n"++) . Tr.drawTree . fmap (show . (second . fmap) (review _CharFinite)))
-    , sSolve = \(displace->(mp, p0s)) ->
-        let walls    = M.keysSet . M.filter isNothing $ mp
-            labels   = M.mapMaybe (\case Just (IKey c) -> Just (False, c); Just (IDoor c) -> Just (True, c); _ -> Nothing) mp
-            keys     = M.mapMaybe (\case Just (IKey c) -> Just c; _ -> Nothing) mp
-            allKeys  = S.fromList . toList $ keys
-            keyCount = S.size allKeys
-            trees = Node (0, Nothing) . flattenMaze walls labels <$> p0s
-            flatTrees = genFlatTree <$> trees
-        in  aStar (aHeuristic3 keyCount)
-                  (aNeighb3 trees)
-                  (A3 S.empty (pure Seq.empty))
-                  (\a -> aHeuristic3 keyCount a == 0)
+    { sParse = fmap (reMaze . uncurry toMaze) . sequenceA . parseMap
+    , sShow  = show
+    , sSolve = \mz -> fst <$>
+        aStar (aHeuristic mz)
+              (aStep (keyToKey mz))
+              (AS S.empty (pure Nothing))
+              ((== 0) . aHeuristic mz)
     }
+
+parseMap :: String -> (Map Point Item, Maybe Point)
+parseMap str = second (fmap getFirst) . swap
+              . flip M.traverseMaybeWithKey mp
+              $ \p -> \case
+                  Nothing -> (Just (First p), Nothing)
+                  Just t  -> (mempty        , Just t )
   where
-    pp mp = M.unions [M.singleton p0 Nothing, newWalls, newPlayers, mp]
-      where
-        (p0,_)  = M.findMin $ M.filter (== Just IChar) mp
-        newWalls = M.fromList ((,Nothing) <$> cardinalNeighbs p0)
-        newPlayers = M.fromList ((,Just IChar) <$> diagos)
-        diagos = map (+p0) [V2 1 1, V2 1 (-1), V2 (-1) 1, V2 (-1) (-1)]
-    pr = \case
-      '#' -> Just Nothing
-      '@' -> Just $ Just IChar
-      c -> charFinite c <&> \(up, d) ->
-                if up then Just $ IDoor d
-                      else Just $ IKey  d
-    drawItem = \case
-      Nothing -> '#'
-      Just IChar -> '@'
-      Just (IKey c) -> review _CharFinite (False, c)
-      Just (IDoor c) -> review _CharFinite (True, c)
+    mp = flip parseAsciiMap str $ \case
+      '#' -> Just $ Just IWall
+      '@' -> Just Nothing
+      c   -> charFinite c <&> \(up, d) -> Just $
+               if up then IDoor d
+                     else IKey  d
 
-prettyTree :: ATree -> String
-prettyTree = Tr.drawTree . fmap (show . (second . fmap) (review _CharFinite))
+-- keysFrom :: Maze f -> Point -> KeyMap
+-- keysFrom Maze{..} p0 = M.mapWithKey cond paths
+--   where
+--     cond x xs = (c, S.delete x seen)
+--       where
+--         (Sum c, seen) = foldMap (\(_,(_,s)) -> (Sum 1, s)) xs
+--     paths = bfsAll
+--                 expand
+--                 (p0, (Nothing, S.empty))
+--                 (fst . snd)
+--                 (const False)
+--     expand (traceShowId->(p, (_, seen))) = S.fromList
+--         [ (p', (keyHere, seen'))
+--         | p' <- S.toList $ cardinalNeighbsSet p `S.difference` mWalls
+--         , let keyHere = M.lookup p' mKeys
+--               seen'   = case keyHere of
+--                           Nothing -> seen
+--                           Just c  -> S.insert c seen
+--         ]
 
-displace :: Map Point (Maybe Item) -> (Map Point (Maybe Item), V4 Point)
-displace mp = (M.unions [M.singleton p0 Nothing, newWalls, newPlayers, mp], diagos)
-  where
-    (p0,_)  = M.findMin $ M.filter (== Just IChar) mp
-    newWalls = M.fromList (map (,Nothing) $ cardinalNeighbs p0)
-    newPlayers = M.fromList (toList . fmap (,Just IChar) $ diagos)
-    diagos = (+p0) <$> V4 (V2 1 1) (V2 1 (-1)) (V2 (-1) 1) (V2 (-1) (-1))
-
-parseMaze :: String -> Map Point (Maybe Item)
-parseMaze = parseAsciiMap pr
-  where
-    pr = \case
-      '#' -> Just Nothing
-      '@' -> Just $ Just IChar
-      c -> charFinite c <&> \(up, d) ->
-                if up then Just $ IDoor d
-                      else Just $ IKey  d
-
-testTree :: String -> (V4 ATree)
-testTree str = Node (0, Nothing) . flattenMaze walls labels <$> p0s
-  where
-    (mp, p0s) = displace . parseMaze $ str
-    walls    = M.keysSet . M.filter isNothing $ mp
-    labels   = M.mapMaybe (\case Just (IKey c) -> Just (False, c); Just (IDoor c) -> Just (True, c); _ -> Nothing) mp
-
-test1 = unlines
-  [ "###############"
-  , "#d.ABC.#.....a#"
-  , "######...######"
-  , "######.@.######"
-  , "######...######"
-  , "#b.....#.....c#"
-  , "###############"
-  ]

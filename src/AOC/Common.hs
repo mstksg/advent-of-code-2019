@@ -54,6 +54,7 @@ module AOC.Common (
   , listTup4
   -- * Simple type util
   , deleteFinite
+  , F26
   , charFinite
   , _CharFinite
   , digitToIntSafe
@@ -71,7 +72,9 @@ module AOC.Common (
   -- * Points
   , Point
   , cardinalNeighbs
+  , cardinalNeighbsSet
   , fullNeighbs
+  , fullNeighbsSet
   , mannDist
   , mulPoint
   , lineTo
@@ -257,6 +260,8 @@ eitherItem f (Right x) = Right <$> f x
 getDown :: Down a -> a
 getDown (Down x) = x
 
+type F26 = Finite 26
+
 -- | Parse a letter into a number 0 to 25.  Returns 'False' if lowercase
 -- and 'True' if uppercase.
 charFinite :: Char -> Maybe (Bool, Finite 26)
@@ -437,11 +442,17 @@ boundingBox' = fmap boundingBox . NE.nonEmpty . toList
 cardinalNeighbs :: Point -> [Point]
 cardinalNeighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
 
+cardinalNeighbsSet :: Point -> Set Point
+cardinalNeighbsSet = S.fromList . cardinalNeighbs
+
 fullNeighbs :: Point -> [Point]
 fullNeighbs p = [ p + V2 dx dy
                 | dx <- [-1 .. 1]
                 , dy <- if dx == 0 then [-1,1] else [-1..1]
                 ]
+
+fullNeighbsSet :: Point -> Set Point
+fullNeighbsSet = S.fromList . fullNeighbs
 
 memoPoint :: Memo Point
 memoPoint = Memo.wrap (uncurry V2) (\(V2 x y) -> (x, y)) $

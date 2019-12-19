@@ -1,4 +1,5 @@
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeApplications   #-}
 {-# OPTIONS_GHC -Wno-orphans    #-}
 
 module AOC.Common.Conduino (
@@ -111,6 +112,41 @@ deriving instance MonadPlus m => MonadPlus (Pipe a c u m)
 iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
 iterM f = C.mapM (\x -> x <$ f x)
 
+-- feedPipe
+--     :: forall i o u m a. Monad m
+--     => [i]
+--     -> Pipe i o u m a
+--     -> m ([o], Either (Either u i -> Pipe i o u m a) ([i], a))
+-- feedPipe xs0 (Pipe p) = reshuffle =<< runStateT (runFT (hoistFT lift p) pr fr) xs0
+--   where
+--     reshuffle
+--         :: (([o], Either (Either u i -> Pipe i o u (StateT [i] m) a) a), [i])
+--         -> m ([o], Either (Either u i -> Pipe i o u m a) ([i], a))
+--     reshuffle ((os, res), leftover) = case res of
+--       Right x -> pure ((os, Right (leftover, x)))
+--       Left  n -> do
+--         runStateP leftover
+--     -- reshuffle ((os, res), leftover) = (os, (leftover,) <$> res)
+--     pr = pure . ([],) . Right
+--     fr :: (x -> StateT [i] m ([o], Either (Either u i -> Pipe i o u (StateT [i] m) a) a))
+--        -> PipeF i o u x
+--        -> StateT [i] m ([o], Either (Either u i -> Pipe i o u (StateT [i] m) a) a)
+--     fr pNext = \case
+--       PAwaitF f g -> get >>= \case
+--         []   -> pure . ([],) . Left $ (unFr =<<) . lift @(Pipe i o u) . pNext . either f g
+--         x:xs -> put xs *> pNext (g x)
+--       -- \case
+--         -- [] -> pure . ([],) . Left $ (unFeed =<<) . pNext . either f g
+--         -- pure . ([],) . Left $ (unSqueeze =<<) . lift . pNext . either f g
+--       PYieldF o x -> first (o:) <$> pNext x
+--     -- unFr :: Pipe i o u (StateT [i] m) ([o], Either (Either u i -> Pipe i o u m a) a)
+--     --      -> Pipe i o u m a
+--     unFr (os, next) = do
+--       mapM_ yield os
+--       case next of
+--         Left  n -> n =<< awaitEither
+--         Right x -> pure x
+
 feedPipe
     :: Monad m
     => [i]
@@ -183,7 +219,7 @@ unStep = \case
 -- the full feedPipe for some reason. curious.
 --
 -- it might be just that recpipe is more performant.  but then why use FT
--- at all?
+-- at all?  maybe FT is good for building but not for using
 --
 -- step-based: 1.7s
 -- rec-based (feedpipe): 1.1s

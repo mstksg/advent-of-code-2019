@@ -50,9 +50,10 @@ data Ranges = R
     , yMaxs :: !(Map Int (Maybe Int))
     }
 
-mkRanges :: Map Point Bool -> Ranges
-mkRanges cache = R{..}
+mkRanges :: Memory -> Ranges
+mkRanges m = R{..}
   where
+    cache   = M.fromSet (checkBeam m) (S.fromList $ V2 <$> [0..1500] <*> [0..1500])
     rangeRange = S.fromAscList [0..1250]
     xMins = flip M.fromSet rangeRange $ \y ->
       case M.lookup (y - 1) xMins of
@@ -76,8 +77,7 @@ day19b = MkSol
     { sParse = parseMem
     , sShow  = \(x,y) -> show $ x * 10000 + y
     , sSolve = \m -> do
-        let cache   = M.fromSet (checkBeam m) (S.fromList $ V2 <$> [0..1500] <*> [0..1500])
-            R{..}   = mkRanges cache
+        let R{..}   = mkRanges m
             goodY y = do
                 guard $ (xmax - xmin + 1) >= 100
                 binaryFindMin goodX xmin (xmax - 100 + 1)

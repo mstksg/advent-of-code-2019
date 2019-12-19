@@ -13,6 +13,9 @@ module AOC.Common.Conduino (
   , (|.)
   , iterM
   , feedPipe
+  , stepPipe
+  , PipeStep(..)
+  , squeezePipe
   ) where
 
 import           Control.Applicative
@@ -20,6 +23,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free hiding (iterM)
+import           Control.Monad.Trans.Free.Church hiding (iterM)
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Conduino
@@ -111,18 +115,92 @@ feedPipe
     :: Monad m
     => [i]
     -> Pipe i o u m a
-    -> m ([o], Either (i -> Pipe i o u m a) a)
+    -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
 feedPipe xs = (fmap . second . first . fmap) fromRecPipe . feedPipe_ xs . toRecPipe
 
 feedPipe_
     :: Monad m
     => [i]
     -> RecPipe i o u m a
-    -> m ([o], Either (i -> RecPipe i o u m a) a)
+    -> m ([o], Either (i -> RecPipe i o u m a) ([i], a))
 feedPipe_ xs (FreeT p) = p >>= \case
-    Pure y -> pure ([], Right y)
+    Pure y -> pure ([], Right (xs, y))
     Free (PAwaitF _ g) -> case xs of
       []   -> pure ([], Left g)
       y:ys -> feedPipe_ ys (g y)
     Free (PYieldF o q) -> first (o:) <$> feedPipe_ xs q
 
+-- -- | For some reason this is much worse than the recPipe based feedPipe.
+-- -- it might be becasue of 'runFT' being used repeatedly/recursively at
+-- -- every step, whereas feedPipe uses it only once.
+-- feedPipe
+--     :: Monad m
+--     => [i]
+--     -> Pipe i o u m a
+--     -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
+-- feedPipe xs p = stepPipe p >>= \case
+--     PSDone r  -> pure ([], Right (xs, r))
+--     PSWait f  -> case xs of
+--       []   -> pure ([], Left (f . Right))
+--       y:ys -> feedPipe ys (f (Right y))
+--     PSOut o q -> first (o:) <$> feedPipe xs q
+
+data PipeStep i o u m a =
+      PSDone a
+    | PSWait (Either u i -> Pipe i o u m a)
+    | PSOut  o (Pipe i o u m a)
+  deriving Functor
+
+stepPipe
+    :: Monad m
+    => Pipe i o u m a
+    -> m (PipeStep i o u m a)
+stepPipe (Pipe p) = runFT p
+    (pure . PSDone)
+    (\pNext -> \case
+        PAwaitF f g -> pure . PSWait  $ (unStep =<<) . lift . pNext . either f g
+        PYieldF o x -> pure . PSOut o $ unStep =<< lift (pNext x)
+    )
+
+unStep :: PipeStep i o u m a -> Pipe i o u m a
+unStep = \case
+    PSDone a  -> pure a
+    PSWait f  -> f =<< awaitEither
+    PSOut o p -> yield o *> p
+
+-- -- see feedPipe
+-- squeezePipe
+--     :: Monad m
+--     => Pipe i o u m a
+--     -> m ([o], Either (Either u i -> Pipe i o u m a) a)
+-- squeezePipe p = stepPipe p >>= \case
+--     PSDone a  -> pure ([], Right a)
+--     PSWait f  -> pure ([], Left  f)
+--     PSOut o q -> first (o:) <$> squeezePipe q
+
+-- so now re-written to not use stepPipe and so not repeated runFT. it is
+-- better than the stepPipe based version but still not quite as fast as
+-- the full feedPipe for some reason. curious.
+--
+-- it might be just that recpipe is more performant.  but then why use FT
+-- at all?
+--
+-- step-based: 1.7s
+-- rec-based (feedpipe): 1.1s
+-- single FT: 1.3s
+squeezePipe
+    :: Monad m
+    => Pipe i o u m a
+    -> m ([o], Either (Either u i -> Pipe i o u m a) a)
+squeezePipe (Pipe p) = runFT p
+    (pure . ([],) . Right)
+    (\pNext -> \case
+        PAwaitF f g -> pure . ([],) . Left $ (unSqueeze =<<) . lift . pNext . either f g
+        PYieldF o x -> first (o:) <$> pNext x
+    )
+  where
+    unSqueeze (os, next) = do
+      mapM_ yield os
+      case next of
+        Left f  -> f =<< awaitEither
+        Right a -> pure a

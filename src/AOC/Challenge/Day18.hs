@@ -1,9 +1,6 @@
 {-# LANGUAGE Strict                   #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE UndecidableInstances     #-}
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# OPTIONS_GHC -w                    #-}
 
 -- |
 -- Module      : AOC.Challenge.Day18
@@ -13,36 +10,41 @@
 -- Portability : non-portable
 --
 -- Day 18.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day18 (
     day18a
   , day18b
   ) where
 
-import           AOC.Prelude
+
+import           AOC.Common           (Point, charFinite, _CharFinite, Letter, parseAsciiMap, cardinalNeighbsSet)
+import           AOC.Common.Search    (aStar)
+import           AOC.Solver           ((:~>)(..))
+import           Control.DeepSeq      (NFData)
+import           Control.Lens         (preview, review, (?~), (^.))
+import           Data.Bifunctor       (second)
+import           Data.Foldable        (toList)
+import           Data.Function        ((&))
+import           Data.Functor         ((<&>))
 import           Data.Functor.Rep     as R
-import           Data.Generics.Labels
-import           Linear.V4
-import           Linear.Vector
+import           Data.Generics.Labels ()
+import           Data.List            (intercalate)
+import           Data.Map             (Map)
+import           Data.Semigroup       (First(..))
+import           Data.Set             (Set)
+import           Data.Tuple           (swap)
+import           GHC.Generics         (Generic)
+import           Linear               (V1(..), V2(..), V4(..))
+import           Linear.Vector        (E(..))
+import           Text.Printf          (printf)
 import qualified Data.Map             as M
 import qualified Data.Set             as S
 
 data Maze f = Maze
     { mWalls  :: Set Point
-    , mKeys   :: Map Point F26
-    , mDoors  :: Map Point F26
-    , mKeyLoc :: Map F26  Point
+    , mKeys   :: Map Point Letter
+    , mDoors  :: Map Point Letter
+    , mKeyLoc :: Map Letter  Point
     , mStart  :: f Point
     }
   deriving (Generic)
@@ -53,7 +55,7 @@ instance NFData (f Point) => NFData (Maze f)
 
 -- | From a given point, a map to every visible key, with the distance and
 -- the set of keys and doors in the way.
-type KeyMap = Map F26 (Int, Set F26)
+type KeyMap = Map Letter (Int, Set Letter)
 
 -- | Do a DFS to build the key map
 keysFrom :: Maze f -> Point -> KeyMap
@@ -82,7 +84,7 @@ keysFrom Maze{..} = go 0 mWalls S.empty
 
 data KeyToKey f = K
     { kStart :: f KeyMap
-    , kKeys  :: Map F26 KeyMap
+    , kKeys  :: Map Letter KeyMap
     }
   deriving (Generic)
 deriving instance Show (f KeyMap) => Show (KeyToKey f)
@@ -95,13 +97,13 @@ keyToKey mz@Maze{..} = K
     }
 
 data AState f = AS
-    { aKeys :: !(Set F26)
-    , aPos  :: !(f (Maybe F26))
+    { aKeys :: !(Set Letter)
+    , aPos  :: !(f (Maybe Letter))
     }
   deriving (Generic)
-deriving instance Eq (f (Maybe F26)) => Eq (AState f)
-deriving instance Ord (f (Maybe F26)) => Ord (AState f)
-instance NFData (f (Maybe F26)) => NFData (AState f)
+deriving instance Eq (f (Maybe Letter)) => Eq (AState f)
+deriving instance Ord (f (Maybe Letter)) => Ord (AState f)
+instance NFData (f (Maybe Letter)) => NFData (AState f)
 
 aHeuristic :: Maze f -> AState f -> Int
 aHeuristic Maze{..} AS{..} = M.size mKeyLoc - S.size aKeys
@@ -169,19 +171,19 @@ instance Foldable f => Show (AState f) where
           . showString (foldMap ((:[]) . maybe '@' dispKey) aPos)
           . showString ">"
 
-dispKey :: F26 -> Char
+dispKey :: Letter -> Char
 dispKey  = review _CharFinite . (False,)
-dispDoor :: F26 -> Char
+
+dispDoor :: Letter -> Char
 dispDoor = review _CharFinite . (True,)
 
-
-dispKeyMap :: KeyMap -> String
-dispKeyMap = intercalate ", " . map go . M.toList
+_dispKeyMap :: KeyMap -> String
+_dispKeyMap = intercalate ", " . map go . M.toList
   where
     go (c, (d, xs)) = printf "%c:%d[%s]" (dispKey c) d (foldMap ((:[]).dispDoor) xs)
 
-data Item = IKey    F26
-          | IDoor   F26
+data Item = IKey    Letter
+          | IDoor   Letter
           | IWall
   deriving (Eq, Ord, Show, Generic)
 instance NFData Item

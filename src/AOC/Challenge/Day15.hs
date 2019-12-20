@@ -15,7 +15,7 @@ module AOC.Challenge.Day15 (
   ) where
 
 import           AOC.Common            (Point, Dir(..), floodFillCount, dirPoint)
-import           AOC.Common.Conduino   (feedPipe, stepPipe, PipeStep(..), squeezePipe)
+import           AOC.Common.Conduino   (stepPipe, PipeStep(..), squeezePipe)
 import           AOC.Common.Intcode    (Memory, VMErr, parseMem, stepForever, untilHalt)
 import           AOC.Common.Search     (bfs)
 import           AOC.Solver            ((:~>)(..))
@@ -61,9 +61,6 @@ stepAround :: BotState -> Set BotState
 stepAround (Arg S{..} bot) = S.fromList $ do
     dir            <- [ North .. ]
     let p = sCoord + dirPoint dir
-    -- PSOut o b'     <- pure . runIdentity $ stepPipe (bot (dNum dir))
-    -- PSWait c       <- pure . runIdentity $ stepPipe b'
-    -- (o:_, Left c) <- pure . runIdentity $ feedPipe [] (bot (dNum dir))
     (o:_, Left c) <- pure . runIdentity $ squeezePipe (bot (dNum dir))
     case o of
       1 -> pure $ Arg (S p Floor ) (c . Right)

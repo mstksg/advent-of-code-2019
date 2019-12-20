@@ -54,7 +54,7 @@ module AOC.Common (
   , listTup4
   -- * Simple type util
   , deleteFinite
-  , F26
+  , Letter
   , charFinite
   , _CharFinite
   , digitToIntSafe
@@ -260,7 +260,7 @@ eitherItem f (Right x) = Right <$> f x
 getDown :: Down a -> a
 getDown (Down x) = x
 
-type F26 = Finite 26
+type Letter = Finite 26
 
 -- | Parse a letter into a number 0 to 25.  Returns 'False' if lowercase
 -- and 'True' if uppercase.

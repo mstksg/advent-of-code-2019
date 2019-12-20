@@ -15,7 +15,6 @@ import           Data.Map       (Map)
 import           Data.OrdPSQ    (OrdPSQ)
 import           Data.Sequence  (Seq(..))
 import           Data.Set       (Set)
-import           Debug.Trace
 import qualified Data.Map       as M
 import qualified Data.OrdPSQ    as Q
 import qualified Data.Sequence  as Seq
@@ -27,7 +26,7 @@ data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of 
 
 -- | A* Search
 aStar
-    :: forall n p. (Ord n, Ord p, Num p, Show p, Show n)
+    :: forall n p. (Ord n, Ord p, Num p)
     => (n -> p)         -- ^ heuristic
     -> (n -> Map n p)   -- ^ neighborhood
     -> n                -- ^ start
@@ -40,7 +39,6 @@ aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty
       where
         goreco n = n : maybe [] goreco (mp M.! n)
     go :: AStarState n p -> Maybe (p, (n, Map n (Maybe n)))
-    -- go as0@AS{..} = traceShow (Q.toList (fst <$> _asOpen)) $ Q.minView _asOpen >>= \(traceShowId->n,p,(g,up),queue') ->
     go as0@AS{..} = Q.minView _asOpen >>= \(n,p,(g,up),queue') ->
       let closed' = M.insert n up _asClosed
       in  if dest n
@@ -62,45 +60,6 @@ insertIfBetter k p x q = case Q.lookup k q of
     Just (p', _)
       | p < p'    -> Q.insert k p x q
       | otherwise -> q
-
--- -- | A* Search
--- aStar
---     :: forall n p. (Ord n, Ord p, Num p, Show p, Show n)
---     => (n -> p)         -- ^ heuristic
---     -> (n -> Map n p)   -- ^ neighborhood
---     -> n                -- ^ start
---     -> (n -> Bool)      -- ^ target
---     -> Maybe (p, [n])   -- ^ the shortest path, if it exists, and its cost
--- aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty Q.empty))
---   where
---     reconstruct :: (n, Map n (Maybe n)) -> [n]
---     reconstruct (goal, mp) = reverse $ goreco goal
---       where
---         goreco n = n : maybe [] goreco (mp M.! n)
---     go :: AStarState n p -> Maybe (p, (n, Map n (Maybe n)))
---     -- go as0@AS{..} = traceShow (Q.toList (fst <$> _asOpen)) $ Q.minView _asOpen >>= \(traceShowId->n,p,(g,up),queue') ->
---     go as0@AS{..} = Q.minView _asOpen >>= \(n,p,(g,up),queue') ->
---       let closed' = M.insert n up _asClosed
---       in  if dest n
---             then Just (p, (n, closed'))
---             else go . M.foldlWithKey' (processNeighbor n g) (as0 { _asOpen = queue', _asClosed = closed'  })
---                     $ ex n
---     addBack :: n -> p -> Maybe n -> AStarState n p -> AStarState n p
---     addBack x g up as0 = as0 { _asOpen = insertIfBetter x (g + h x) (g, up) . _asOpen $ as0 }
---     processNeighbor :: n -> p -> AStarState n p -> n -> p -> AStarState n p
---     processNeighbor curr currCost as0@AS{..} neighb moveCost =
---       -- | neighb `Q.member` _asOpen || neighb `M.member` _asClosed = as0
---       -- -- | neighb `M.member` _asClosed = as0
---       -- | otherwise = addBack neighb (currCost + moveCost) (Just curr) as0
---         addBack neighb (currCost + moveCost) (Just curr) as0
-
--- insertIfBetter :: (Ord k, Ord p) => k -> p -> v -> OrdPSQ k p v -> OrdPSQ k p v
--- insertIfBetter k p x q = case Q.lookup k q of
---     Nothing       -> Q.insert k p x q
---     Just (p', _)
---       | p < p'    -> Q.insert k p x q
---       | otherwise -> q
-
 
 data BFSState n = BS { _bsClosed  :: !(Map n (Maybe n))  -- ^ map of item to "parent"
                      , _bsOpen    :: !(Seq n          ) -- ^ queue

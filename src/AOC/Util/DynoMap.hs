@@ -1,3 +1,5 @@
+{-# LANGUAGE NoDeriveAnyClass #-}
+
 module AOC.Util.DynoMap (
     DynoMap(..)
   , lookupDyno

@@ -1,5 +1,4 @@
-{-# OPTIONS_GHC -Wno-unused-imports   #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 -- |
 -- Module      : AOC.Challenge.Day20
@@ -9,36 +8,41 @@
 -- Portability : non-portable
 --
 -- Day 20.  See "AOC.Solver" for the types used in this module!
---
--- After completing the challenge, it is recommended to:
---
--- *   Replace "AOC.Prelude" imports to specific modules (with explicit
---     imports) for readability.
--- *   Remove the @-Wno-unused-imports@ and @-Wno-unused-top-binds@
---     pragmas.
--- *   Replace the partial type signatures underscores in the solution
---     types @_ :~> _@ with the actual types of inputs and outputs of the
---     solution.  You can delete the type signatures completely and GHC
---     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day20 (
     day20a
   , day20b
   ) where
 
-import           AOC.Prelude
+import           AOC.Common           (Point, Dir(..), dirPoint, boundingBox', parseAsciiMap, cardinalNeighbsSet)
+import           AOC.Common.Search    (aStar)
+import           AOC.Solver           ((:~>)(..))
+import           Control.DeepSeq      (NFData)
+import           Control.Lens         (preview)
+import           Control.Monad        (mfilter, guard)
+import           Data.Bifunctor       (second)
+import           Data.Char            (isAlpha)
+import           Data.Foldable        (toList, asum)
 import           Data.Generics.Labels ()
-import           Linear.Metric
-import           GHC.Natural
-import           Linear.Vector
+import           Data.List            (intercalate)
+import           Data.List.NonEmpty   (NonEmpty(..))
+import           Data.Map             (Map)
+import           Data.Maybe           (maybeToList)
+import           Data.Set             (Set)
+import           Data.Tuple           (swap)
+import           GHC.Generics         (Generic)
+import           GHC.Natural          (minusNaturalMaybe)
+import           Linear               (V2(..))
+import           Linear.Metric        (distance)
+import           Linear.Vector        ((^/))
+import           Numeric.Natural      (Natural)
+import           Text.Printf          (printf)
 import qualified Data.Map             as M
-import qualified Data.Sequence        as Seq
 import qualified Data.Set             as S
 import qualified Data.Set.NonEmpty    as NES
 
 data Edge = Inner | Outer
-  deriving (Show, Eq, Ord, Generic, Enum, Bounded)
-instance NFData Edge
+  deriving (Show, Eq, Ord, Generic, Enum, Bounded, NFData)
 
 otherEdge :: Edge -> Edge
 otherEdge = \case
@@ -46,16 +50,10 @@ otherEdge = \case
     Outer -> Inner
 
 data Edges a = Edges { eInner :: a, eOuter :: a }
-  deriving (Show, Eq, Ord, Generic, Functor, Foldable, Traversable)
-instance NFData a => NFData (Edges a)
+  deriving (Show, Eq, Ord, Generic, Functor, Foldable, Traversable, NFData)
 
 data Portal = P { pLabel :: String, pEdge :: Edge }
-  deriving (Eq, Ord, Generic)
-instance NFData Portal
-
-instance Show Portal where
-    showsPrec _ P{..} = showString pLabel
-                      . showString (case pEdge of Inner -> "i"; Outer -> "o")
+  deriving (Eq, Ord, Generic, NFData)
 
 data Maze = Maze
     { mWalls   :: Set Point
@@ -64,8 +62,7 @@ data Maze = Maze
     , mAA      :: Point
     , mZZ      :: Point
     }
-  deriving (Show, Eq, Ord, Generic)
-instance NFData Maze
+  deriving (Show, Eq, Ord, Generic, NFData)
 
 type PortalMap = Map Portal Int
 
@@ -78,42 +75,22 @@ portalsFrom Maze{..} = go 1 mWalls
       where
         neighbs    = S.toList $ cardinalNeighbsSet p `S.difference` seen
         seen'      = S.insert p seen
-        portalHere = M.lookup p mPortals
-        addPortal  = case portalHere of
-                       Nothing -> id
-                       Just c  -> M.insertWith min c dist
+        addPortal  = case M.lookup p mPortals of
+          Nothing -> id
+          Just c  -> M.insertWith min c dist
 
 data PortalToPortal = PTP
     { ptpPortals :: Map String (Edges PortalMap)
     , ptpAA      :: PortalMap
     }
-  deriving (Eq, Ord, Generic)
-instance NFData PortalToPortal
-
-showPortalMap :: PortalMap -> String
-showPortalMap = intercalate ", " . map go . M.toList
-  where
-    go (p, i) = printf "[%2d]%s" i (show p)
-
-instance Show PortalToPortal where
-    show PTP{..} = unlines $
-          ("AAo: " ++ showPortalMap ptpAA)
-        : concatMap go (M.toList ptpPortals)
-      where
-        go (p, Edges i o) =
-            [ p ++ "i: " ++ showPortalMap i
-            , p ++ "o: " ++ showPortalMap o
-            ]
-
-
-
+  deriving (Eq, Ord, Generic, NFData)
 
 portalToPortal :: Maze -> PortalToPortal
 portalToPortal mz@Maze{..} = PTP{..}
   where
-    ptpPortals = M.mapWithKey deleteSelf $ fmap (portalsFrom mz) <$> mLinks
-    ptpAA      = M.delete (P "AA" Outer) $ portalsFrom mz mAA
-    deleteSelf lab = fmap (`M.withoutKeys` S.fromList [P lab Inner, P lab Outer])
+    ptpPortals     = M.mapWithKey deleteSelf $ fmap (portalsFrom mz) <$> mLinks
+    ptpAA          = M.delete (P "AA" Outer) $ portalsFrom mz mAA
+    deleteSelf lab = fmap (`M.withoutKeys` S.fromAscList [P lab Inner, P lab Outer])
 
 pNeighbs1 :: PortalToPortal -> String -> Map String Int
 pNeighbs1 PTP{..} p = M.mapKeysMonotonic pLabel portalMap
@@ -122,7 +99,7 @@ pNeighbs1 PTP{..} p = M.mapKeysMonotonic pLabel portalMap
       "AA" -> ptpAA
       pp   -> M.unionsWith min . foldMap (:[]) $ ptpPortals M.! pp
 
-day20a :: _ :~> _
+day20a :: Maze :~> Int
 day20a = MkSol
     { sParse = parseMaze
     , sShow  = show
@@ -139,17 +116,7 @@ data AState = AS
     , asEdge   :: !Edge
     , asLevel  :: !(Maybe Natural)
     }
-  deriving (Eq, Ord, Generic)
-instance NFData AState
-
-instance Show AState where
-    showsPrec _ AS{..} = showString "<"
-                       . showString asPortal
-                       . showString (case asEdge of Inner -> "i"; Outer -> "o")
-                       . showString ","
-                       . showString (maybe "x" show asLevel)
-                       . showString ">"
-
+  deriving (Eq, Ord, Generic, NFData)
 
 pNeighbs2 :: PortalToPortal -> AState -> Map AState Int
 pNeighbs2 PTP{..} AS{..} = M.fromList
@@ -170,7 +137,7 @@ pNeighbs2 PTP{..} AS{..} = M.fromList
         Inner -> eInner $ ptpPortals M.! pp
         Outer -> eOuter $ ptpPortals M.! pp
 
-day20b :: _ :~> _
+day20b :: Maze :~> Int
 day20b = MkSol
     { sParse = parseMaze
     , sShow  = show
@@ -180,6 +147,9 @@ day20b = MkSol
                         (AS "AA" Outer (Just 0))
                         (AS "ZZ" Inner Nothing ==)
     }
+
+
+
 
 data Tile = TFloor
           | TWall
@@ -195,7 +165,6 @@ parseMaze str = do
             | fromCenter p1 < fromCenter p2 -> Just $ Edges p1 p2
             | otherwise                     -> Just $ Edges p2 p1
           _          -> Nothing
-
 
     mAA <- NES.findMin <$> M.lookup "AA" mLinks_
     mZZ <- NES.findMin <$> M.lookup "ZZ" mLinks_
@@ -222,9 +191,35 @@ parseMaze str = do
             letters = mPSpecs `M.restrictKeys` S.fromList [p+dp, p+2*dp]
     splitPortal (p, e) = [(eInner e, P p Inner), (eOuter e, P p Outer)]
 
+instance Show Portal where
+    showsPrec _ P{..} = showString pLabel
+                      . showString (case pEdge of Inner -> "i"; Outer -> "o")
 
-testPoints :: Set AState
-testPoints = S.fromList
+showPortalMap :: PortalMap -> String
+showPortalMap = intercalate ", " . map go . M.toList
+  where
+    go (p, i) = printf "[%2d]%s" i (show p)
+
+instance Show PortalToPortal where
+    show PTP{..} = unlines $
+          ("AAo: " ++ showPortalMap ptpAA)
+        : concatMap go (M.toList ptpPortals)
+      where
+        go (p, Edges i o) =
+            [ p ++ "i: " ++ showPortalMap i
+            , p ++ "o: " ++ showPortalMap o
+            ]
+
+instance Show AState where
+    showsPrec _ AS{..} = showString "<"
+                       . showString asPortal
+                       . showString (case asEdge of Inner -> "i"; Outer -> "o")
+                       . showString ","
+                       . showString (maybe "x" show asLevel)
+                       . showString ">"
+
+_testPoints :: Set AState
+_testPoints = S.fromList
     [ AS "AA" Outer (Just 0)
     , AS "XF" Outer (Just 1)
     , AS "CK" Outer (Just 2)
@@ -256,9 +251,7 @@ testPoints = S.fromList
     , AS "OA" Inner (Just 4)
     , AS "CJ" Inner (Just 3)
     , AS "RE" Inner (Just 2)
-    , AS "XQ" Inner (Just 1)        -- this is it: it should go to fd inner, not inner
+    , AS "XQ" Inner (Just 1)
     , AS "FD" Inner (Just 0)
     ]
-
-
 

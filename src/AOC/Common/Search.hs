@@ -19,7 +19,6 @@ import qualified Data.Map       as M
 import qualified Data.OrdPSQ    as Q
 import qualified Data.Sequence  as Seq
 import qualified Data.Set       as S
-import           Debug.Trace
 
 data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of item to "parent"
                          , _asOpen    :: !(OrdPSQ n p (p, Maybe n))    -- ^ map of item to "parent", and cost-so-far
@@ -27,7 +26,7 @@ data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of 
 
 -- | A* Search
 aStar
-    :: forall n p. (Ord n, Ord p, Num p, Show n)
+    :: forall n p. (Ord n, Ord p, Num p)
     => (n -> p)         -- ^ heuristic
     -> (n -> Map n p)   -- ^ neighborhood
     -> n                -- ^ start

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoDeriveAnyClass   #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# OPTIONS_GHC -Wno-orphans    #-}

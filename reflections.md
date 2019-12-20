@@ -38,6 +38,7 @@ Table of Contents
 * [Day 17](#day-17)
 * [Day 18](#day-18) *(no reflection yet)*
 * [Day 19](#day-19) *(no reflection yet)*
+* [Day 20](#day-20) *(no reflection yet)*
 
 Day 1
 ------
@@ -1902,6 +1903,48 @@ time                 7.071 s    (6.956 s .. 7.209 s)
 mean                 7.139 s    (7.105 s .. 7.186 s)
 std dev              52.40 ms   (16.81 ms .. 67.49 ms)
 variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 20
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day20.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d20p]* / *[Code][d20g]* / *[Rendered][d20h]*
+
+[d20p]: https://adventofcode.com/2019/day/20
+[d20g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day20.hs
+[d20h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day20.html
+
+*Reflection not yet written -- please check back later!*
+
+### Day 20 Benchmarks
+
+```
+>> Day 20a
+benchmarking...
+time                 17.47 ms   (14.38 ms .. 18.95 ms)
+                     0.893 R²   (0.650 R² .. 1.000 R²)
+mean                 20.11 ms   (18.59 ms .. 25.99 ms)
+std dev              6.764 ms   (291.5 μs .. 13.53 ms)
+variance introduced by outliers: 90% (severely inflated)
+
+* parsing and formatting times excluded
+
+>> Day 20b
+benchmarking...
+time                 41.67 ms   (40.75 ms .. 42.74 ms)
+                     0.998 R²   (0.993 R² .. 1.000 R²)
+mean                 41.49 ms   (41.13 ms .. 42.23 ms)
+std dev              1.001 ms   (524.9 μs .. 1.597 ms)
 
 * parsing and formatting times excluded
 ```

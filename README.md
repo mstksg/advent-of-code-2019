@@ -55,7 +55,7 @@ haddocks][haddock] --- more info below!
 | Day 17    | [x][d17r]   | [x][d17g] | [x][d17h]  | [x][d17b]  |
 | Day 18    |             | [x][d18g] | [x][d18h]  | [x][d18b]  |
 | Day 19    |             | [x][d19g] | [x][d19h]  | [x][d19b]  |
-| Day 20    |             |           |            |            |
+| Day 20    |             | [x][d20g] | [x][d20h]  | [x][d20b]  |
 | Day 21    |             |           |            |            |
 | Day 22    |             |           |            |            |
 | Day 23    |             |           |            |            |
@@ -359,3 +359,6 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d19g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day19.hs
 [d19h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day19.html
 [d19b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-19-benchmarks
+[d20g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day20.hs
+[d20h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day20.html
+[d20b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-20-benchmarks

@@ -1,5 +1,6 @@
-{-# LANGUAGE TypeFamilies    #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE NoDeriveAnyClass #-}
+{-# LANGUAGE TypeFamilies     #-}
+{-# OPTIONS_GHC -Wno-orphans  #-}
 
 -- |
 -- Module      : AOC.Common

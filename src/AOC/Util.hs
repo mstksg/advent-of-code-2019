@@ -12,6 +12,7 @@
 
 module AOC.Util (
     strip
+  , stripNewline
   , eitherToMaybe
   , firstJust
   , maybeToEither
@@ -29,6 +30,10 @@ import qualified Data.Text            as T
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
 strip = T.unpack . T.strip . T.pack
+
+-- | Strip trailing newline
+stripNewline :: String -> String
+stripNewline = reverse . dropWhile (== '\n') . reverse
 
 -- | Convert an 'Either' into a 'Maybe', or any 'Alternative' instance,
 -- forgetting the error value.

@@ -19,6 +19,7 @@ import qualified Data.Map       as M
 import qualified Data.OrdPSQ    as Q
 import qualified Data.Sequence  as Seq
 import qualified Data.Set       as S
+import           Debug.Trace
 
 data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of item to "parent"
                          , _asOpen    :: !(OrdPSQ n p (p, Maybe n))    -- ^ map of item to "parent", and cost-so-far
@@ -26,7 +27,7 @@ data AStarState n p = AS { _asClosed  :: !(Map n (Maybe n))         -- ^ map of 
 
 -- | A* Search
 aStar
-    :: forall n p. (Ord n, Ord p, Num p)
+    :: forall n p. (Ord n, Ord p, Num p, Show n)
     => (n -> p)         -- ^ heuristic
     -> (n -> Map n p)   -- ^ neighborhood
     -> n                -- ^ start
@@ -48,11 +49,11 @@ aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty
     addBack :: n -> p -> Maybe n -> AStarState n p -> AStarState n p
     addBack x g up as0 = as0 { _asOpen = insertIfBetter x (g + h x) (g, up) . _asOpen $ as0 }
     processNeighbor :: n -> p -> AStarState n p -> n -> p -> AStarState n p
-    processNeighbor curr currCost as0@AS{..} neighb moveCost =
+    processNeighbor curr currCost as0@AS{..} neighb moveCost
       -- | neighb `Q.member` _asOpen || neighb `M.member` _asClosed = as0
-      -- -- | neighb `M.member` _asClosed = as0
-      -- | otherwise = addBack neighb (currCost + moveCost) (Just curr) as0
-        addBack neighb (currCost + moveCost) (Just curr) as0
+      | neighb `M.member` _asClosed = as0
+      | otherwise = addBack neighb (currCost + moveCost) (Just curr) as0
+        -- addBack neighb (currCost + moveCost) (Just curr) as0
 
 insertIfBetter :: (Ord k, Ord p) => k -> p -> v -> OrdPSQ k p v -> OrdPSQ k p v
 insertIfBetter k p x q = case Q.lookup k q of
@@ -126,7 +127,7 @@ bfs ex x0 dest = reconstruct <$> go (addBack x0 Nothing (BS M.empty Seq.empty))
 --       Empty    -> (_bsFound, _bsClosed)
 --       (!n) :<| ns ->
 --         let (found', updated) = case isGood n of
---               Just x 
+--               Just x
 --                 | x `M.notMember` _bsFound -> (M.insert x n _bsFound, True)
 --               _   -> (_bsFound, False)
 --             stopHere = updated && stopper (M.keysSet found')

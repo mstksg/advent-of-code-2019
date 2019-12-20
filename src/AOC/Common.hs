@@ -443,7 +443,12 @@ cardinalNeighbs :: Point -> [Point]
 cardinalNeighbs p = (p +) <$> [ V2 0 (-1), V2 1 0, V2 0 1, V2 (-1) 0 ]
 
 cardinalNeighbsSet :: Point -> Set Point
-cardinalNeighbsSet = S.fromList . cardinalNeighbs
+cardinalNeighbsSet p = S.fromAscList . map (p +) $
+  [ V2 (-1)   0
+  , V2   0  (-1)
+  , V2   0    1
+  , V2   1    0
+  ]
 
 fullNeighbs :: Point -> [Point]
 fullNeighbs p = [ p + V2 dx dy

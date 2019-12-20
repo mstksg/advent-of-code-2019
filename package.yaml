@@ -56,11 +56,13 @@ default-extensions:
 - RankNTypes
 - RecordWildCards
 - ScopedTypeVariables
+- StandaloneDeriving
 - TemplateHaskell
 - TupleSections
 - TypeApplications
 - TypeInType
 - TypeOperators
+- UndecidableInstances
 - ViewPatterns
 
 dependencies:
@@ -70,6 +72,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - adjunctions
   - advent-of-code-api >= 0.2.7
   - aeson
   - ansi-terminal

@@ -120,6 +120,7 @@ library:
   - primitive
   - profunctors
   - psqueues
+  - recursion-schemes
   - safe
   - semigroupoids
   - sparse-linear-algebra

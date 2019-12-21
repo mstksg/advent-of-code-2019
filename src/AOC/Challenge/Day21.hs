@@ -60,7 +60,8 @@ theProg = [
 
 -- the logic:
 --
--- Aim for the island: aim to jump and land riiight before any
+-- jump whenever it is safe to do so.  but don't jump frivolously (if there
+-- is no hole in sight)
 --
 -- 0 ####   No
 -- 1 ###.   No

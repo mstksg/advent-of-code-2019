@@ -32,9 +32,46 @@ infixr 2 &|
 (|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
 infixr 2 |.
 iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
-feedPipe :: Monad m => [i] -> Pipe i o u m a -> m ([o], Either (i -> Pipe i o u m a) a)
+feedPipe :: Monad m => [i] -> Pipe i o u m a -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
+stepPipe :: Monad m => Pipe i o u m a -> m (PipeStep i o u m a)
+data PipeStep i o u m a
+PSDone :: a -> PipeStep i o u m a
+PSWait :: (Either u i -> Pipe i o u m a) -> PipeStep i o u m a
+PSOut :: o -> Pipe i o u m a -> PipeStep i o u m a
+squeezePipe :: Monad m => Pipe i o u m a -> m ([o], Either (Either u i -> Pipe i o u m a) a)
+instance GHC.Base.Functor (AOC.Common.Conduino.PipeStep i o u m)
 instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
 instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
+
+module AOC.Common.Intcode.Memory
+class Monad m => MonadMem m
+mRead :: MonadMem m => m Int
+mCurr :: MonadMem m => m Natural
+mPeek :: MonadMem m => Natural -> m Int
+mSeek :: MonadMem m => Natural -> m ()
+mWrite :: MonadMem m => Natural -> Int -> m ()
+mShiftBase :: MonadMem m => Int -> m ()
+mWithBase :: MonadMem m => Int -> m Int
+mFreeze :: MonadMem m => m Memory
+mInit :: MonadMem m => Memory -> m ()
+data Memory
+Mem :: Natural -> Int -> Map Natural Int -> Memory
+[mPos] :: Memory -> Natural
+[mBase] :: Memory -> Int
+[mRegs] :: Memory -> Map Natural Int
+mRegLens :: Natural -> Lens' Memory Int
+data MemRef s
+MemRef :: STRef s Natural -> STRef s Int -> MVector s Int -> MemRef s
+[mrPos] :: MemRef s -> STRef s Natural
+[mrBase] :: MemRef s -> STRef s Int
+[mrRegs] :: MemRef s -> MVector s Int
+instance GHC.Generics.Generic AOC.Common.Intcode.Memory.Memory
+instance GHC.Show.Show AOC.Common.Intcode.Memory.Memory
+instance GHC.Classes.Ord AOC.Common.Intcode.Memory.Memory
+instance GHC.Classes.Eq AOC.Common.Intcode.Memory.Memory
+instance GHC.Base.Monad m => AOC.Common.Intcode.Memory.MonadMem (Control.Monad.Trans.State.Lazy.StateT AOC.Common.Intcode.Memory.Memory m)
+instance AOC.Common.Intcode.Memory.MonadMem m => AOC.Common.Intcode.Memory.MonadMem (Data.Conduino.Internal.Pipe i o u m)
+instance Control.DeepSeq.NFData AOC.Common.Intcode.Memory.Memory
 
 module AOC.Common.Numeric
 fft :: (FFTWReal a, Vector v (Complex a)) => Vector v n (Complex a) -> Vector v n (Complex a)
@@ -113,6 +150,9 @@ module AOC.Util
 
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
+
+-- | Strip trailing newline
+stripNewline :: String -> String
 
 -- | Convert an <a>Either</a> into a <a>Maybe</a>, or any
 --   <a>Alternative</a> instance, forgetting the error value.
@@ -266,6 +306,7 @@ listTup4 :: [a] -> Maybe (a, a, a, a)
 
 -- | Delete a potential value from a <a>Finite</a>.
 deleteFinite :: KnownNat n => Finite (n + 1) -> Finite (n + 1) -> Maybe (Finite n)
+type Letter = Finite 26
 
 -- | Parse a letter into a number 0 to 25. Returns <a>False</a> if
 --   lowercase and <a>True</a> if uppercase.
@@ -311,7 +352,9 @@ nextMatch :: MonadParsec e s m => m a -> m a
 -- | 2D Coordinate
 type Point = V2 Int
 cardinalNeighbs :: Point -> [Point]
+cardinalNeighbsSet :: Point -> Set Point
 fullNeighbs :: Point -> [Point]
+fullNeighbsSet :: Point -> Set Point
 mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 
 -- | Treat as complex number multiplication. useful for rotations
@@ -407,7 +450,7 @@ stepForeverAndDie :: MonadError IErr m => Memory -> Pipe Int Int Void m Void
 untilHalt :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m ()
 parseMem :: String -> Maybe Memory
 untilFalse :: Monad m => m Bool -> m ()
-step :: (AsVMErr e, MonadError e m, MonadState Memory m) => Pipe Int Int Void m Bool
+step :: (AsVMErr e, MonadError e m, MonadMem m) => Pipe Int Int Void m Bool
 yieldAndDie :: MonadError IErr m => o -> Pipe i o u m a
 yieldAndPass :: o -> Pipe o o u m u
 data VMErr
@@ -417,15 +460,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a17OZ
-_VMErr :: AsVMErr r_a17OZ => Prism' r_a17OZ VMErr
-_VMEBadMode :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
-_VMEBadInstr :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
-_VMEBadPos :: AsVMErr r_a17OZ => Prism' r_a17OZ Int
-class AsIErr r_a17YG
-_IErr :: AsIErr r_a17YG => Prism' r_a17YG IErr
-_IENoInput :: AsIErr r_a17YG => Prism' r_a17YG ()
-_IEVM :: AsIErr r_a17YG => Prism' r_a17YG VMErr
+class AsVMErr r_a1bbr
+_VMErr :: AsVMErr r_a1bbr => Prism' r_a1bbr VMErr
+_VMEBadMode :: AsVMErr r_a1bbr => Prism' r_a1bbr Int
+_VMEBadInstr :: AsVMErr r_a1bbr => Prism' r_a1bbr Int
+_VMEBadPos :: AsVMErr r_a1bbr => Prism' r_a1bbr Int
+class AsIErr r_a1bla
+_IErr :: AsIErr r_a1bla => Prism' r_a1bla IErr
+_IENoInput :: AsIErr r_a1bla => Prism' r_a1bla ()
+_IEVM :: AsIErr r_a1bla => Prism' r_a1bla VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -452,14 +495,9 @@ instance GHC.Show.Show AOC.Common.Intcode.Mode
 instance GHC.Enum.Enum AOC.Common.Intcode.Mode
 instance GHC.Classes.Ord AOC.Common.Intcode.Mode
 instance GHC.Classes.Eq AOC.Common.Intcode.Mode
-instance GHC.Generics.Generic AOC.Common.Intcode.Memory
-instance GHC.Show.Show AOC.Common.Intcode.Memory
-instance GHC.Classes.Ord AOC.Common.Intcode.Memory
-instance GHC.Classes.Eq AOC.Common.Intcode.Memory
 instance GHC.Exception.Type.Exception AOC.Common.Intcode.VMErr
 instance Control.DeepSeq.NFData AOC.Common.Intcode.Instr
 instance Control.DeepSeq.NFData AOC.Common.Intcode.Mode
-instance Control.DeepSeq.NFData AOC.Common.Intcode.Memory
 
 module AOC.Util.DynoMap
 newtype DynoMap
@@ -18068,6 +18106,9 @@ exponentialFindMin :: (Int -> Maybe a) -> Int -> Maybe a
 -- | Strip trailing and leading whitespace.
 strip :: String -> String
 
+-- | Strip trailing newline
+stripNewline :: String -> String
+
 -- | Convert an <a>Either</a> into a <a>Maybe</a>, or any
 --   <a>Alternative</a> instance, forgetting the error value.
 eitherToMaybe :: Alternative m => Either e a -> m a
@@ -18110,6 +18151,7 @@ West :: Dir
 
 -- | 2D Coordinate
 type Point = V2 Int
+type Letter = Finite 26
 
 -- | Strict (!!)
 (!!!) :: [a] -> Int -> a
@@ -18260,7 +18302,9 @@ boundingBox :: (Foldable1 f, Applicative g, Ord a) => f (g a) -> V2 (g a)
 --   lists.
 boundingBox' :: Foldable f => f Point -> Maybe (V2 Point)
 cardinalNeighbs :: Point -> [Point]
+cardinalNeighbsSet :: Point -> Set Point
 fullNeighbs :: Point -> [Point]
+fullNeighbsSet :: Point -> Set Point
 memoPoint :: Memo Point
 mannDist :: (Foldable f, Num a, Num (f a)) => f a -> f a -> a
 
@@ -18454,88 +18498,6 @@ module AOC.Challenge.Day24
 module AOC.Challenge.Day23
 
 
--- | Day 22. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day22
-
-
--- | Day 21. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day21
-
-
--- | Day 20. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day20
-
-
--- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
---   
---   After completing the challenge, it is recommended to:
---   
---   <ul>
---   <li>Replace <a>AOC.Prelude</a> imports to specific modules (with
---   explicit imports) for readability.</li>
---   <li>Remove the <tt>-Wno-unused-imports</tt> and
---   <tt>-Wno-unused-top-binds</tt> pragmas.</li>
---   <li>Replace the partial type signatures underscores in the solution
---   types <tt>_ :~&gt; _</tt> with the actual types of inputs and outputs
---   of the solution. You can delete the type signatures completely and GHC
---   will recommend what should go in place of the underscores.</li>
---   </ul>
-module AOC.Challenge.Day18
-day18a :: _ :~> _
-day18b :: _ :~> _
-instance GHC.Generics.Generic AOC.Challenge.Day18.AState3
-instance GHC.Classes.Ord AOC.Challenge.Day18.AState3
-instance GHC.Classes.Eq AOC.Challenge.Day18.AState3
-instance GHC.Generics.Generic AOC.Challenge.Day18.AState
-instance GHC.Show.Show AOC.Challenge.Day18.AState
-instance GHC.Classes.Ord AOC.Challenge.Day18.AState
-instance GHC.Classes.Eq AOC.Challenge.Day18.AState
-instance GHC.Generics.Generic AOC.Challenge.Day18.Item
-instance GHC.Show.Show AOC.Challenge.Day18.Item
-instance GHC.Classes.Ord AOC.Challenge.Day18.Item
-instance GHC.Classes.Eq AOC.Challenge.Day18.Item
-instance GHC.Show.Show AOC.Challenge.Day18.AState3
-
-
 -- | Template Haskell for discovering all named challenges in a given
 --   directory.
 module AOC.Discover
@@ -18591,10 +18553,113 @@ instance GHC.Show.Show AOC.Discover.ChallengeSpec
 instance Data.String.IsString AOC.Discover.ChallengeSpec
 
 
+-- | Day 22. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day22
+day22a :: [Shuff 10007] :~> Int
+day22b :: [Shuff 119315717514047] :~> Int
+instance Control.DeepSeq.NFData (AOC.Challenge.Day22.Shuff n)
+instance GHC.Generics.Generic (AOC.Challenge.Day22.Shuff n)
+instance GHC.Show.Show (AOC.Challenge.Day22.Shuff n)
+instance GHC.Classes.Ord (AOC.Challenge.Day22.Shuff n)
+instance GHC.Classes.Eq (AOC.Challenge.Day22.Shuff n)
+instance Control.DeepSeq.NFData (AOC.Challenge.Day22.Affine n)
+instance GHC.Generics.Generic (AOC.Challenge.Day22.Affine n)
+instance GHC.Show.Show (AOC.Challenge.Day22.Affine n)
+instance GHC.Classes.Ord (AOC.Challenge.Day22.Affine n)
+instance GHC.Classes.Eq (AOC.Challenge.Day22.Affine n)
+instance GHC.TypeNats.KnownNat n => GHC.Base.Semigroup (AOC.Challenge.Day22.Affine n)
+instance GHC.TypeNats.KnownNat n => GHC.Base.Monoid (AOC.Challenge.Day22.Affine n)
+instance GHC.TypeNats.KnownNat n => Data.Group.Group (AOC.Challenge.Day22.Affine n)
+
+
+-- | Day 21. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day21
+day21a :: Memory :~> Int
+day21b :: Memory :~> Int
+instance GHC.Show.Show AOC.Challenge.Day21.Instr
+instance GHC.Classes.Ord AOC.Challenge.Day21.Instr
+instance GHC.Classes.Eq AOC.Challenge.Day21.Instr
+instance GHC.Show.Show AOC.Challenge.Day21.Com
+instance GHC.Classes.Ord AOC.Challenge.Day21.Com
+instance GHC.Classes.Eq AOC.Challenge.Day21.Com
+instance GHC.Show.Show AOC.Challenge.Day21.Reg
+instance GHC.Classes.Ord AOC.Challenge.Day21.Reg
+instance GHC.Classes.Eq AOC.Challenge.Day21.Reg
+
+
+-- | Day 20. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day20
+day20a :: Maze :~> Int
+day20b :: Maze :~> Int
+instance GHC.Generics.Generic AOC.Challenge.Day20.Tile
+instance GHC.Classes.Ord AOC.Challenge.Day20.Tile
+instance GHC.Classes.Eq AOC.Challenge.Day20.Tile
+instance GHC.Show.Show AOC.Challenge.Day20.Tile
+instance Control.DeepSeq.NFData AOC.Challenge.Day20.AState
+instance GHC.Generics.Generic AOC.Challenge.Day20.AState
+instance GHC.Classes.Ord AOC.Challenge.Day20.AState
+instance GHC.Classes.Eq AOC.Challenge.Day20.AState
+instance Control.DeepSeq.NFData AOC.Challenge.Day20.PortalToPortal
+instance GHC.Generics.Generic AOC.Challenge.Day20.PortalToPortal
+instance GHC.Classes.Ord AOC.Challenge.Day20.PortalToPortal
+instance GHC.Classes.Eq AOC.Challenge.Day20.PortalToPortal
+instance Control.DeepSeq.NFData AOC.Challenge.Day20.Maze
+instance GHC.Generics.Generic AOC.Challenge.Day20.Maze
+instance GHC.Classes.Ord AOC.Challenge.Day20.Maze
+instance GHC.Classes.Eq AOC.Challenge.Day20.Maze
+instance GHC.Show.Show AOC.Challenge.Day20.Maze
+instance Control.DeepSeq.NFData AOC.Challenge.Day20.Portal
+instance GHC.Generics.Generic AOC.Challenge.Day20.Portal
+instance GHC.Classes.Ord AOC.Challenge.Day20.Portal
+instance GHC.Classes.Eq AOC.Challenge.Day20.Portal
+instance Control.DeepSeq.NFData a => Control.DeepSeq.NFData (AOC.Challenge.Day20.Edges a)
+instance Data.Traversable.Traversable AOC.Challenge.Day20.Edges
+instance Data.Foldable.Foldable AOC.Challenge.Day20.Edges
+instance GHC.Base.Functor AOC.Challenge.Day20.Edges
+instance GHC.Generics.Generic (AOC.Challenge.Day20.Edges a)
+instance GHC.Classes.Ord a => GHC.Classes.Ord (AOC.Challenge.Day20.Edges a)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (AOC.Challenge.Day20.Edges a)
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Challenge.Day20.Edges a)
+instance Control.DeepSeq.NFData AOC.Challenge.Day20.Edge
+instance GHC.Enum.Bounded AOC.Challenge.Day20.Edge
+instance GHC.Enum.Enum AOC.Challenge.Day20.Edge
+instance GHC.Generics.Generic AOC.Challenge.Day20.Edge
+instance GHC.Classes.Ord AOC.Challenge.Day20.Edge
+instance GHC.Classes.Eq AOC.Challenge.Day20.Edge
+instance GHC.Show.Show AOC.Challenge.Day20.Edge
+instance GHC.Show.Show AOC.Challenge.Day20.AState
+instance GHC.Show.Show AOC.Challenge.Day20.PortalToPortal
+instance GHC.Show.Show AOC.Challenge.Day20.Portal
+
+
 -- | Day 19. See <a>AOC.Solver</a> for the types used in this module!
 module AOC.Challenge.Day19
 day19a :: Memory :~> Int
 day19b :: Memory :~> (Int, Int)
+
+
+-- | Day 18. See <a>AOC.Solver</a> for the types used in this module!
+module AOC.Challenge.Day18
+day18a :: Maze V1 :~> Int
+day18b :: Maze V4 :~> Int
+instance GHC.Generics.Generic AOC.Challenge.Day18.Item
+instance GHC.Show.Show AOC.Challenge.Day18.Item
+instance GHC.Classes.Ord AOC.Challenge.Day18.Item
+instance GHC.Classes.Eq AOC.Challenge.Day18.Item
+instance GHC.Generics.Generic (AOC.Challenge.Day18.AState f)
+instance GHC.Generics.Generic (AOC.Challenge.Day18.KeyToKey f)
+instance GHC.Generics.Generic (AOC.Challenge.Day18.Maze f)
+instance GHC.Classes.Eq (f AOC.Common.Point) => GHC.Classes.Eq (AOC.Challenge.Day18.Maze f)
+instance GHC.Classes.Ord (f AOC.Common.Point) => GHC.Classes.Ord (AOC.Challenge.Day18.Maze f)
+instance GHC.Show.Show (f AOC.Common.Point) => GHC.Show.Show (AOC.Challenge.Day18.Maze f)
+instance GHC.Show.Show (f AOC.Challenge.Day18.KeyMap) => GHC.Show.Show (AOC.Challenge.Day18.KeyToKey f)
+instance GHC.Classes.Eq (f (GHC.Maybe.Maybe AOC.Common.Letter)) => GHC.Classes.Eq (AOC.Challenge.Day18.AState f)
+instance GHC.Classes.Ord (f (GHC.Maybe.Maybe AOC.Common.Letter)) => GHC.Classes.Ord (AOC.Challenge.Day18.AState f)
+instance Control.DeepSeq.NFData AOC.Challenge.Day18.Item
+instance Control.DeepSeq.NFData (f (GHC.Maybe.Maybe AOC.Common.Letter)) => Control.DeepSeq.NFData (AOC.Challenge.Day18.AState f)
+instance Data.Foldable.Foldable f => GHC.Show.Show (AOC.Challenge.Day18.AState f)
+instance Control.DeepSeq.NFData (f AOC.Challenge.Day18.KeyMap) => Control.DeepSeq.NFData (AOC.Challenge.Day18.KeyToKey f)
+instance Control.DeepSeq.NFData (f AOC.Common.Point) => Control.DeepSeq.NFData (AOC.Challenge.Day18.Maze f)
 
 
 -- | Day 17. See <a>AOC.Solver</a> for the types used in this module!
@@ -18931,14 +18996,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2vJA
-mainRunOpts :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA MainRunOpts
-mroActual :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA Bool
-mroBench :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA Bool
-mroInput :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA Bool
-mroSpec :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA TestSpec
-mroTest :: HasMainRunOpts c_a2vJA => Lens' c_a2vJA Bool
+class HasMainRunOpts c_a2LWm
+mainRunOpts :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm MainRunOpts
+mroActual :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm Bool
+mroBench :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm Bool
+mroInput :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm Bool
+mroSpec :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm TestSpec
+mroTest :: HasMainRunOpts c_a2LWm => Lens' c_a2LWm Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -18951,10 +19016,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2vR5
-mainViewOpts :: HasMainViewOpts c_a2vR5 => Lens' c_a2vR5 MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2vR5 => Lens' c_a2vR5 TestSpec
-mvoWait :: HasMainViewOpts c_a2vR5 => Lens' c_a2vR5 Bool
+class HasMainViewOpts c_a2M3S
+mainViewOpts :: HasMainViewOpts c_a2M3S => Lens' c_a2M3S MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2M3S => Lens' c_a2M3S TestSpec
+mvoWait :: HasMainViewOpts c_a2M3S => Lens' c_a2M3S Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -18975,12 +19040,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2vVo
-mainSubmitOpts :: HasMainSubmitOpts c_a2vVo => Lens' c_a2vVo MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2vVo => Lens' c_a2vVo Bool
-msoLock :: HasMainSubmitOpts c_a2vVo => Lens' c_a2vVo Bool
-msoSpec :: HasMainSubmitOpts c_a2vVo => Lens' c_a2vVo ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2vVo => Lens' c_a2vVo Bool
+class HasMainSubmitOpts c_a2M8c
+mainSubmitOpts :: HasMainSubmitOpts c_a2M8c => Lens' c_a2M8c MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2M8c => Lens' c_a2M8c Bool
+msoLock :: HasMainSubmitOpts c_a2M8c => Lens' c_a2M8c Bool
+msoSpec :: HasMainSubmitOpts c_a2M8c => Lens' c_a2M8c ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2M8c => Lens' c_a2M8c Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

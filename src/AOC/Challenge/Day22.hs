@@ -19,7 +19,6 @@ import           AOC.Solver      ((:~>)(..))
 import           Control.DeepSeq (NFData)
 import           Data.Finite     (Finite, modulo)
 import           Data.Group      (Group(..))
-import           Data.Semigroup  (stimes)
 import           GHC.Generics    (Generic)
 import           GHC.TypeNats    (KnownNat)
 import           Text.Read       (readMaybe)
@@ -36,8 +35,10 @@ instance KnownNat n => Monoid    (Affine n) where
 instance KnownNat n => Group (Affine n) where
     invert (Aff a b) = Aff a' b'
       where
-        a' = a ^ (maxBound @(Finite n) - 1)
+        a' = recipFin a
         b' = negate (a' * b)
+
+
 
 (@$) :: KnownNat n => Affine n -> Finite n -> Finite n
 Aff a b @$ x = a * x + b
@@ -68,8 +69,7 @@ day22b = MkSol
     , sShow  = show
     , sSolve = \shuffs -> fmap fromIntegral . Just $
         let bigShuff    = foldMap shuffAff shuffs
-            biiiigShuff = stimes numReps bigShuff
-        in  invert biiiigShuff @$ 2020
+        in  (bigShuff `pow` (-numReps)) @$ 2020
     }
   where
     numReps :: Int
@@ -81,3 +81,6 @@ parseLine xs = case words xs of
     "deal":"into":_     -> Just SReverse
     "deal":"with":_:n:_ -> SIncr . modulo <$> readMaybe n
     _                   -> Nothing
+
+recipFin :: forall n. KnownNat n => Finite n -> Finite n
+recipFin x = x ^ (maxBound @(Finite n) - 1)

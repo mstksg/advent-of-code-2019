@@ -50,9 +50,9 @@ data Shuff n = SCut  (Finite n)
 
 shuffAff :: KnownNat n => Shuff n -> Affine n
 shuffAff = \case
-    SReverse -> Aff maxBound  maxBound
-    SCut c   -> Aff        1 (negate c)
-    SIncr c  -> Aff        c         0
+    SReverse -> Aff (negate 1) (negate 1)
+    SCut c   -> Aff         1  (negate c)
+    SIncr c  -> Aff         c          0
 
 
 day22a :: [Shuff 10007] :~> Int

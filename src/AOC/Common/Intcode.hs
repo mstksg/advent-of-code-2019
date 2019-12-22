@@ -29,15 +29,15 @@ module AOC.Common.Intcode (
 
 import           AOC.Common
 import           AOC.Common.Conduino
+import           AOC.Common.Intcode.Memory
 import           AOC.Util
 import           Control.DeepSeq
 import           Control.Exception
 import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
-import           Data.Generics.Labels ()
-import           Control.Monad.State
 import           Data.Conduino
+import           Data.Generics.Labels      ()
 import           Data.List.Split
 import           Data.Map                  (Map)
 import           Data.Traversable
@@ -51,14 +51,6 @@ import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
 
 type VM = Pipe Int Int Void
-
-data Memory = Mem
-    { mPos  :: Natural
-    , mBase :: Int
-    , mRegs :: Map Natural Int
-    }
-  deriving (Eq, Ord, Show, Generic)
-instance NFData Memory
 
 data Mode = Pos | Imm | Rel
   deriving (Eq, Ord, Enum, Show, Generic)
@@ -84,10 +76,6 @@ makeClassyPrisms ''IErr
 instance AsVMErr IErr where
     _VMErr = _IEVM
 
-mRegLens :: Natural -> Lens' Memory Int
-mRegLens i = #mRegs . at i . non 0
-
-
 instrMap :: Map Int Instr
 instrMap = M.fromList $
     (99, Hlt) : zip [1 ..] [Add ..]
@@ -100,21 +88,9 @@ toNatural' x = maybe (throwing _VMErr (VMEBadPos x)) pure
              . toNatural
              $ x
 
-readMem
-    :: MonadState Memory m
-    => m Int
-readMem = do
-    m@Mem{..} <- get
-    M.findWithDefault 0 mPos mRegs <$ put (m { mPos = mPos + 1 })
-
-peekMem
-    :: MonadState Memory m
-    => Natural -> m Int
-peekMem i = gets $ M.findWithDefault 0 i . mRegs
-
 -- | Defered version of 'withInput', to allow for maximum 'laziness'.
 withInputLazy
-    :: (Traversable t, Applicative t, MonadState Memory m, AsVMErr e, MonadError e m)
+    :: (Traversable t, Applicative t, AsVMErr e, MonadError e m, MonadMem m)
     => Int      -- ^ mode int
     -> (t (m Int) -> m r)
     -> m (r, Mode)
@@ -122,23 +98,22 @@ withInputLazy mo f = do
     (lastMode, modes) <- case fillModes mo of
       Left  i -> throwing _VMErr $ VMEBadMode i
       Right x -> pure x
-    ba  <- gets mBase
     inp <- for modes $ \mode -> do
-      a <- readMem
+      a <- mRead
       pure $ case mode of
         Pos -> do
           x <- toNatural' a
-          peekMem x
+          mPeek x
         Imm -> pure a
         Rel -> do
-          x <- toNatural' (a + ba)
-          peekMem x
+          x <- toNatural' =<< mWithBase a
+          mPeek x
     (, lastMode) <$> f inp
 
 -- | Run a @t Int -> m r@ function by fetching an input container
 -- @t Int@. This fetches everything in advance, so is 'strict'.
 withInput
-    :: (Traversable t, Applicative t, MonadState Memory m, AsVMErr e, MonadError e m)
+    :: (Traversable t, Applicative t, MonadMem m, AsVMErr e, MonadError e m)
     => Int      -- ^ mode int
     -> (t Int -> m r)
     -> m (r, Mode)
@@ -171,10 +146,10 @@ data InstrRes = IRWrite Int         -- ^ write a value to location at
   deriving (Eq, Ord, Show, Generic)
 
 step
-    :: (AsVMErr e, MonadError e m, MonadState Memory m)
+    :: (AsVMErr e, MonadError e m, MonadMem m)
     => Pipe Int Int Void m Bool
 step = do
-    (mo, x) <- (`divMod` 100) <$> readMem
+    (mo, x) <- (`divMod` 100) <$> mRead
     o  <- maybe (throwing _VMErr (VMEBadInstr x)) pure $
             instr x
     (ir, lastMode) <- case o of
@@ -193,15 +168,15 @@ step = do
     case ir of
       IRWrite y -> do
         c <- toNatural' =<< case lastMode of
-          Pos -> peekMem =<< gets mPos
-          Imm -> fromIntegral <$> gets mPos
-          Rel -> (+) <$> (peekMem =<< gets mPos) <*> gets mBase
-        _ <- readMem
-        True <$ modify (\m -> m { mRegs = M.insert c y (mRegs m) })
+          Pos -> mPeek =<< mCurr
+          Imm -> fromIntegral <$> mCurr
+          Rel -> mWithBase =<< mPeek =<< mCurr
+        _ <- mRead
+        True <$ mWrite c y
       IRJump  z ->
-        True <$ modify (\m -> m { mPos = z })
+        True <$ mSeek z
       IRBase  b ->
-        True <$ modify (\m -> m { mBase = b + mBase m })
+        True <$ mShiftBase b
       IRNop     ->
         pure True
       IRHalt    ->

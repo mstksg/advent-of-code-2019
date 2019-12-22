@@ -40,6 +40,7 @@ Table of Contents
 * [Day 19](#day-19) *(no reflection yet)*
 * [Day 20](#day-20) *(no reflection yet)*
 * [Day 21](#day-21) *(no reflection yet)*
+* [Day 22](#day-22) *(no reflection yet)*
 
 Day 1
 ------
@@ -1989,6 +1990,49 @@ time                 3.148 s    (3.139 s .. 3.173 s)
 mean                 3.152 s    (3.147 s .. 3.156 s)
 std dev              5.783 ms   (3.450 ms .. 8.168 ms)
 variance introduced by outliers: 19% (moderately inflated)
+
+* parsing and formatting times excluded
+```
+
+
+
+Day 22
+------
+
+<!--
+This section is generated and compiled by the build script at ./Build.hs from
+the file `./reflections/day22.md`.  If you want to edit this, edit
+that file instead!
+-->
+
+*[Prompt][d22p]* / *[Code][d22g]* / *[Rendered][d22h]*
+
+[d22p]: https://adventofcode.com/2019/day/22
+[d22g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day22.hs
+[d22h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day22.html
+
+*Reflection not yet written -- please check back later!*
+
+### Day 22 Benchmarks
+
+```
+>> Day 22a
+benchmarking...
+time                 19.11 μs   (19.02 μs .. 19.31 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 19.11 μs   (19.04 μs .. 19.32 μs)
+std dev              363.6 ns   (53.29 ns .. 748.9 ns)
+variance introduced by outliers: 16% (moderately inflated)
+
+* parsing and formatting times excluded
+
+>> Day 22b
+benchmarking...
+time                 53.58 μs   (51.71 μs .. 56.70 μs)
+                     0.988 R²   (0.973 R² .. 1.000 R²)
+mean                 52.95 μs   (52.20 μs .. 54.93 μs)
+std dev              3.618 μs   (1.474 μs .. 6.714 μs)
+variance introduced by outliers: 69% (severely inflated)
 
 * parsing and formatting times excluded
 ```

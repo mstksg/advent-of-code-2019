@@ -28,12 +28,12 @@ composition of the two original ones.
 [group theory]: https://blog.jle.im/entry/alchemical-groups.html
 
 Knowing permutations are a group, it means that once we settle on our
-representation of them, `P`, we can write an instance of `P` for `Semigroup`,
-`Monoid`, and `Group`, common abstractions in Haskell that many types are
-already instances of.  Abstractions like `Semigroup` and `Monoid` are pretty
-much an everyday thing in Haskell, so this fits in quite nicely.  `Group` comes
-from the *[groups][]* package, which also provides some nice applications of
-group theory.
+representation of them, `Perm`, we can write an instance of `Perm` for
+`Semigroup`, `Monoid`, and `Group`, common abstractions in Haskell that many
+types are already instances of.  Abstractions like `Semigroup` and `Monoid` are
+pretty much an everyday thing in Haskell, so this fits in quite nicely.
+`Group` comes from the *[groups][]* package, which also provides some nice
+applications of group theory.
 
 [groups]: https://hackage.haskell.org/package/groups
 
@@ -143,7 +143,7 @@ Perm f @$ x  = f x
 parsePerm :: KnownNat n => String -> Perm n
 parsePerm str = case words str of
     "cut":n:_           -> Perm $ \i -> i - modulo (read n)
-    "deal":"into":_     -> Perm $ \i -> negate i
+    "deal":"into":_     -> Perm $ \i -> maxBound - i
     "deal":"with":_:n:_ -> Perm $ \i -> i * modulo (read n)
 
 instance Semigroup (Perm n) where
@@ -155,8 +155,7 @@ instance Group (Perm n) where
 ```
 
 Note that `Finite n`'s `Num` instance is inherently modular arithmetic, so
-things like `negate` and multiplication will "do the right thing" (if we are in
-`Finite 10`, then `negate 0` is `9`, `negate 1` is `8`, etc.).  We use
+things like `negate` and multiplication will "do the right thing". We use
 `modulo`:
 
 ```haskell

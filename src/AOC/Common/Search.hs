@@ -49,7 +49,7 @@ aStar h ex x0 dest = second reconstruct <$> go (addBack x0 0 Nothing (AS M.empty
     addBack x g up as0 = as0 { _asOpen = insertIfBetter x (g + h x) (g, up) . _asOpen $ as0 }
     processNeighbor :: n -> p -> AStarState n p -> n -> p -> AStarState n p
     processNeighbor curr currCost as0@AS{..} neighb moveCost
-      -- | neighb `Q.member` _asOpen || neighb `M.member` _asClosed = as0
+      --     | neighb `Q.member` _asOpen || neighb `M.member` _asClosed = as0
       | neighb `M.member` _asClosed = as0
       | otherwise = addBack neighb (currCost + moveCost) (Just curr) as0
         -- addBack neighb (currCost + moveCost) (Just curr) as0

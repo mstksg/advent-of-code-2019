@@ -42,12 +42,12 @@ import           Data.IntMap.NonEmpty      as P (NEIntMap)
 import           Data.IntSet               as P (IntSet)
 import           Data.IntSet.NonEmpty      as P (NEIntSet)
 import           Data.Kind                 as P
-import           Data.List                 as P
+import           Data.List                 as P hiding (filter)
 import           Data.List.NonEmpty        as P (NonEmpty(..))
 import           Data.List.Split           as P
 import           Data.Map                  as P (Map)
 import           Data.Map.NonEmpty         as P (NEMap)
-import           Data.Maybe                as P
+import           Data.Maybe                as P hiding (mapMaybe, catMaybes)
 import           Data.Ord                  as P
 import           Data.Profunctor           as P (Profunctor(..))
 import           Data.Semigroup            as P
@@ -61,6 +61,7 @@ import           Data.Time                 as P hiding (Day)
 import           Data.Traversable          as P
 import           Data.Tuple                as P
 import           Data.Void                 as P
+import           Data.Witherable           as P
 import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
 import           Linear                    as P (V1(..), V2(..), V3(..), V4(..))

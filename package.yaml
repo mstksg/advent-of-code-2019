@@ -134,6 +134,7 @@ library:
   - vector
   - vector-sized
   - vty
+  - witherable
   - yaml
 
 executables:

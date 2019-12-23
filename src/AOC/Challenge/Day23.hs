@@ -24,9 +24,9 @@ import           Control.Monad       (guard, ap)
 import           Data.Function       ((&))
 import           Data.List.Split     (chunksOf)
 import           Data.Map            (Map)
-import           Data.Maybe          (mapMaybe, catMaybes)
 import           Data.Sequence       (Seq(..))
 import           Data.Traversable    (for)
+import           Data.Witherable     (forMaybe, mapMaybe, catMaybes)
 import           Linear.V2           (V2(..), _y)
 import qualified Data.Map            as M
 import qualified Data.Sequence       as Seq
@@ -57,7 +57,7 @@ stepNetwork mm@MM{..} = case nQueue of
     Empty -> case nNAT of
       Just a  -> mm { nQueue = Seq.singleton (0, a) }
       Nothing ->
-        let (outList, pipes') = fmap (M.mapMaybe id) . for nPipes $ \n ->
+        let (outList, pipes') = forMaybe nPipes $ \n ->
               case feedPipe [] (n (-1)) of
                 Left  _ -> ([], Nothing)
                 Right (os, r) -> case r of

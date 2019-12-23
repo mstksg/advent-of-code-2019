@@ -15,6 +15,7 @@ module AOC.Common.Intcode (
   , VM
   , stepForever
   , stepForeverAndDie
+  , stepForeverMut
   , untilHalt
   , parseMem
   , untilFalse
@@ -36,6 +37,7 @@ import           Control.Exception
 import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
+import           Control.Monad.Primitive
 import           Data.Conduino
 import           Data.Generics.Labels      ()
 import           Data.List.Split
@@ -187,6 +189,15 @@ stepForever
     => Memory
     -> Pipe Int Int Void m Memory
 stepForever m = execStateP m (untilFalse step)
+
+stepForeverMut
+    :: (AsVMErr e, MonadError e m, PrimMonad m)
+    => Memory
+    -> Pipe Int Int Void m Memory
+stepForeverMut m = do
+    mr <- lift $ initMemRef m
+    runReaderP mr (untilFalse step)
+    lift $ freezeMemRef mr
 
 stepForeverAndDie
     :: (MonadError IErr m)

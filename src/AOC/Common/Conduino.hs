@@ -8,6 +8,7 @@ module AOC.Common.Conduino (
   , runStateP
   , execStateP
   , evalStateP
+  , runReaderP
   , runExceptP
   , fuseBoth
   , fuseUpstream
@@ -24,15 +25,16 @@ import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Except
-import           Control.Monad.Trans.Free hiding (iterM)
+import           Control.Monad.Trans.Free hiding        (iterM)
 import           Control.Monad.Trans.Free.Church hiding (iterM)
+import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
 import           Data.Bifunctor
 import           Data.Conduino
 import           Data.Conduino.Internal
-import           Data.Sequence                   (Seq(..))
-import qualified Data.Conduino.Combinators       as C
-import qualified Data.Sequence                   as Seq
+import           Data.Sequence                          (Seq(..))
+import qualified Data.Conduino.Combinators              as C
+import qualified Data.Sequence                          as Seq
 
 -- | Loop a pipe into itself.
 --
@@ -72,6 +74,9 @@ runStateP_ s (FreeT p) = FreeT $ do
     case q of
       Pure x -> pure $ Pure (x, s')
       Free l -> pure $ Free (fmap (runStateP_ s') l)
+
+runReaderP :: Monad m => r -> Pipe i o u (ReaderT r m) a -> Pipe i o u m a
+runReaderP r = hoistPipe (`runReaderT` r)
 
 runExceptP :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m (Either e a)
 runExceptP = fromRecPipe . runExceptP_ . toRecPipe

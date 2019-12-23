@@ -24,6 +24,7 @@ feedbackP :: Monad m => Pipe x x u m a -> Pipe x x u m a
 runStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m (a, s)
 execStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m s
 evalStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m a
+runReaderP :: Monad m => r -> Pipe i o u (ReaderT r m) a -> Pipe i o u m a
 runExceptP :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m (Either e a)
 fuseBoth :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
 fuseUpstream :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
@@ -52,8 +53,6 @@ mSeek :: MonadMem m => Natural -> m ()
 mWrite :: MonadMem m => Natural -> Int -> m ()
 mShiftBase :: MonadMem m => Int -> m ()
 mWithBase :: MonadMem m => Int -> m Int
-mFreeze :: MonadMem m => m Memory
-mInit :: MonadMem m => Memory -> m ()
 data Memory
 Mem :: Natural -> Int -> Map Natural Int -> Memory
 [mPos] :: Memory -> Natural
@@ -61,18 +60,21 @@ Mem :: Natural -> Int -> Map Natural Int -> Memory
 [mRegs] :: Memory -> Map Natural Int
 mRegLens :: Natural -> Lens' Memory Int
 data MemRef s
-MemRef :: MutVar s Natural -> MutVar s Int -> MVector s Int -> MemRef s
+MemRef :: MutVar s Natural -> MutVar s Int -> MutVar s (MVector s Int) -> MemRef s
 [mrPos] :: MemRef s -> MutVar s Natural
 [mrBase] :: MemRef s -> MutVar s Int
-[mrRegs] :: MemRef s -> MVector s Int
+[mrRegs] :: MemRef s -> MutVar s (MVector s Int)
+initMemRef :: (PrimMonad m, s ~ PrimState m) => Memory -> m (MemRef s)
+freezeMemRef :: (PrimMonad m, s ~ PrimState m) => MemRef s -> m Memory
 instance GHC.Generics.Generic AOC.Common.Intcode.Memory.Memory
 instance GHC.Show.Show AOC.Common.Intcode.Memory.Memory
 instance GHC.Classes.Ord AOC.Common.Intcode.Memory.Memory
 instance GHC.Classes.Eq AOC.Common.Intcode.Memory.Memory
+instance (Control.Monad.Primitive.PrimMonad m, s Data.Type.Equality.~ Control.Monad.Primitive.PrimState m) => AOC.Common.Intcode.Memory.MonadMem (Control.Monad.Trans.Reader.ReaderT (AOC.Common.Intcode.Memory.MemRef s) m)
+instance Control.DeepSeq.NFData AOC.Common.Intcode.Memory.Memory
 instance GHC.Base.Monad m => AOC.Common.Intcode.Memory.MonadMem (Control.Monad.Trans.State.Lazy.StateT AOC.Common.Intcode.Memory.Memory m)
 instance AOC.Common.Intcode.Memory.MonadMem m => AOC.Common.Intcode.Memory.MonadMem (Data.Conduino.Internal.Pipe i o u m)
 instance AOC.Common.Intcode.Memory.MonadMem m => AOC.Common.Intcode.Memory.MonadMem (Control.Monad.Trans.Except.ExceptT e m)
-instance Control.DeepSeq.NFData AOC.Common.Intcode.Memory.Memory
 
 module AOC.Common.Numeric
 fft :: (FFTWReal a, Vector v (Complex a)) => Vector v n (Complex a) -> Vector v n (Complex a)
@@ -448,6 +450,7 @@ mRegLens :: Natural -> Lens' Memory Int
 type VM = Pipe Int Int Void
 stepForever :: (AsVMErr e, MonadError e m) => Memory -> Pipe Int Int Void m Memory
 stepForeverAndDie :: MonadError IErr m => Memory -> Pipe Int Int Void m Void
+stepForeverMut :: (AsVMErr e, MonadError e m, PrimMonad m) => Memory -> Pipe Int Int Void m Memory
 untilHalt :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m ()
 parseMem :: String -> Maybe Memory
 untilFalse :: Monad m => m Bool -> m ()
@@ -461,15 +464,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a1bwr
-_VMErr :: AsVMErr r_a1bwr => Prism' r_a1bwr VMErr
-_VMEBadMode :: AsVMErr r_a1bwr => Prism' r_a1bwr Int
-_VMEBadInstr :: AsVMErr r_a1bwr => Prism' r_a1bwr Int
-_VMEBadPos :: AsVMErr r_a1bwr => Prism' r_a1bwr Int
-class AsIErr r_a1bGa
-_IErr :: AsIErr r_a1bGa => Prism' r_a1bGa IErr
-_IENoInput :: AsIErr r_a1bGa => Prism' r_a1bGa ()
-_IEVM :: AsIErr r_a1bGa => Prism' r_a1bGa VMErr
+class AsVMErr r_a1d1I
+_VMErr :: AsVMErr r_a1d1I => Prism' r_a1d1I VMErr
+_VMEBadMode :: AsVMErr r_a1d1I => Prism' r_a1d1I Int
+_VMEBadInstr :: AsVMErr r_a1d1I => Prism' r_a1d1I Int
+_VMEBadPos :: AsVMErr r_a1d1I => Prism' r_a1d1I Int
+class AsIErr r_a1dbr
+_IErr :: AsIErr r_a1dbr => Prism' r_a1dbr IErr
+_IENoInput :: AsIErr r_a1dbr => Prism' r_a1dbr ()
+_IEVM :: AsIErr r_a1dbr => Prism' r_a1dbr VMErr
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -643,14 +646,6 @@ module AOC.Prelude
 --   If the first list is not finite, the result is the first list.
 (++) :: () => [a] -> [a] -> [a]
 infixr 5 ++
-
--- | <a>filter</a>, applied to a predicate and a list, returns the list of
---   those elements that satisfy the predicate; i.e.,
---   
---   <pre>
---   filter p xs = [ x | x &lt;- xs, p x]
---   </pre>
-filter :: () => (a -> Bool) -> [a] -> [a]
 
 -- | <a>zip</a> takes two lists and returns a list of corresponding pairs.
 --   
@@ -2100,66 +2095,6 @@ maybeToList :: () => Maybe a -> [a]
 --   [1]
 --   </pre>
 listToMaybe :: () => [a] -> Maybe a
-
--- | The <a>catMaybes</a> function takes a list of <a>Maybe</a>s and
---   returns a list of all the <a>Just</a> values.
---   
---   <h4><b>Examples</b></h4>
---   
---   Basic usage:
---   
---   <pre>
---   &gt;&gt;&gt; catMaybes [Just 1, Nothing, Just 3]
---   [1,3]
---   </pre>
---   
---   When constructing a list of <a>Maybe</a> values, <a>catMaybes</a> can
---   be used to return all of the "success" results (if the list is the
---   result of a <a>map</a>, then <a>mapMaybe</a> would be more
---   appropriate):
---   
---   <pre>
---   &gt;&gt;&gt; import Text.Read ( readMaybe )
---   
---   &gt;&gt;&gt; [readMaybe x :: Maybe Int | x &lt;- ["1", "Foo", "3"] ]
---   [Just 1,Nothing,Just 3]
---   
---   &gt;&gt;&gt; catMaybes $ [readMaybe x :: Maybe Int | x &lt;- ["1", "Foo", "3"] ]
---   [1,3]
---   </pre>
-catMaybes :: () => [Maybe a] -> [a]
-
--- | The <a>mapMaybe</a> function is a version of <a>map</a> which can
---   throw out elements. In particular, the functional argument returns
---   something of type <tt><a>Maybe</a> b</tt>. If this is <a>Nothing</a>,
---   no element is added on to the result list. If it is <tt><a>Just</a>
---   b</tt>, then <tt>b</tt> is included in the result list.
---   
---   <h4><b>Examples</b></h4>
---   
---   Using <tt><a>mapMaybe</a> f x</tt> is a shortcut for
---   <tt><a>catMaybes</a> $ <a>map</a> f x</tt> in most cases:
---   
---   <pre>
---   &gt;&gt;&gt; import Text.Read ( readMaybe )
---   
---   &gt;&gt;&gt; let readMaybeInt = readMaybe :: String -&gt; Maybe Int
---   
---   &gt;&gt;&gt; mapMaybe readMaybeInt ["1", "Foo", "3"]
---   [1,3]
---   
---   &gt;&gt;&gt; catMaybes $ map readMaybeInt ["1", "Foo", "3"]
---   [1,3]
---   </pre>
---   
---   If we map the <a>Just</a> constructor, the entire list should be
---   returned:
---   
---   <pre>
---   &gt;&gt;&gt; mapMaybe Just [1,2,3]
---   [1,2,3]
---   </pre>
-mapMaybe :: () => (a -> Maybe b) -> [a] -> [b]
 
 -- | Extract the first element of a list, which must be non-empty.
 head :: () => [a] -> a
@@ -18080,6 +18015,175 @@ addDays :: Integer -> Day -> Day
 pattern ModifiedJulianDay :: () => () => Integer -> Day
 toModifiedJulianDay :: Day -> Integer
 
+-- | Removes duplicate elements from a list, keeping only the first
+--   occurrence. This is usually faster than <a>ordNub</a>, especially for
+--   things that have a slow comparison (like <a>String</a>).
+hashNub :: (Witherable t, Eq a, Hashable a) => t a -> t a
+
+-- | Removes duplicate elements from a list, keeping only the first
+--   occurrence. This is asymptotically faster than using <a>nub</a> from
+--   <a>Data.List</a>.
+ordNub :: (Witherable t, Ord a) => t a -> t a
+
+-- | Remove the duplicate elements through a filter. It is often faster
+--   than <a>ordNubOf</a>, especially when the comparison is expensive.
+hashNubOf :: (Eq a, Hashable a) => FilterLike' (State (HashSet a)) s a -> s -> s
+
+-- | Remove the duplicate elements through a filter.
+ordNubOf :: Ord a => FilterLike' (State (Set a)) s a -> s -> s
+
+-- | <pre>
+--   <a>forMaybe</a> = <a>flip</a> <a>wither</a>
+--   </pre>
+forMaybe :: (Witherable t, Applicative f) => t a -> (a -> f (Maybe b)) -> f (t b)
+
+-- | Flipped version of <a>&lt;$?&gt;</a>, the <a>Filterable</a> version of
+--   <a>&lt;&amp;&gt;</a>. It has the same fixity as <a>&lt;&amp;&gt;</a>.
+--   
+--   <pre>
+--   (<a>&lt;&amp;?&gt;</a>) = <a>flip</a> <a>mapMaybe</a>
+--   </pre>
+(<&?>) :: Filterable f => f a -> (a -> Maybe b) -> f b
+infixl 1 <&?>
+
+-- | An infix alias for <a>mapMaybe</a>. The name of the operator alludes
+--   to <a>&lt;$&gt;</a>, and has the same fixity.
+(<$?>) :: Filterable f => (a -> Maybe b) -> f a -> f b
+infixl 4 <$?>
+
+-- | Filter each element of a structure targeted by a <a>Filter</a>.
+filterOf :: () => FilterLike' Identity s a -> (a -> Bool) -> s -> s
+
+-- | <a>filterA</a> through a filter.
+filterAOf :: Functor f => FilterLike' f s a -> (a -> f Bool) -> s -> f s
+
+-- | <a>catMaybes</a> through a filter.
+catMaybesOf :: () => FilterLike Identity s t (Maybe a) a -> s -> t
+
+-- | <a>mapMaybe</a> through a filter.
+mapMaybeOf :: () => FilterLike Identity s t a b -> (a -> Maybe b) -> s -> t
+
+-- | <pre>
+--   <a>forMaybeOf</a> ≡ <a>flip</a>
+--   </pre>
+forMaybeOf :: () => FilterLike f s t a b -> s -> (a -> f (Maybe b)) -> f t
+
+-- | <a>witherOf</a> is actually <a>id</a>, but left for consistency.
+witherOf :: () => FilterLike f s t a b -> (a -> f (Maybe b)) -> s -> f t
+
+-- | Reconstitute a <a>Filter</a> from its monomorphic form.
+cloneFilter :: () => FilterLike (Peat a b) s t a b -> Filter s t a b
+
+-- | This type allows combinators to take a <a>Filter</a> specializing the
+--   parameter <tt>f</tt>.
+type FilterLike (f :: Type -> Type) s t a b = a -> f Maybe b -> s -> f t
+
+-- | A <a>Filter</a> is like a <a>Traversal</a>, but you can also remove
+--   targets.
+type Filter s t a b = forall (f :: Type -> Type). Applicative f => FilterLike f s t a b
+
+-- | A simple <a>FilterLike</a>.
+type FilterLike' (f :: Type -> Type) s a = FilterLike f s s a a
+
+-- | A simple <a>Filter</a>.
+type Filter' s a = forall (f :: Type -> Type). Applicative f => FilterLike' f s a
+
+-- | This is used to characterize and clone a <a>Filter</a>. Since
+--   <tt>FilterLike (Peat a b) s t a b</tt> is monomorphic, it can be used
+--   to store a filter in a container.
+newtype Peat a b t
+Peat :: (forall (f :: Type -> Type). Applicative f => (a -> f (Maybe b)) -> f t) -> Peat a b t
+[runPeat] :: Peat a b t -> forall (f :: Type -> Type). Applicative f => (a -> f (Maybe b)) -> f t
+
+-- | Like <a>Functor</a>, but you can remove elements instead of updating
+--   them.
+--   
+--   Formally, the class <a>Filterable</a> represents a functor from
+--   <tt>Kleisli Maybe</tt> to <tt>Hask</tt>.
+--   
+--   A definition of <a>mapMaybe</a> must satisfy the following laws:
+--   
+--   <ul>
+--   <li><i><i>conservation</i></i> <tt><a>mapMaybe</a> (Just . f) ≡
+--   <a>fmap</a> f</tt></li>
+--   <li><i><i>composition</i></i> <tt><a>mapMaybe</a> f . <a>mapMaybe</a>
+--   g ≡ <a>mapMaybe</a> (f &lt;=&lt; g)</tt></li>
+--   </ul>
+class Functor f => Filterable (f :: Type -> Type)
+
+-- | Like <a>mapMaybe</a>.
+mapMaybe :: Filterable f => (a -> Maybe b) -> f a -> f b
+
+-- | <pre>
+--   <a>catMaybes</a> ≡ <a>mapMaybe</a> <a>id</a>
+--   </pre>
+catMaybes :: Filterable f => f (Maybe a) -> f a
+
+-- | <pre>
+--   <a>Filterable</a> f . <a>Filterable</a> g ≡ filter (<a>liftA2</a> (<a>&amp;&amp;</a>) f g)
+--   </pre>
+filter :: Filterable f => (a -> Bool) -> f a -> f a
+
+-- | Indexed variant of <a>Filterable</a>.
+class (FunctorWithIndex i t, Filterable t) => FilterableWithIndex i (t :: Type -> Type) | t -> i
+imapMaybe :: FilterableWithIndex i t => (i -> a -> Maybe b) -> t a -> t b
+
+-- | <pre>
+--   <a>ifilter</a> f . <a>ifilter</a> g ≡ ifilter (i -&gt; <a>liftA2</a> (<a>&amp;&amp;</a>) (f i) (g i))
+--   </pre>
+ifilter :: FilterableWithIndex i t => (i -> a -> Bool) -> t a -> t a
+
+-- | An enhancement of <a>Traversable</a> with <a>Filterable</a>
+--   
+--   A definition of <a>wither</a> must satisfy the following laws:
+--   
+--   <ul>
+--   <li><i><i>conservation</i></i> <tt><a>wither</a> (<a>fmap</a>
+--   <a>Just</a> . f) ≡ <a>traverse</a> f</tt></li>
+--   <li><i><i>composition</i></i> <tt><a>Compose</a> . <a>fmap</a>
+--   (<a>wither</a> f) . <a>wither</a> g ≡ <a>wither</a> (<a>Compose</a> .
+--   <a>fmap</a> (<a>wither</a> f) . g)</tt></li>
+--   </ul>
+--   
+--   Parametricity implies the naturality law:
+--   
+--   <pre>
+--   t . <a>wither</a> f ≡ <a>wither</a> (t . f)
+--   </pre>
+class (Traversable t, Filterable t) => Witherable (t :: Type -> Type)
+
+-- | Effectful <a>mapMaybe</a>.
+--   
+--   <pre>
+--   <a>wither</a> (<a>pure</a> . f) ≡ <a>pure</a> . <a>mapMaybe</a> f
+--   </pre>
+wither :: (Witherable t, Applicative f) => (a -> f (Maybe b)) -> t a -> f (t b)
+
+-- | <pre>
+--   Monadic variant of <a>wither</a>. This may have more efficient implementation.
+--   </pre>
+witherM :: (Witherable t, Monad m) => (a -> m (Maybe b)) -> t a -> m (t b)
+filterA :: (Witherable t, Applicative f) => (a -> f Bool) -> t a -> f (t a)
+
+-- | Indexed variant of <a>Witherable</a>.
+class (TraversableWithIndex i t, Witherable t) => WitherableWithIndex i (t :: Type -> Type) | t -> i
+
+-- | Effectful <a>imapMaybe</a>.
+--   
+--   <pre>
+--   <a>iwither</a> ( i -&gt; <a>pure</a> . f i) ≡ <a>pure</a> . <a>imapMaybe</a> f
+--   </pre>
+iwither :: (WitherableWithIndex i t, Applicative f) => (i -> a -> f (Maybe b)) -> t a -> f (t b)
+
+-- | <pre>
+--   Monadic variant of <a>wither</a>. This may have more efficient implementation.
+--   </pre>
+iwitherM :: (WitherableWithIndex i t, Monad m) => (i -> a -> m (Maybe b)) -> t a -> m (t b)
+ifilterA :: (WitherableWithIndex i t, Applicative f) => (i -> a -> f Bool) -> t a -> f (t a)
+newtype WrappedFoldable (f :: Type -> Type) a
+WrapFilterable :: f a -> WrappedFoldable a
+[unwrapFoldable] :: WrappedFoldable a -> f a
+
 -- | A* Search
 aStar :: forall n p. (Ord n, Ord p, Num p) => (n -> p) -> (n -> Map n p) -> n -> (n -> Bool) -> Maybe (p, [n])
 
@@ -18986,14 +19090,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a2MVH
-mainRunOpts :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH MainRunOpts
-mroActual :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH Bool
-mroBench :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH Bool
-mroInput :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH Bool
-mroSpec :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH TestSpec
-mroTest :: HasMainRunOpts c_a2MVH => Lens' c_a2MVH Bool
+class HasMainRunOpts c_a2Pg1
+mainRunOpts :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 MainRunOpts
+mroActual :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 Bool
+mroBench :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 Bool
+mroInput :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 Bool
+mroSpec :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 TestSpec
+mroTest :: HasMainRunOpts c_a2Pg1 => Lens' c_a2Pg1 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -19006,10 +19110,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a2N3d
-mainViewOpts :: HasMainViewOpts c_a2N3d => Lens' c_a2N3d MainViewOpts
-mvoSpec :: HasMainViewOpts c_a2N3d => Lens' c_a2N3d TestSpec
-mvoWait :: HasMainViewOpts c_a2N3d => Lens' c_a2N3d Bool
+class HasMainViewOpts c_a2Pnx
+mainViewOpts :: HasMainViewOpts c_a2Pnx => Lens' c_a2Pnx MainViewOpts
+mvoSpec :: HasMainViewOpts c_a2Pnx => Lens' c_a2Pnx TestSpec
+mvoWait :: HasMainViewOpts c_a2Pnx => Lens' c_a2Pnx Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -19030,12 +19134,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a2N7x
-mainSubmitOpts :: HasMainSubmitOpts c_a2N7x => Lens' c_a2N7x MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a2N7x => Lens' c_a2N7x Bool
-msoLock :: HasMainSubmitOpts c_a2N7x => Lens' c_a2N7x Bool
-msoSpec :: HasMainSubmitOpts c_a2N7x => Lens' c_a2N7x ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a2N7x => Lens' c_a2N7x Bool
+class HasMainSubmitOpts c_a2PrR
+mainSubmitOpts :: HasMainSubmitOpts c_a2PrR => Lens' c_a2PrR MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a2PrR => Lens' c_a2PrR Bool
+msoLock :: HasMainSubmitOpts c_a2PrR => Lens' c_a2PrR Bool
+msoSpec :: HasMainSubmitOpts c_a2PrR => Lens' c_a2PrR ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a2PrR => Lens' c_a2PrR Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

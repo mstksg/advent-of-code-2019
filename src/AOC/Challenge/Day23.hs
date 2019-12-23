@@ -31,17 +31,17 @@ import           Linear.V2           (V2(..), _y)
 import qualified Data.Map            as M
 import qualified Data.Sequence       as Seq
 
-data MultiMem = MM
-    { mmPipes :: !(Map Int (Int -> VM (Either VMErr) Memory))
-    , mmQueue :: !(Seq (Int, Point))       -- ^ use one big global queue
-    , mmNAT   :: !(Maybe Point)
+data Network = MM
+    { nPipes :: !(Map Int (Int -> VM (Either VMErr) Memory))
+    , nQueue :: !(Seq (Int, Point))       -- ^ use one big global queue
+    , nNAT   :: !(Maybe Point)
     }
 
-initMultiMem :: Memory -> MultiMem
-initMultiMem m = MM
-    { mmPipes = M.fromList (catMaybes pipes')
-    , mmQueue = parseOuts outList
-    , mmNAT   = Nothing
+initNetwork :: Memory -> Network
+initNetwork m = MM
+    { nPipes = M.fromList (catMaybes pipes')
+    , nQueue = parseOuts outList
+    , nNAT   = Nothing
     }
   where
     (outList, pipes') = for [0..49] $ \i ->
@@ -52,22 +52,22 @@ initMultiMem m = MM
           Right _ -> (os, Nothing    )
 
 
-stepMultiMem :: MultiMem -> MultiMem
-stepMultiMem mm@MM{..} = case mmQueue of
-    Empty -> case mmNAT of
-      Just a  -> mm { mmQueue = Seq.singleton (0, a) }
+stepNetwork :: Network -> Network
+stepNetwork mm@MM{..} = case nQueue of
+    Empty -> case nNAT of
+      Just a  -> mm { nQueue = Seq.singleton (0, a) }
       Nothing ->
-        let (outList, pipes') = fmap (M.mapMaybe id) . for mmPipes $ \n ->
+        let (outList, pipes') = fmap (M.mapMaybe id) . for nPipes $ \n ->
               case feedPipe [] (n (-1)) of
                 Left  e -> error $ show e
                 Right (os, r) -> case r of
                   Left n' -> (os, Just n')
                   Right _ -> (os, Nothing)
-        in  mm { mmPipes = pipes', mmQueue = parseOuts outList }
+        in  mm { nPipes = pipes', nQueue = parseOuts outList }
     (i, p@(V2 x y)) :<| ps
-      | i == 255  -> mm { mmNAT = Just p, mmQueue = ps }
+      | i == 255  -> mm { nNAT = Just p, nQueue = ps }
       | otherwise ->
-          let (outList, pipes') = mmPipes & at i %%~ \case
+          let (outList, pipes') = nPipes & at i %%~ \case
                 Nothing -> ([], Nothing)
                 Just n  -> case feedPipe [y] (n x) of
                   Left  _ -> ([], Nothing)
@@ -75,7 +75,7 @@ stepMultiMem mm@MM{..} = case mmQueue of
                     Left n' -> (os, Just n')
                     Right _ -> (os, Nothing)
               queue' = ps <> parseOuts outList
-          in  MM pipes' queue' mmNAT
+          in  MM pipes' queue' nNAT
 
 parseOuts :: [a] -> Seq (a, V2 a)
 parseOuts = Seq.fromList . mapMaybe splitOut . chunksOf 3
@@ -87,9 +87,9 @@ day23a :: Memory :~> Int
 day23a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = firstJust (firstJust find255 . mmQueue)
-             . iterate stepMultiMem
-             . initMultiMem
+    , sSolve = firstJust (firstJust find255 . nQueue)
+             . iterate stepNetwork
+             . initNetwork
     }
   where
     find255 (255, V2 _ y) = Just y
@@ -102,11 +102,11 @@ day23b = MkSol
     , sSolve = firstJust (\(x,y) -> x <$ guard (x == y))
              . (zip`ap`tail)
              . mapMaybe natted
-             . iterate stepMultiMem
-             . initMultiMem
+             . iterate stepNetwork
+             . initNetwork
     }
   where
     natted MM{..} = do
-      guard $ Seq.null mmQueue
-      view _y <$> mmNAT
+      guard $ Seq.null nQueue
+      view _y <$> nNAT
 

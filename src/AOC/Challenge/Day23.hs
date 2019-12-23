@@ -59,7 +59,7 @@ stepNetwork mm@MM{..} = case nQueue of
       Nothing ->
         let (outList, pipes') = fmap (M.mapMaybe id) . for nPipes $ \n ->
               case feedPipe [] (n (-1)) of
-                Left  e -> error $ show e
+                Left  _ -> ([], Nothing)
                 Right (os, r) -> case r of
                   Left n' -> (os, Just n')
                   Right _ -> (os, Nothing)

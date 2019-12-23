@@ -14,13 +14,14 @@ import           Control.Monad.Reader
 import           Control.Monad.ST
 import           Control.Monad.State
 import           Data.Conduino
-import           Data.Generics.Labels    ()
-import           Data.Map                (Map)
-import           Data.STRef
+import           Data.Generics.Labels         ()
+import           Data.Map                     (Map)
+import           Data.Primitive.MutVar
 import           GHC.Generics
-import           Numeric.Natural         (Natural)
-import qualified Data.Map                as M
-import qualified Data.Vector.Storable    as VS
+import           Numeric.Natural              (Natural)
+import qualified Data.Map                     as M
+import qualified Data.Vector.Storable         as VS
+import qualified Data.Vector.Storable.Mutable as MVS
 
 
 class Monad m => MonadMem m where
@@ -73,11 +74,32 @@ mRegLens :: Natural -> Lens' Memory Int
 mRegLens i = #mRegs . at i . non 0
 
 data MemRef s = MemRef
-    { mrPos  :: STRef s Natural
-    , mrBase :: STRef s Int
+    { mrPos  :: MutVar s Natural
+    , mrBase :: MutVar s Int
     , mrRegs :: VS.MVector s Int
     }
 
 -- instance (PrimMonad m, s ~ PrimState m) => MonadMem (ReaderT (MemRef s) m) where
---     mRead = asks >>= \MemRef{..} -> do
+--     mRead = ask >>= \MemRef{..} -> do
+--       i <- fromIntegral <$> atomicModifyMutVar' mrPos (\i -> (i+1, i))
+--       mPeek i
+--     mCurr = readMutVar =<< asks mrPos
+--     mPeek i = do
+--       r <- asks mrRegs
+--       if i' < MVS.length r
+--         then MVS.unsafeRead r i'
+--         else pure 0
+--       where
+--         i' = fromIntegral i
+--     mSeek i = (`writeMutVar` i) =<< asks mrPos
+--     -- mWrite i x = asks >>= \MemRef{..} -> do
+--     --     if i' < MVS.length mRegs
+--     --       then MVS.unsafeWrite mRegs i' x
+--     --       else do
+
+    --   where
+    --     i' = fromIntegral i
+
+        
+      
 

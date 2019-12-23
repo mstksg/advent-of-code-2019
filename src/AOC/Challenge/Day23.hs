@@ -22,11 +22,17 @@
 --     will recommend what should go in place of the underscores.
 
 module AOC.Challenge.Day23 (
-    -- day23a
-  -- , day23b
+    day23a
+  , day23b
   ) where
 
+import           AOC.Common.Conduino
+import           AOC.Common.Intcode
 import           AOC.Prelude
+import           Data.Conduino
+import qualified Data.Conduino.Combinators as C
+import qualified Data.Map                  as M
+import qualified Data.Set                  as S
 
 day23a :: _ :~> _
 day23a = MkSol

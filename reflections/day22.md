@@ -238,10 +238,21 @@ invert (Aff a b) <> Aff a b = Aff 1 0
  Aff (a' * a) (a' * b + b') = Aff 1 0
 ```
 
-Which means we need `a' * a = 1`, and `a' * b + b' = 0`.  A quick google shows
-us that if we want `a' * a = 1`, then we need `a' = a ^ (n - 2)`, or `a ^
-(maxBound - 1)`.  The second case is a little simpler: we see that `b' = -(a' *
-b)`
+Which means we need `a' * a = 1`, and `a' * b + b' = 0`.  To solve `a' * a =
+1`, we can imagine that cycling `a` through the whole deck gets you back to
+`a`.  So:
+
+
+```
+         a^n = a
+=> a^(n-1)*a = a    -- definition of exponentiation
+=> a^(n-1)   = 1    -- a^(n-1) leaves a unchanged, so it must be 1
+=> a^(n-2)*a = 1    -- definition of exponentiation
+```
+
+From this we can see that if `a' * a = 1`, then `a'` must be `a^(n-2)`.
+
+The second case is a little simpler: we see that `b' = -(a' * b)`
 
 ```haskell
 instance KnownNat n => Group (Affine n) where

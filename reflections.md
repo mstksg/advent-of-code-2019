@@ -2253,7 +2253,9 @@ invert (Aff a b) <> Aff a b = Aff 1 0
 
 Which means we need `a' * a = 1`, and `a' * b + b' = 0`.  To solve `a' * a =
 1`, we can imagine that cycling `a` through the whole deck gets you back to
-`a`.  So:
+`a`.  (If `n` is prime, then `a`, `a*a`, `a*a*a`, etc. will all be unique...so
+you will keep on getting unique numbers until you exhaust the entire space at
+`a^size` to arrive back at `a`)  So:
 
 
 ```

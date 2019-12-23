@@ -70,6 +70,17 @@ instance MonadMem m => MonadMem (Pipe i o u m) where
     mFreeze = lift mFreeze
     mInit   = lift . mInit
 
+instance MonadMem m => MonadMem (ExceptT e m) where
+    mRead = lift mRead
+    mCurr = lift mCurr
+    mPeek = lift . mPeek
+    mSeek = lift . mSeek
+    mWrite i = lift . mWrite i
+    mShiftBase = lift . mShiftBase
+    mWithBase  = lift . mWithBase
+    mFreeze = lift mFreeze
+    mInit   = lift . mInit
+
 mRegLens :: Natural -> Lens' Memory Int
 mRegLens i = #mRegs . at i . non 0
 

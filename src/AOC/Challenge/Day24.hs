@@ -26,18 +26,25 @@ import qualified Data.Set        as S
 allPoints :: Set Point
 allPoints = S.fromList $ V2 <$> [0..4] <*> [0..4]
 
-step1 :: Set Point -> Set Point
-step1 s0 = flip S.filter allPoints $ \p ->
-    let n = S.size $ cardinalNeighbsSet p `S.intersection` s0
-    in  if p `S.member` s0
-          then n == 1
-          else n == 1 || n == 2
+stepWith
+    :: Ord a
+    => (Set a -> Set a)     -- ^ get the set of all points to check, from current alive
+    -> (a -> Set a)         -- ^ neighbors
+    -> Set a                -- ^ initial
+    -> [Set a]              -- ^ yipee
+stepWith universe neighbs = iterate go
+  where
+    go s0 = flip S.filter (universe s0) $ \p ->
+      let n = S.size $ neighbs p `S.intersection` s0
+      in  if p `S.member` s0
+            then n == 1
+            else n == 1 || n == 2
 
 day24a :: Set Point :~> Set Point
 day24a = MkSol
     { sParse = Just . parseMap
     , sShow  = show . getSum . foldMap (Sum . biodiversity)
-    , sSolve = firstRepeated . iterate step1
+    , sSolve = firstRepeated . stepWith (const allPoints) cardinalNeighbsSet
     }
   where
     biodiversity :: Point -> Int
@@ -79,34 +86,28 @@ stepLoc (L n p@(V2 x y)) = fmap S.fromList $ \case
       V2 3 2 -> L (n + 1) . V2 4 <$> finites
       _      -> [L n (V2 (x - 1) y)]
 
-step2 :: Set Loc -> Set Loc
-step2 s0 = flip S.filter (oldLocs <> zoomOut) $ \p ->
-    let n = S.size $ neighbs p `S.intersection` s0
-    in  if p `S.member` s0
-          then n == 1
-          else n == 1 || n == 2
-  where
-    neighbs p = foldMap (stepLoc p) [North ..]
-    oldLocs = S.fromList
-        [ L n p
-        | n      <- [mn .. mx + 1]
-        , Just p <- mkP5 <$> finites <*> finites
-        ]
-    -- a little optimization: only check the center 9 points in the zoomed
-    -- out layer
-    zoomOut = S.fromList
-        [ L (mn - 1) p
-        | Just p <- mkP5 <$> [1..3] <*> [1..3]
-        ]
-    (Min mn, Max mx) = foldMap (\(lLevel->l) -> (Min l, Max l)) . S.toList $ s0
-
-
 day24b :: Set Loc :~> Set Loc
 day24b = MkSol
     { sParse = Just . S.map (L 0 . fmap fromIntegral) . parseMap
     , sShow  = show . S.size
-    , sSolve = Just . (!!! dyno_ "steps" 200) . iterate step2
+    , sSolve = Just . (!!! dyno_ "steps" 200) . stepWith getUniverse getNeighbs
     }
+  where
+    getNeighbs p = foldMap (stepLoc p) [North ..]
+    getUniverse s = oldLocs <> zoomOut
+      where
+        oldLocs = S.fromList
+            [ L n p
+            | n      <- [mn .. mx + 1]
+            , Just p <- mkP5 <$> finites <*> finites
+            ]
+        -- a little optimization: only check the center 9 points in the zoomed
+        -- out layer
+        zoomOut = S.fromList
+            [ L (mn - 1) p
+            | Just p <- mkP5 <$> [1..3] <*> [1..3]
+            ]
+        (Min mn, Max mx) = foldMap (\(lLevel->l) -> (Min l, Max l)) . S.toList $ s
 
 parseMap :: String -> Set Point
 parseMap = M.keysSet . M.filter (== '#') . parseAsciiMap Just

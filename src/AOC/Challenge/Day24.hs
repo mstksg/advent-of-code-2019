@@ -48,9 +48,7 @@ day24a = MkSol
     }
   where
     biodiversity :: Point -> Int
-    biodiversity (V2 x y) = 2 ^ i
-      where
-        i = y * 5 + x
+    biodiversity (V2 x y) = 2 ^ (y * 5 + x)
 
 -- | Position in layer.  Cannot be (2,2).  Use 'mkP5' if you're not sure.
 type P5 = V2 (Finite 5)
@@ -61,29 +59,29 @@ mkP5 2 2 = Nothing
 mkP5 x y = Just (V2 x y)
 
 data Loc = L
-    { lLevel :: Int         -- ^ positive: zoom in, negative: zoom out
-    , lPoint :: P5          -- ^ position in layer.
+    { lLevel :: !Int         -- ^ positive: zoom in, negative: zoom out
+    , lPoint :: !P5          -- ^ position in layer.
     }
   deriving (Eq, Ord, Show, Generic)
 instance NFData Loc
 
-stepLoc :: Loc -> Dir -> Set Loc
-stepLoc (L n p@(V2 x y)) = fmap S.fromList $ \case
+stepLoc :: Loc -> Dir -> [Loc]
+stepLoc (L n p@(V2 x y)) = \case
     North -> case p of
-      V2 _ 0 -> [L (n - 1) (V2 2 1)]
       V2 2 3 -> L (n + 1) . (`V2` 4) <$> finites
+      V2 _ 0 -> [L (n - 1) (V2 2 1)]
       _      -> [L n (V2 x (y - 1))]
     East -> case p of
-      V2 4 _ -> [L (n - 1) (V2 3 2)]
       V2 1 2 -> L (n + 1) . V2 0 <$> finites
+      V2 4 _ -> [L (n - 1) (V2 3 2)]
       _      -> [L n (V2 (x + 1) y)]
     South -> case p of
-      V2 _ 4 -> [L (n - 1) (V2 2 3)]
       V2 2 1 -> L (n + 1) . (`V2` 0) <$> finites
+      V2 _ 4 -> [L (n - 1) (V2 2 3)]
       _      -> [L n (V2 x (y + 1))]
     West  -> case p of
-      V2 0 _ -> [L (n - 1) (V2 1 2)]
       V2 3 2 -> L (n + 1) . V2 4 <$> finites
+      V2 0 _ -> [L (n - 1) (V2 1 2)]
       _      -> [L n (V2 (x - 1) y)]
 
 day24b :: Set Loc :~> Set Loc
@@ -93,7 +91,7 @@ day24b = MkSol
     , sSolve = Just . (!!! dyno_ "steps" 200) . stepWith getUniverse getNeighbs
     }
   where
-    getNeighbs p = foldMap (stepLoc p) [North ..]
+    getNeighbs p = S.fromList $ foldMap (stepLoc p) [North ..]
     getUniverse s = oldLocs <> zoomOut
       where
         oldLocs = S.fromList

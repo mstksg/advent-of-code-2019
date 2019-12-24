@@ -12,7 +12,7 @@ module AOC.Challenge.Day24 (
   , day24b
   ) where
 
-import           AOC.Common      (Point, cardinalNeighbsSet, parseAsciiMap, firstRepeated, (!!!))
+import           AOC.Common      (Point, cardinalNeighbsSet, parseAsciiMap, firstRepeated, (!!!), Dir(..))
 import           AOC.Solver      ((:~>)(..), dyno_)
 import           Control.DeepSeq (NFData)
 import           Data.Finite     (Finite, finites)
@@ -60,33 +60,33 @@ data Loc = L
   deriving (Eq, Ord, Show, Generic)
 instance NFData Loc
 
-locNeighbs :: Loc -> Set Loc
-locNeighbs (L n p@(V2 x y)) = foldMap S.fromList [nN, nE, nS, nW]
-  where
-    nN = case p of
+stepLoc :: Loc -> Dir -> Set Loc
+stepLoc (L n p@(V2 x y)) = fmap S.fromList $ \case
+    North -> case p of
       V2 _ 0 -> [L (n - 1) (V2 2 1)]
       V2 2 3 -> L (n + 1) . (`V2` 4) <$> finites
       _      -> [L n (V2 x (y - 1))]
-    nE = case p of
+    East -> case p of
       V2 4 _ -> [L (n - 1) (V2 3 2)]
       V2 1 2 -> L (n + 1) . V2 0 <$> finites
-      _ -> [L n (V2 (x + 1) y)]
-    nS = case p of
+      _      -> [L n (V2 (x + 1) y)]
+    South -> case p of
       V2 _ 4 -> [L (n - 1) (V2 2 3)]
       V2 2 1 -> L (n + 1) . (`V2` 0) <$> finites
-      _ -> [L n (V2 x (y + 1))]
-    nW = case p of
+      _      -> [L n (V2 x (y + 1))]
+    West  -> case p of
       V2 0 _ -> [L (n - 1) (V2 1 2)]
       V2 3 2 -> L (n + 1) . V2 4 <$> finites
-      _ -> [L n (V2 (x - 1) y)]
+      _      -> [L n (V2 (x - 1) y)]
 
 step2 :: Set Loc -> Set Loc
 step2 s0 = flip S.filter (oldLocs <> zoomOut) $ \p ->
-    let n = S.size $ locNeighbs p `S.intersection` s0
+    let n = S.size $ neighbs p `S.intersection` s0
     in  if p `S.member` s0
           then n == 1
           else n == 1 || n == 2
   where
+    neighbs p = foldMap (stepLoc p) [North ..]
     oldLocs = S.fromList
         [ L n p
         | n      <- [mn .. mx + 1]
@@ -101,9 +101,9 @@ step2 s0 = flip S.filter (oldLocs <> zoomOut) $ \p ->
     (Min mn, Max mx) = foldMap (\(lLevel->l) -> (Min l, Max l)) . S.toList $ s0
 
 
-day24b :: _ :~> _
+day24b :: Set Loc :~> Set Loc
 day24b = MkSol
-    { sParse = Just . S.map (L 0 . fmap fromIntegral) . M.keysSet . parseAsciiMap (\case '#' -> Just (); _ -> Nothing)
+    { sParse = Just . S.map (L 0 . fmap fromIntegral) . parseMap
     , sShow  = show . S.size
     , sSolve = Just . (!!! dyno_ "steps" 200) . iterate step2
     }

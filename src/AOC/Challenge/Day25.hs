@@ -13,7 +13,6 @@
 
 module AOC.Challenge.Day25 (
     day25a
-  , day25b
   ) where
 
 import           AOC.Common                         (Dir(..))
@@ -209,14 +208,6 @@ day25a = MkSol
         (_, out) <- bruteForceCheckpoint bot sm
         readMaybe . filter isDigit $ T.unpack out
     }
-
-day25b :: () :~> Int
-day25b = MkSol
-    { sParse = \_ -> Just ()
-    , sShow  = show
-    , sSolve = \_ -> Just 0
-    }
-
 
 type Parser = Parsec Void Text
 

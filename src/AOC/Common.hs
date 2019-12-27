@@ -667,3 +667,10 @@ lineTo p0 p1 = [ p0 + t *^ step | t <- [1 .. gcf  - 1] ]
     d@(V2 dx dy) = p1 - p0
     gcf          = gcd dx dy
     step         = (`div` gcf) <$> d
+
+instance FunctorWithIndex k (NEMap k) where
+    imap = NEM.mapWithKey
+instance FoldableWithIndex k (NEMap k) where
+    ifoldMap = NEM.foldMapWithKey
+instance TraversableWithIndex k (NEMap k) where
+    itraverse = NEM.traverseWithKey

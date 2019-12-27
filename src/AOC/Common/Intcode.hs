@@ -13,6 +13,7 @@ module AOC.Common.Intcode (
     Memory(..)
   , mRegLens
   , VM
+  , AsciiVM
   , stepForever
   , stepForeverAndDie
   , stepForeverMut
@@ -20,12 +21,17 @@ module AOC.Common.Intcode (
   , parseMem
   , untilFalse
   , step
+  , stepN
   , yieldAndDie
   , yieldAndPass
   , VMErr(..)
   , IErr(..)
   , AsVMErr(..)
   , AsIErr(..)
+  , toAsciiVM
+  -- , preAscii, postAscii
+  , interactVM
+  , interactAsciiVM
   ) where
 
 import           AOC.Common
@@ -38,21 +44,29 @@ import           Control.Lens
 import           Control.Monad.Error.Lens
 import           Control.Monad.Except
 import           Control.Monad.Primitive
+import           Data.Char
 import           Data.Conduino
 import           Data.Generics.Labels      ()
 import           Data.List.Split
 import           Data.Map                  (Map)
+import           Data.Text                 (Text)
 import           Data.Traversable
 import           Data.Typeable
 import           Data.Void
 import           GHC.Generics
+import           GHC.Natural
 import           Linear
 import           Numeric.Natural           (Natural)
 import           Text.Read                 (readMaybe)
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
+import qualified Data.Text                 as T
+import qualified Data.Text.IO              as T
 
 type VM = Pipe Int Int Void
+
+type AsciiVM = Pipe Text Text Void
+
 
 data Mode = Pos | Imm | Rel
   deriving (Eq, Ord, Enum, Show, Generic)
@@ -200,7 +214,7 @@ stepForeverMut m = do
     lift $ freezeMemRef mr
 
 stepForeverAndDie
-    :: (MonadError IErr m)
+    :: MonadError IErr m
     => Memory
     -> Pipe Int Int Void m Void
 stepForeverAndDie m = stepForever m *> throwError IENoInput
@@ -223,10 +237,61 @@ untilFalse x = go
       False -> pure ()
       True  -> go
 
+stepN
+    :: (AsVMErr e, MonadError e m)
+    => Natural
+    -> Memory
+    -> Pipe Int Int Void m (Maybe Natural)
+stepN n m = evalStateP m (untilFalseN n step)
+
+-- | Returns the 'fuel' remaining
+untilFalseN :: Monad m => Natural -> m Bool -> m (Maybe Natural)
+untilFalseN n x = go n
+  where
+    go i = case i `minusNaturalMaybe` 1 of
+      Nothing -> pure Nothing
+      Just j  -> x >>= \case
+        False -> pure (Just j)
+        True  -> go j
+
 yieldAndDie :: MonadError IErr m => o -> Pipe i o u m a
 yieldAndDie i = yield i *> throwError IENoInput
 
 yieldAndPass :: o -> Pipe o o u m u
 yieldAndPass i = yield i *> C.map id
 
+preAscii :: Pipe Text Int u m u
+preAscii = C.concatMap $ map ord . T.unpack . (<> "\n")
+    
+postAscii :: Monad m => Pipe Int Text u m u
+postAscii = C.map chr .| C.mapAccum go [] .| C.concat
+  where
+    go c xs
+      | c == '\n' = ([], Just (T.pack (reverse xs)))
+      | otherwise = (c:xs, Nothing)
 
+toAsciiVM :: Monad m => VM m a -> AsciiVM m a
+toAsciiVM p = preAscii .| p .| postAscii
+
+interactAsciiVM :: AsciiVM (Either IErr) () -> IO ()
+interactAsciiVM = mapM_ @Maybe (uncurry go) . eitherToMaybe . squeezePipe
+  where
+    go outs res = do
+      mapM_ T.putStrLn outs
+      case res of
+        Left next -> do
+          l <- T.getLine
+          interactAsciiVM (next (Right l))
+        Right x -> pure x
+
+interactVM :: Memory -> IO ()
+interactVM mem = mapM_ (uncurry go) (eitherToMaybe $ feedPipe [] (stepForever @VMErr mem) :: Maybe _)
+  where
+    go :: [Int] -> Either (Int -> VM (Either VMErr) Memory) ([Int], Memory) -> IO ()
+    go outs res = do
+        putStrLn $ map chr outs
+        case res of
+          Left next -> do
+            c:cs <- map ord . (++ "\n") <$> getLine
+            mapM_ (uncurry go) (eitherToMaybe $ feedPipe cs (next c) :: Maybe _)
+          Right _ -> pure ()

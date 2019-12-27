@@ -30,7 +30,7 @@ parseRecipeLine = (agg . reverse =<<)
                 . traverse parseChunk
                 . chunksOf 2
                 . words
-                . clearOut (`elem` ",=>")
+                . clearOut (`elem` (",=>" :: String))
   where
     parseChunk [readMaybe->Just x, y] = Just (y, x)
     parseChunk _                      = Nothing

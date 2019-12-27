@@ -61,7 +61,7 @@ import           Data.Time                 as P hiding (Day)
 import           Data.Traversable          as P
 import           Data.Tuple                as P
 import           Data.Void                 as P
-import           Data.Witherable           as P
+import           Data.Witherable           as P hiding (filter)
 import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
 import           Linear                    as P (V1(..), V2(..), V3(..), V4(..))

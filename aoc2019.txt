@@ -185,6 +185,16 @@ findSubset :: (Monad m, Ord a) => (Set a -> m Ordering) -> Set a -> m (Maybe (Se
 -- | Get the number of guesses needed for each possible subset, for n
 --   items.
 testFinder :: Int -> Map (Set Int) Int
+allBranches :: Ord a => Set a -> [(Set a, [(Set a, Ordering)])]
+buildDTree :: Ord a => Set a -> Maybe (DTree a)
+renderBranches :: (Ord a, Show a) => Set a -> Maybe Text
+renderBranchesChar :: Set Char -> Maybe Text
+instance Data.Traversable.Traversable (AOC.Common.Subset.DTreeF a)
+instance Data.Foldable.Foldable (AOC.Common.Subset.DTreeF a)
+instance GHC.Base.Functor (AOC.Common.Subset.DTreeF a)
+instance Data.Functor.Foldable.Recursive (AOC.Common.Subset.DTree a)
+instance Data.Functor.Foldable.Corecursive (AOC.Common.Subset.DTree a)
+instance GHC.Show.Show a => GHC.Show.Show (AOC.Common.Subset.DTree a)
 
 
 -- | Common functions for solutions
@@ -476,15 +486,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a1eFN
-_VMErr :: AsVMErr r_a1eFN => Prism' r_a1eFN VMErr
-_VMEBadMode :: AsVMErr r_a1eFN => Prism' r_a1eFN Int
-_VMEBadInstr :: AsVMErr r_a1eFN => Prism' r_a1eFN Int
-_VMEBadPos :: AsVMErr r_a1eFN => Prism' r_a1eFN Int
-class AsIErr r_a1ePw
-_IErr :: AsIErr r_a1ePw => Prism' r_a1ePw IErr
-_IENoInput :: AsIErr r_a1ePw => Prism' r_a1ePw ()
-_IEVM :: AsIErr r_a1ePw => Prism' r_a1ePw VMErr
+class AsVMErr r_a1olu
+_VMErr :: AsVMErr r_a1olu => Prism' r_a1olu VMErr
+_VMEBadMode :: AsVMErr r_a1olu => Prism' r_a1olu Int
+_VMEBadInstr :: AsVMErr r_a1olu => Prism' r_a1olu Int
+_VMEBadPos :: AsVMErr r_a1olu => Prism' r_a1olu Int
+class AsIErr r_a1ovd
+_IErr :: AsIErr r_a1ovd => Prism' r_a1ovd IErr
+_IENoInput :: AsIErr r_a1ovd => Prism' r_a1ovd ()
+_IEVM :: AsIErr r_a1ovd => Prism' r_a1ovd VMErr
 toAsciiVM :: Monad m => VM m a -> AsciiVM m a
 interactVM :: Memory -> IO ()
 interactAsciiVM :: AsciiVM (Either IErr) () -> IO ()
@@ -19098,14 +19108,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a32f3
-mainRunOpts :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 MainRunOpts
-mroActual :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 Bool
-mroBench :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 Bool
-mroInput :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 Bool
-mroSpec :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 TestSpec
-mroTest :: HasMainRunOpts c_a32f3 => Lens' c_a32f3 Bool
+class HasMainRunOpts c_a3bUo
+mainRunOpts :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo MainRunOpts
+mroActual :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo Bool
+mroBench :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo Bool
+mroInput :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo Bool
+mroSpec :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo TestSpec
+mroTest :: HasMainRunOpts c_a3bUo => Lens' c_a3bUo Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -19118,10 +19128,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a32mz
-mainViewOpts :: HasMainViewOpts c_a32mz => Lens' c_a32mz MainViewOpts
-mvoSpec :: HasMainViewOpts c_a32mz => Lens' c_a32mz TestSpec
-mvoWait :: HasMainViewOpts c_a32mz => Lens' c_a32mz Bool
+class HasMainViewOpts c_a3c1U
+mainViewOpts :: HasMainViewOpts c_a3c1U => Lens' c_a3c1U MainViewOpts
+mvoSpec :: HasMainViewOpts c_a3c1U => Lens' c_a3c1U TestSpec
+mvoWait :: HasMainViewOpts c_a3c1U => Lens' c_a3c1U Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -19142,12 +19152,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a32qT
-mainSubmitOpts :: HasMainSubmitOpts c_a32qT => Lens' c_a32qT MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a32qT => Lens' c_a32qT Bool
-msoLock :: HasMainSubmitOpts c_a32qT => Lens' c_a32qT Bool
-msoSpec :: HasMainSubmitOpts c_a32qT => Lens' c_a32qT ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a32qT => Lens' c_a32qT Bool
+class HasMainSubmitOpts c_a3c6e
+mainSubmitOpts :: HasMainSubmitOpts c_a3c6e => Lens' c_a3c6e MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a3c6e => Lens' c_a3c6e Bool
+msoLock :: HasMainSubmitOpts c_a3c6e => Lens' c_a3c6e Bool
+msoSpec :: HasMainSubmitOpts c_a3c6e => Lens' c_a3c6e ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a3c6e => Lens' c_a3c6e Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

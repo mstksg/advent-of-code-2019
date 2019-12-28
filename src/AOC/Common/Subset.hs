@@ -56,24 +56,28 @@ attrEntropy xs x = pLT * hLT + pGT * hGT
 filterTest :: Ord a => Set (Set a) -> Set a -> Ordering -> Set (Set a)
 filterTest xs x = \case
     LT -> flip S.filter xs $ \y -> not $ y `S.isSubsetOf` x
-    EQ -> S.filter (== x) xs
+    EQ -> S.singleton x
     GT -> flip S.filter xs $ \y -> not $ x `S.isSubsetOf` y
 
 findSubset
     :: (Monad m, Ord a)
     => (Set a -> m Ordering)        -- ^ tester
-    -> Set a                        -- ^ set of items
+    -> Bool                         -- ^ whether or not to include empty set and full set
+    -> Set a                        -- ^ full set of items
     -> m (Maybe (Set a))            -- ^ subset that matches tester
-findSubset tester = runMaybeT . go . S.powerSet
+findSubset tester includeEdge x0 = runMaybeT . go . ruleOut . S.powerSet $ x0
   where
+    ruleOut 
+      | includeEdge = id
+      | otherwise   = S.filter (`notElem` [S.empty, x0])
     go xs = do
         (subset, _) <- maybeAlt $
             minimumBy (comparing snd) <$> NE.nonEmpty entropies
-        NES.IsNonEmpty rest <- filterTest xs subset <$> lift (tester subset)
+        s0@(NES.IsNonEmpty rest) <- filterTest xs subset <$> lift (tester subset)
         let res :| others = NES.toList rest
         if null others
           then pure res
-          else go (NES.toSet rest)
+          else go s0
       where
         entropies = M.toList $ M.fromSet (attrEntropy xs) xs
 
@@ -84,8 +88,11 @@ entroRecip p = -(1/p) * log (1/p)
 
 -- | Get the number of guesses needed for each possible subset, for
 -- n items.
-testFinder :: Int -> Map (Set Int) Int
-testFinder n = M.fromSet (\x -> getSum . execWriter $ findSubset (go x) xs) $ S.powerSet xs
+testFinder
+    :: Bool         -- ^ whether or not to include empty set and full set
+    -> Int
+    -> Map (Set Int) Int
+testFinder incl n = M.fromSet (\x -> getSum . execWriter $ findSubset (go x) incl xs) $ S.powerSet xs
   where
     xs  = S.fromList [0 .. n - 1]
     go goal x = compare (sumSet x) goalAmt <$ tell (Sum 1)
@@ -102,19 +109,19 @@ data DTree a = DNode { dTest :: Set a
   deriving (Show)
 makeBaseFunctor ''DTree
 
-renderBranches :: (Ord a, Show a) => Set a -> Maybe TL.Text
-renderBranches = fmap (printGraph (show . toList) . dTreeGraph) . buildDTree
+renderBranches :: (Ord a, Show a) => Bool -> Set a -> Maybe TL.Text
+renderBranches incl = fmap (printGraph (show . toList) . dTreeGraph) . buildDTree incl
 
-renderBranchesChar :: Set Char -> Maybe TL.Text
-renderBranchesChar = fmap (printGraph toList . dTreeGraph) . buildDTree
+renderBranchesChar :: Bool -> Set Char -> Maybe TL.Text
+renderBranchesChar incl = fmap (printGraph toList . dTreeGraph) . buildDTree incl
 
-buildDTree :: Ord a => Set a -> Maybe (DTree a)
-buildDTree xs = do
-    bs <- (traverse . traverse) NE.nonEmpty . allBranches $ xs
+buildDTree :: Ord a => Bool -> Set a -> Maybe (DTree a)
+buildDTree incl xs = do
+    bs <- (traverse . traverse) NE.nonEmpty . allBranches incl $ xs
     branchesToDTree <$> NE.nonEmpty bs
 
-allBranches :: Ord a => Set a -> [(Set a, [(Set a, Ordering)])]
-allBranches = mapMaybe (bitraverse id pure) . runWriterT . findSubset branchOut
+allBranches :: Ord a => Bool -> Set a -> [(Set a, [(Set a, Ordering)])]
+allBranches incl = mapMaybe (bitraverse id pure) . runWriterT . findSubset branchOut incl
   where
     branchOut x = asum [ LT <$ tell [(x, LT)]
                        , EQ <$ tell [(x, EQ)]

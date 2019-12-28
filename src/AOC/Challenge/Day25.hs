@@ -184,7 +184,7 @@ searchCheckpoint
     -> ShipMap
     -> Maybe (Set Text, Text)
 searchCheckpoint bot sm = do
-    goodSet      <- join $ findSubset (fmap fst . testSet) allItems
+    goodSet      <- join $ findSubset (fmap fst . testSet) True allItems
     (EQ, outRes) <- testSet goodSet
     pure (goodSet, outRes)
   where

@@ -43,7 +43,6 @@ Table of Contents
 * [Day 22](#day-22)
 * [Day 23](#day-23) *(no reflection yet)*
 * [Day 24](#day-24) *(no reflection yet)*
-* [Day 25](#day-25) *(no reflection yet)*
 
 Day 1
 ------
@@ -2416,39 +2415,6 @@ time                 1.647 s    (1.624 s .. 1.661 s)
                      1.000 R²   (1.000 R² .. 1.000 R²)
 mean                 1.642 s    (1.631 s .. 1.646 s)
 std dev              7.753 ms   (1.838 ms .. 10.08 ms)
-variance introduced by outliers: 19% (moderately inflated)
-
-* parsing and formatting times excluded
-```
-
-
-
-Day 25
-------
-
-<!--
-This section is generated and compiled by the build script at ./Build.hs from
-the file `./reflections/day25.md`.  If you want to edit this, edit
-that file instead!
--->
-
-*[Prompt][d25p]* / *[Code][d25g]* / *[Rendered][d25h]*
-
-[d25p]: https://adventofcode.com/2019/day/25
-[d25g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day25.hs
-[d25h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day25.html
-
-*Reflection not yet written -- please check back later!*
-
-### Day 25 Benchmarks
-
-```
->> Day 25a
-benchmarking...
-time                 27.88 s    (27.74 s .. 28.09 s)
-                     1.000 R²   (1.000 R² .. 1.000 R²)
-mean                 27.88 s    (27.83 s .. 27.93 s)
-std dev              59.91 ms   (23.47 ms .. 81.39 ms)
 variance introduced by outliers: 19% (moderately inflated)
 
 * parsing and formatting times excluded

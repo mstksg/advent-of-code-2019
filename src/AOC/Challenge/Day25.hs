@@ -19,6 +19,8 @@ import           AOC.Common                         (Dir(..))
 import           AOC.Common.Conduino
 import           AOC.Common.Intcode
 import           AOC.Common.Search                  (aStar)
+import           AOC.Common.Subset
+import           AOC.Prelude hiding                 (many, noneOf)
 import           AOC.Solver                         ((:~>)(..))
 import           AOC.Util                           (firstJust)
 import           Control.DeepSeq                    (NFData)
@@ -177,11 +179,38 @@ _testSearch mem = do
     putStrLn "Here we go"
     interactAsciiVM (bot "inv")
 
-bruteForceCheckpoint
+searchCheckpoint
     :: (Text -> AsciiVM (Either IErr) ())   -- ^ bot at checkpoint with all items
     -> ShipMap
     -> Maybe (Set Text, Text)
-bruteForceCheckpoint bot sm = flip firstJust (S.powerSet allItems) $ \is ->
+searchCheckpoint bot sm = do
+    goodSet      <- join $ findSubset (fmap fst . testSet) allItems
+    (EQ, outRes) <- testSet goodSet
+    pure (goodSet, outRes)
+  where
+    allItems = foldOf (#smMap . folded . #rItems) sm
+    testSet xs = case feedPipe inps (bot i0) of
+        Left e -> error $ show e
+        Right (T.unlines->os, _) -> case runParser parseResp "" os of
+          Left _ -> pure (EQ, os)
+          Right (r :| _) -> case rNote r of
+            Nothing -> Nothing
+            Just n
+              | "heavier" `T.isInfixOf` n -> pure (LT, os)
+              | "lighter" `T.isInfixOf` n -> pure (GT, os)
+              | otherwise                 -> error $ "no parse: " ++ T.unpack n
+      where
+        drops   = S.map ("drop " <>) (allItems `S.difference` xs)
+        i0:inps = S.toList drops ++ [dirCmd (smPressure sm)]
+    parseResp = do
+      skipMany (noneOf ['='])
+      NE.some parseRoomDesc
+
+_bruteForceCheckpoint
+    :: (Text -> AsciiVM (Either IErr) ())   -- ^ bot at checkpoint with all items
+    -> ShipMap
+    -> Maybe (Set Text, Text)
+_bruteForceCheckpoint bot sm = flip firstJust (S.powerSet allItems) $ \is ->
     let drops = S.map ("drop " <>) is
         i0:inps = S.toList drops ++ [dirCmd (smPressure sm)]
         heldItems = allItems `S.difference` is
@@ -205,7 +234,8 @@ day25a = MkSol
     , sSolve = \m -> do
         sm       <- explore m
         bot      <- getToCheckpoint m sm
-        (_, out) <- bruteForceCheckpoint bot sm
+        -- (_, out) <- bruteForceCheckpoint bot sm
+        (_, out) <- searchCheckpoint bot sm
         readMaybe . filter isDigit $ T.unpack out
     }
 

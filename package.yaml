@@ -90,6 +90,7 @@ library:
   - deepseq
   - directory
   - fft
+  - fgl
   - filepath
   - finite-typelits
   - foldl
@@ -97,6 +98,7 @@ library:
   - generic-lens
   - ghc-typelits-knownnat
   - ghc-typelits-natnormalise
+  - graphviz
   - groups
   - hashable
   - haskeline

@@ -60,7 +60,7 @@ haddocks][haddock] --- more info below!
 | Day 22    | [x][d22r]   | [x][d22g] | [x][d22h]  | [x][d22b]  |
 | Day 23    |             | [x][d23g] | [x][d23h]  | [x][d23b]  |
 | Day 24    |             | [x][d24g] | [x][d24h]  | [x][d24b]  |
-| Day 25    |             |           |            |            |
+| Day 25    |             | [x][d25g] | [x][d25h]  | [x][d25b]  |
 
 "Rendered" links go to haddock source renders for code, with reflections in the
 documentation.  Haddock source renders have hyperlinked identifiers,
@@ -375,3 +375,6 @@ All networking features are powered by *[advent-of-code-api][]*.
 [d24g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day24.hs
 [d24h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day24.html
 [d24b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-24-benchmarks
+[d25g]: https://github.com/mstksg/advent-of-code-2019/blob/master/src/AOC/Challenge/Day25.hs
+[d25h]: https://mstksg.github.io/advent-of-code-2019/src/AOC.Challenge.Day25.html
+[d25b]: https://github.com/mstksg/advent-of-code-2019/blob/master/reflections.md#day-25-benchmarks

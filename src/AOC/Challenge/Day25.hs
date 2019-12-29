@@ -16,20 +16,21 @@ module AOC.Challenge.Day25 (
   ) where
 
 import           AOC.Common                         (Dir(..))
-import           AOC.Common.Conduino
-import           AOC.Common.Intcode
+import           AOC.Common.Conduino                (feedPipe, squeezePipe)
+import           AOC.Common.Intcode                 (Memory, AsciiVM, IErr, parseMem, interactAsciiVM, untilHalt, stepN, toAsciiVM, stepForever)
 import           AOC.Common.Search                  (aStar)
-import           AOC.Common.Subset
-import           AOC.Prelude hiding                 (many, noneOf)
+import           AOC.Common.Subset                  (findSubset)
 import           AOC.Solver                         ((:~>)(..))
 import           AOC.Util                           (firstJust)
+import           Control.Applicative                (empty)
 import           Control.DeepSeq                    (NFData)
 import           Control.Lens                       (foldOf, folded, itraversed, iforOf)
 import           Control.Monad                      (ap, guard)
+import           Control.Monad                      (join)
+import           Control.Monad.Combinators          (many, skipMany, between, choice, optional, manyTill)
 import           Data.Char                          (isDigit)
 import           Data.Foldable                      (fold, toList)
-import           Data.Generics.Labels               ()
-import           Data.Group
+import           Data.Group                         (invert)
 import           Data.List.NonEmpty                 (NonEmpty(..))
 import           Data.Map                           (Map)
 import           Data.Map.NonEmpty                  (NEMap)
@@ -37,7 +38,7 @@ import           Data.Set                           (Set)
 import           Data.Text                          (Text)
 import           Data.Void                          (Void)
 import           GHC.Generics                       (Generic)
-import           Text.Megaparsec
+import           Text.Megaparsec                    (Parsec, noneOf, anySingle, runParser, errorBundlePretty)
 import           Text.Read                          (readMaybe)
 import qualified Control.Monad.Combinators.NonEmpty as NE
 import qualified Data.Map                           as M
@@ -72,7 +73,7 @@ dirCmd = \case
 explore :: Memory -> Maybe ShipMap
 explore m = do
     (mp, startName) <- go Nothing $
-           toAsciiVM $ untilHalt (stepN @VMErr 100000 m)
+           toAsciiVM $ untilHalt (stepN @IErr 100000 m)
     checkpoint  <- M.lookup "Security Checkpoint" mp
     pressureDir <- firstJust (\(d, p) -> d <$ guard (p == "Pressure-Sensitive Floor")) $
                         NEM.toList (rDoors checkpoint)
@@ -167,7 +168,7 @@ getToCheckpoint mem sm = do
       Right (_, Right _  ) -> empty
   where
     initVM :: AsciiVM (Either IErr) ()
-    initVM = toAsciiVM $ untilHalt (stepForever @VMErr mem)
+    initVM = toAsciiVM $ untilHalt (stepForever @IErr mem)
 
 _testSearch
     :: Memory

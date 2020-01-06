@@ -189,6 +189,14 @@ allBranches :: Ord a => Bool -> Set a -> [(Set a, [(Set a, Ordering)])]
 buildDTree :: Ord a => Bool -> Set a -> Maybe (DTree a)
 renderBranches :: (Ord a, Show a) => Bool -> Set a -> Maybe Text
 renderBranchesChar :: Bool -> Set Char -> Maybe Text
+data DTree a
+DNode :: Set a -> Maybe (DTree a) -> Maybe (DTree a) -> DTree a
+[dTest] :: DTree a -> Set a
+[dLT] :: DTree a -> Maybe (DTree a)
+[dGT] :: DTree a -> Maybe (DTree a)
+dTestF :: DTreeF a_a1056 r_a11gB -> Set a_a1056
+dLTF :: DTreeF a_a1056 r_a11gB -> Maybe r_a11gB
+dGTF :: DTreeF a_a1056 r_a11gB -> Maybe r_a11gB
 instance Data.Traversable.Traversable (AOC.Common.Subset.DTreeF a)
 instance Data.Foldable.Foldable (AOC.Common.Subset.DTreeF a)
 instance GHC.Base.Functor (AOC.Common.Subset.DTreeF a)
@@ -486,18 +494,20 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a1op8
-_VMErr :: AsVMErr r_a1op8 => Prism' r_a1op8 VMErr
-_VMEBadMode :: AsVMErr r_a1op8 => Prism' r_a1op8 Int
-_VMEBadInstr :: AsVMErr r_a1op8 => Prism' r_a1op8 Int
-_VMEBadPos :: AsVMErr r_a1op8 => Prism' r_a1op8 Int
-class AsIErr r_a1oyR
-_IErr :: AsIErr r_a1oyR => Prism' r_a1oyR IErr
-_IENoInput :: AsIErr r_a1oyR => Prism' r_a1oyR ()
-_IEVM :: AsIErr r_a1oyR => Prism' r_a1oyR VMErr
+class AsVMErr r_a1oqV
+_VMErr :: AsVMErr r_a1oqV => Prism' r_a1oqV VMErr
+_VMEBadMode :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
+_VMEBadInstr :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
+_VMEBadPos :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
+class AsIErr r_a1oAE
+_IErr :: AsIErr r_a1oAE => Prism' r_a1oAE IErr
+_IENoInput :: AsIErr r_a1oAE => Prism' r_a1oAE ()
+_IEVM :: AsIErr r_a1oAE => Prism' r_a1oAE VMErr
 toAsciiVM :: Monad m => VM m a -> AsciiVM m a
+preAscii :: Pipe Text Int u m u
+postAscii :: Monad m => Pipe Int Text u m u
 interactVM :: Memory -> IO ()
-interactAsciiVM :: AsciiVM (Either IErr) () -> IO ()
+interactAsciiVM :: MonadIO m => AsciiVM (ExceptT IErr m) a -> m ()
 instance GHC.Generics.Generic AOC.Common.Intcode.InstrRes
 instance GHC.Show.Show AOC.Common.Intcode.InstrRes
 instance GHC.Classes.Ord AOC.Common.Intcode.InstrRes
@@ -19108,14 +19118,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a3bY1
-mainRunOpts :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 MainRunOpts
-mroActual :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 Bool
-mroBench :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 Bool
-mroInput :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 Bool
-mroSpec :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 TestSpec
-mroTest :: HasMainRunOpts c_a3bY1 => Lens' c_a3bY1 Bool
+class HasMainRunOpts c_a3bT5
+mainRunOpts :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 MainRunOpts
+mroActual :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 Bool
+mroBench :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 Bool
+mroInput :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 Bool
+mroSpec :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 TestSpec
+mroTest :: HasMainRunOpts c_a3bT5 => Lens' c_a3bT5 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -19128,10 +19138,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a3c5x
-mainViewOpts :: HasMainViewOpts c_a3c5x => Lens' c_a3c5x MainViewOpts
-mvoSpec :: HasMainViewOpts c_a3c5x => Lens' c_a3c5x TestSpec
-mvoWait :: HasMainViewOpts c_a3c5x => Lens' c_a3c5x Bool
+class HasMainViewOpts c_a3c0B
+mainViewOpts :: HasMainViewOpts c_a3c0B => Lens' c_a3c0B MainViewOpts
+mvoSpec :: HasMainViewOpts c_a3c0B => Lens' c_a3c0B TestSpec
+mvoWait :: HasMainViewOpts c_a3c0B => Lens' c_a3c0B Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -19152,12 +19162,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a3c9R
-mainSubmitOpts :: HasMainSubmitOpts c_a3c9R => Lens' c_a3c9R MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a3c9R => Lens' c_a3c9R Bool
-msoLock :: HasMainSubmitOpts c_a3c9R => Lens' c_a3c9R Bool
-msoSpec :: HasMainSubmitOpts c_a3c9R => Lens' c_a3c9R ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a3c9R => Lens' c_a3c9R Bool
+class HasMainSubmitOpts c_a3c4V
+mainSubmitOpts :: HasMainSubmitOpts c_a3c4V => Lens' c_a3c4V MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a3c4V => Lens' c_a3c4V Bool
+msoLock :: HasMainSubmitOpts c_a3c4V => Lens' c_a3c4V Bool
+msoSpec :: HasMainSubmitOpts c_a3c4V => Lens' c_a3c4V ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a3c4V => Lens' c_a3c4V Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

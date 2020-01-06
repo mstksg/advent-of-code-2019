@@ -28,7 +28,9 @@ import           Control.Lens                       (foldOf, folded, itraversed,
 import           Control.Monad                      (ap, guard)
 import           Control.Monad                      (join)
 import           Control.Monad.Combinators          (many, skipMany, between, choice, optional, manyTill)
+import           Control.Monad.Except               (throwError)
 import           Data.Char                          (isDigit)
+import           Data.Conduino.Internal             (hoistPipe)
 import           Data.Foldable                      (fold, toList)
 import           Data.Group                         (invert)
 import           Data.List.NonEmpty                 (NonEmpty(..))
@@ -178,7 +180,7 @@ _testSearch mem = do
     putStrLn "Done exploring"
     Just bot <- pure $ getToCheckpoint mem sm
     putStrLn "Here we go"
-    interactAsciiVM (bot "inv")
+    interactAsciiVM (hoistPipe (either throwError pure) $ bot "inv")
 
 searchCheckpoint
     :: (Text -> AsciiVM (Either IErr) ())   -- ^ bot at checkpoint with all items

@@ -9,6 +9,7 @@ module AOC.Common.Subset (
   , buildDTree
   , renderBranches
   , renderBranchesChar
+  , DTree(..), dTestF, dLTF, dGTF
   ) where
 
 import           AOC.Util
@@ -35,7 +36,6 @@ import qualified Data.List.NonEmpty                as NE
 import qualified Data.Map                          as M
 import qualified Data.Set                          as S
 import qualified Data.Set.NonEmpty                 as NES
-import qualified Data.Text                         as T
 import qualified Data.Text.Lazy                    as TL
 
 attrEntropy :: Ord a => Set (Set a) -> Set a -> Double

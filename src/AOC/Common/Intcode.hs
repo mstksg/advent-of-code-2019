@@ -61,7 +61,7 @@ import           Text.Read                 (readMaybe)
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
 import qualified Data.Text                 as T
-import qualified Data.Text.IO              as T
+import qualified Data.Text.Encoding        as T
 
 type VM = Pipe Int Int Void
 
@@ -262,7 +262,7 @@ yieldAndPass i = yield i *> C.map id
 
 preAscii :: Pipe Text Int u m u
 preAscii = C.concatMap $ map ord . T.unpack . (<> "\n")
-    
+
 postAscii :: Monad m => Pipe Int Text u m u
 postAscii = C.map chr .| C.mapAccum go [] .| C.concat
   where
@@ -273,25 +273,16 @@ postAscii = C.map chr .| C.mapAccum go [] .| C.concat
 toAsciiVM :: Monad m => VM m a -> AsciiVM m a
 toAsciiVM p = preAscii .| p .| postAscii
 
-interactAsciiVM :: AsciiVM (Either IErr) () -> IO ()
-interactAsciiVM = mapM_ @Maybe (uncurry go) . eitherToMaybe . squeezePipe
-  where
-    go outs res = do
-      mapM_ T.putStrLn outs
-      case res of
-        Left next -> do
-          l <- T.getLine
-          interactAsciiVM (next (Right l))
-        Right x -> pure x
+interactAsciiVM
+    :: MonadIO m
+    => AsciiVM (ExceptT IErr m) a
+    -> m ()
+interactAsciiVM vm = void . runPipe . untilHalt $
+      (C.stdinLines *> throwError IENoInput)
+   .| C.map T.pack
+   .| vm
+   .| C.map (T.encodeUtf8 . (<> "\n"))
+   .| C.stdout
 
 interactVM :: Memory -> IO ()
-interactVM mem = mapM_ (uncurry go) (eitherToMaybe $ feedPipe [] (stepForever @VMErr mem) :: Maybe _)
-  where
-    go :: [Int] -> Either (Int -> VM (Either VMErr) Memory) ([Int], Memory) -> IO ()
-    go outs res = do
-        putStrLn $ map chr outs
-        case res of
-          Left next -> do
-            c:cs <- map ord . (++ "\n") <$> getLine
-            mapM_ (uncurry go) (eitherToMaybe $ feedPipe cs (next c) :: Maybe _)
-          Right _ -> pure ()
+interactVM = interactAsciiVM . toAsciiVM . stepForever

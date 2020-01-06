@@ -1,4 +1,5 @@
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 -- |
 -- Module      : AOC.Challenge.Day21
@@ -15,17 +16,19 @@ module AOC.Challenge.Day21 (
   ) where
 
 import           AOC.Common                (_CharFinite)
-import           AOC.Common.Intcode        (Memory, parseMem, untilHalt, stepForever, IErr)
+import           AOC.Common.Intcode        (Memory, parseMem, untilHalt, stepForever, IErr, preAscii)
 import           AOC.Solver                ((:~>)(..))
 import           Control.Applicative       (empty)
 import           Control.Lens              (review)
 import           Control.Monad             ((<=<))
 import           Data.Char                 (ord)
-import           Data.Conduino             (runPipe, (.|))
+import           Data.Conduino             (Pipe, runPipe, (.|), yield)
 import           Data.Finite               (Finite, weakenN)
 import           Data.List                 (find)
+import           Data.Text                 (Text)
 import           Text.Printf               (printf)
 import qualified Data.Conduino.Combinators as C
+import qualified Data.Text                 as T
 
 
 data Reg = RTemp | RJump | RInp (Finite 9)
@@ -39,11 +42,14 @@ data Instr = I Com Reg Reg
 
 type Program = [Instr]
 
-walkCode :: Program -> [Int]
-walkCode = map ord . unlines . (++ ["WALK"]) . map instrCode
+sourceWalk :: Program -> Pipe i Text u m ()
+sourceWalk p = do
+    C.sourceList (instrCode <$> p)
+    yield "WALK"
 
 walkProgram :: Memory -> Program -> Maybe [Int]
-walkProgram m p = runPipe $ (C.sourceList (walkCode p) *> empty)
+walkProgram m p = runPipe $ (sourceWalk p *> empty)
+                         .| preAscii
                          .| untilHalt (stepForever @IErr m)
                          .| C.sinkList
 
@@ -88,11 +94,14 @@ day21a = MkSol
     , sSolve = isGood <=< (`walkProgram` theProg)
     }
 
-runCode :: Program -> [Int]
-runCode = map ord . unlines . (++ ["RUN"]) . map instrCode
+sourceRun :: Program -> Pipe i Text u m ()
+sourceRun p = do
+    C.sourceList (instrCode <$> p)
+    yield "RUN"
 
 runProgram :: Memory -> Program -> Maybe [Int]
-runProgram m p = runPipe $ (C.sourceList (runCode p) *> empty)
+runProgram m p = runPipe $ (sourceRun p *> empty)
+                        .| preAscii
                         .| untilHalt (stepForever @IErr m)
                         .| C.sinkList
 
@@ -136,6 +145,6 @@ comCode = \case
     COr  -> "OR"
     CNot -> "NOT"
 
-instrCode :: Instr -> String
-instrCode (I c x y) = printf "%s %c %c" (comCode c) (regCode x) (regCode y)
+instrCode :: Instr -> Text
+instrCode (I c x y) = T.pack $ printf "%s %c %c" (comCode c) (regCode x) (regCode y)
 

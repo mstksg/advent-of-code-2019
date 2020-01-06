@@ -29,7 +29,7 @@ module AOC.Common.Intcode (
   , AsVMErr(..)
   , AsIErr(..)
   , toAsciiVM
-  -- , preAscii, postAscii
+  , preAscii, postAscii
   , interactVM
   , interactAsciiVM
   ) where

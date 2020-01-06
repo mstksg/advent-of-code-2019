@@ -26,6 +26,7 @@ import           Data.Conduino             (Pipe, runPipe, (.|), yield)
 import           Data.Finite               (Finite, weakenN)
 import           Data.List                 (find)
 import           Data.Text                 (Text)
+import           Data.Void                 (Void)
 import           Text.Printf               (printf)
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Text                 as T
@@ -42,16 +43,20 @@ data Instr = I Com Reg Reg
 
 type Program = [Instr]
 
+runSpringbot
+    :: Monad m
+    => Pipe () Text u m Void
+    -> Memory
+    -> m [Int]
+runSpringbot src m = runPipe $ src
+                            .| preAscii
+                            .| untilHalt (stepForever @IErr m)
+                            .| C.sinkList
+
 sourceWalk :: Program -> Pipe i Text u m ()
 sourceWalk p = do
     C.sourceList (instrCode <$> p)
     yield "WALK"
-
-walkProgram :: Memory -> Program -> Maybe [Int]
-walkProgram m p = runPipe $ (sourceWalk p *> empty)
-                         .| preAscii
-                         .| untilHalt (stepForever @IErr m)
-                         .| C.sinkList
 
 theProg :: Program
 theProg = [
@@ -91,19 +96,13 @@ day21a :: Memory :~> Int
 day21a = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = isGood <=< (`walkProgram` theProg)
+    , sSolve = isGood <=< runSpringbot (sourceWalk theProg *> empty)
     }
 
 sourceRun :: Program -> Pipe i Text u m ()
 sourceRun p = do
     C.sourceList (instrCode <$> p)
     yield "RUN"
-
-runProgram :: Memory -> Program -> Maybe [Int]
-runProgram m p = runPipe $ (sourceRun p *> empty)
-                        .| preAscii
-                        .| untilHalt (stepForever @IErr m)
-                        .| C.sinkList
 
 -- the logic:
 --
@@ -127,7 +126,7 @@ day21b :: Memory :~> Int
 day21b = MkSol
     { sParse = parseMem
     , sShow  = show
-    , sSolve = isGood <=< (`runProgram` theProg2)
+    , sSolve = isGood <=< runSpringbot (sourceRun theProg2 *> empty)
     }
 
 isGood :: [Int] -> Maybe Int

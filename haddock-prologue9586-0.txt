@@ -1,0 +1,3 @@
+Scaffolding for an integrated development environment for Advent of Code
+challenges.  Includes auto-runner, prompt displays and countdowns, and
+integrated submissions.

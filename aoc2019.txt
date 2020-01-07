@@ -10,40 +10,6 @@
 @package aoc2019
 @version 0.1.0.0
 
-module AOC.Common.Conduino
-
--- | Loop a pipe into itself.
---   
---   <ul>
---   <li>Will feed all output back to the input</li>
---   <li>Will only ask for input upstream if output is stalled.</li>
---   <li>Yields all outputted values downstream, effectively duplicating
---   them.</li>
---   </ul>
-feedbackP :: Monad m => Pipe x x u m a -> Pipe x x u m a
-runStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m (a, s)
-execStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m s
-evalStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m a
-runReaderP :: Monad m => r -> Pipe i o u (ReaderT r m) a -> Pipe i o u m a
-runExceptP :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m (Either e a)
-fuseBoth :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
-fuseUpstream :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
-(&|) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
-infixr 2 &|
-(|.) :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m v
-infixr 2 |.
-iterM :: Monad m => (i -> m ()) -> Pipe i i u m u
-feedPipe :: Monad m => [i] -> Pipe i o u m a -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
-stepPipe :: Monad m => Pipe i o u m a -> m (PipeStep i o u m a)
-data PipeStep i o u m a
-PSDone :: a -> PipeStep i o u m a
-PSWait :: (Either u i -> Pipe i o u m a) -> PipeStep i o u m a
-PSOut :: o -> Pipe i o u m a -> PipeStep i o u m a
-squeezePipe :: Monad m => Pipe i o u m a -> m ([o], Either (Either u i -> Pipe i o u m a) a)
-instance GHC.Base.Functor (AOC.Common.Conduino.PipeStep i o u m)
-instance GHC.Base.MonadPlus m => GHC.Base.Alternative (Data.Conduino.Internal.Pipe a c u m)
-instance GHC.Base.MonadPlus m => GHC.Base.MonadPlus (Data.Conduino.Internal.Pipe a c u m)
-
 module AOC.Common.Intcode.Memory
 class Monad m => MonadMem m
 mRead :: MonadMem m => m Int
@@ -194,9 +160,9 @@ DNode :: Set a -> Maybe (DTree a) -> Maybe (DTree a) -> DTree a
 [dTest] :: DTree a -> Set a
 [dLT] :: DTree a -> Maybe (DTree a)
 [dGT] :: DTree a -> Maybe (DTree a)
-dTestF :: DTreeF a_a1056 r_a11gB -> Set a_a1056
-dLTF :: DTreeF a_a1056 r_a11gB -> Maybe r_a11gB
-dGTF :: DTreeF a_a1056 r_a11gB -> Maybe r_a11gB
+dTestF :: DTreeF a_aXFk r_aYSX -> Set a_aXFk
+dLTF :: DTreeF a_aXFk r_aYSX -> Maybe r_aYSX
+dGTF :: DTreeF a_aXFk r_aYSX -> Maybe r_aYSX
 instance Data.Traversable.Traversable (AOC.Common.Subset.DTreeF a)
 instance Data.Foldable.Foldable (AOC.Common.Subset.DTreeF a)
 instance GHC.Base.Functor (AOC.Common.Subset.DTreeF a)
@@ -494,15 +460,15 @@ VMEBadPos :: Int -> VMErr
 data IErr
 IENoInput :: IErr
 IEVM :: VMErr -> IErr
-class AsVMErr r_a1oqV
-_VMErr :: AsVMErr r_a1oqV => Prism' r_a1oqV VMErr
-_VMEBadMode :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
-_VMEBadInstr :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
-_VMEBadPos :: AsVMErr r_a1oqV => Prism' r_a1oqV Int
-class AsIErr r_a1oAE
-_IErr :: AsIErr r_a1oAE => Prism' r_a1oAE IErr
-_IENoInput :: AsIErr r_a1oAE => Prism' r_a1oAE ()
-_IEVM :: AsIErr r_a1oAE => Prism' r_a1oAE VMErr
+class AsVMErr r_a1m7x
+_VMErr :: AsVMErr r_a1m7x => Prism' r_a1m7x VMErr
+_VMEBadMode :: AsVMErr r_a1m7x => Prism' r_a1m7x Int
+_VMEBadInstr :: AsVMErr r_a1m7x => Prism' r_a1m7x Int
+_VMEBadPos :: AsVMErr r_a1m7x => Prism' r_a1m7x Int
+class AsIErr r_a1mhg
+_IErr :: AsIErr r_a1mhg => Prism' r_a1mhg IErr
+_IENoInput :: AsIErr r_a1mhg => Prism' r_a1mhg ()
+_IEVM :: AsIErr r_a1mhg => Prism' r_a1mhg VMErr
 toAsciiVM :: Monad m => VM m a -> AsciiVM m a
 preAscii :: Pipe Text Int u m u
 postAscii :: Monad m => Pipe Int Text u m u
@@ -5279,19 +5245,20 @@ infixr 5 :|
 --   because it works in <i>O(1)</i> rather than <i>O(log n)</i>
 stimesIdempotentMonoid :: (Integral b, Monoid a) => b -> a -> a
 
--- | The class of monad transformers. Instances should satisfy the
---   following laws, which state that <a>lift</a> is a monad
---   transformation:
+-- | A monad transformer that adds exceptions to other monads.
+--   
+--   <tt>ExceptT</tt> constructs a monad parameterized over two things:
 --   
 --   <ul>
---   <li><pre><a>lift</a> . <a>return</a> = <a>return</a></pre></li>
---   <li><pre><a>lift</a> (m &gt;&gt;= f) = <a>lift</a> m &gt;&gt;=
---   (<a>lift</a> . f)</pre></li>
+--   <li>e - The exception type.</li>
+--   <li>m - The inner monad.</li>
 --   </ul>
-class MonadTrans (t :: Type -> Type -> Type -> Type)
-
--- | Lift a computation from the argument monad to the constructed monad.
-lift :: (MonadTrans t, Monad m) => m a -> t m a
+--   
+--   The <a>return</a> function yields a computation that produces the
+--   given value, while <tt>&gt;&gt;=</tt> sequences two subcomputations,
+--   exiting on the first exception.
+newtype ExceptT e (m :: Type -> Type) a
+ExceptT :: m (Either e a) -> ExceptT e a
 
 -- | A state transformer monad parameterized by:
 --   
@@ -5307,20 +5274,19 @@ newtype StateT s (m :: Type -> Type) a
 StateT :: (s -> m (a, s)) -> StateT s a
 [runStateT] :: StateT s a -> s -> m (a, s)
 
--- | A monad transformer that adds exceptions to other monads.
---   
---   <tt>ExceptT</tt> constructs a monad parameterized over two things:
+-- | The class of monad transformers. Instances should satisfy the
+--   following laws, which state that <a>lift</a> is a monad
+--   transformation:
 --   
 --   <ul>
---   <li>e - The exception type.</li>
---   <li>m - The inner monad.</li>
+--   <li><pre><a>lift</a> . <a>return</a> = <a>return</a></pre></li>
+--   <li><pre><a>lift</a> (m &gt;&gt;= f) = <a>lift</a> m &gt;&gt;=
+--   (<a>lift</a> . f)</pre></li>
 --   </ul>
---   
---   The <a>return</a> function yields a computation that produces the
---   given value, while <tt>&gt;&gt;=</tt> sequences two subcomputations,
---   exiting on the first exception.
-newtype ExceptT e (m :: Type -> Type) a
-ExceptT :: m (Either e a) -> ExceptT e a
+class MonadTrans (t :: Type -> Type -> Type -> Type)
+
+-- | Lift a computation from the argument monad to the constructed monad.
+lift :: (MonadTrans t, Monad m) => m a -> t m a
 
 -- | A map of integers to values <tt>a</tt>.
 data IntMap a
@@ -19118,14 +19084,14 @@ MRO :: !TestSpec -> !Bool -> !Bool -> !Bool -> !Bool -> !Day -> Part -> IO (Mayb
 
 -- | Manually supply input (Default: always return Nothing)
 [_mroInput] :: MainRunOpts -> !Day -> Part -> IO (Maybe String)
-class HasMainRunOpts c_a3bPk
-mainRunOpts :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk MainRunOpts
-mroActual :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk Bool
-mroBench :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk Bool
-mroInput :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk (Day -> Part -> IO (Maybe String))
-mroLock :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk Bool
-mroSpec :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk TestSpec
-mroTest :: HasMainRunOpts c_a3bPk => Lens' c_a3bPk Bool
+class HasMainRunOpts c_a39v2
+mainRunOpts :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 MainRunOpts
+mroActual :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 Bool
+mroBench :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 Bool
+mroInput :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 (Day -> Part -> IO (Maybe String))
+mroLock :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 Bool
+mroSpec :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 TestSpec
+mroTest :: HasMainRunOpts c_a39v2 => Lens' c_a39v2 Bool
 
 -- | Run, test, bench.
 mainRun :: (MonadIO m, MonadError [String] m) => Config -> MainRunOpts -> m (Map Day (Map Part (Maybe Bool, Either [String] String)))
@@ -19138,10 +19104,10 @@ data MainViewOpts
 MVO :: !TestSpec -> !Bool -> MainViewOpts
 [_mvoSpec] :: MainViewOpts -> !TestSpec
 [_mvoWait] :: MainViewOpts -> !Bool
-class HasMainViewOpts c_a3bWQ
-mainViewOpts :: HasMainViewOpts c_a3bWQ => Lens' c_a3bWQ MainViewOpts
-mvoSpec :: HasMainViewOpts c_a3bWQ => Lens' c_a3bWQ TestSpec
-mvoWait :: HasMainViewOpts c_a3bWQ => Lens' c_a3bWQ Bool
+class HasMainViewOpts c_a39Cy
+mainViewOpts :: HasMainViewOpts c_a39Cy => Lens' c_a39Cy MainViewOpts
+mvoSpec :: HasMainViewOpts c_a39Cy => Lens' c_a39Cy TestSpec
+mvoWait :: HasMainViewOpts c_a39Cy => Lens' c_a39Cy Bool
 
 -- | View prompt
 mainView :: (MonadIO m, MonadError [String] m) => Config -> MainViewOpts -> m (Map Day (Map Part Text))
@@ -19162,12 +19128,12 @@ MSO :: !ChallengeSpec -> !Bool -> !Bool -> !Bool -> MainSubmitOpts
 
 -- | Lock answer if submission succeeded? (Default: True)
 [_msoLock] :: MainSubmitOpts -> !Bool
-class HasMainSubmitOpts c_a3c1a
-mainSubmitOpts :: HasMainSubmitOpts c_a3c1a => Lens' c_a3c1a MainSubmitOpts
-msoForce :: HasMainSubmitOpts c_a3c1a => Lens' c_a3c1a Bool
-msoLock :: HasMainSubmitOpts c_a3c1a => Lens' c_a3c1a Bool
-msoSpec :: HasMainSubmitOpts c_a3c1a => Lens' c_a3c1a ChallengeSpec
-msoTest :: HasMainSubmitOpts c_a3c1a => Lens' c_a3c1a Bool
+class HasMainSubmitOpts c_a39GS
+mainSubmitOpts :: HasMainSubmitOpts c_a39GS => Lens' c_a39GS MainSubmitOpts
+msoForce :: HasMainSubmitOpts c_a39GS => Lens' c_a39GS Bool
+msoLock :: HasMainSubmitOpts c_a39GS => Lens' c_a39GS Bool
+msoSpec :: HasMainSubmitOpts c_a39GS => Lens' c_a39GS ChallengeSpec
+msoTest :: HasMainSubmitOpts c_a39GS => Lens' c_a39GS Bool
 
 -- | Submit and analyze result
 mainSubmit :: (MonadIO m, MonadError [String] m) => Config -> MainSubmitOpts -> m (Text, SubmitRes)

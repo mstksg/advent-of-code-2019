@@ -12,12 +12,11 @@ module AOC.Challenge.Day07 (
   , day07b
   ) where
 
-import           AOC.Common.Conduino       (feedbackP)
 import           AOC.Common.Intcode        (Memory, VM, IErr, untilHalt, stepForeverAndDie, parseMem, yieldAndDie, yieldAndPass)
 import           AOC.Solver                ((:~>)(..))
 import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad.Except      (MonadError)
-import           Data.Conduino             ((.|), runPipePure, runPipe, awaitSurely)
+import           Data.Conduino             ((.|), runPipePure, runPipe, awaitSurely, feedbackPipe)
 import           Data.List                 (permutations)
 import           Data.Semigroup            (Max(..))
 import           Data.Void                 (Void)
@@ -46,7 +45,7 @@ day07b = MkSol
     , sShow  = show
     , sSolve = \m -> fmap getMax . flip foldMap (permutations [5..9]) $ \xs ->
         let res = runPipePure $ untilHalt ( yieldAndDie 0
-                                         .| feedbackP (setupChain m xs)
+                                         .| feedbackPipe (setupChain m xs)
                                           )
                              .| C.last
         in  Max <$> res

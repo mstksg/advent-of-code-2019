@@ -15,13 +15,12 @@ module AOC.Challenge.Day15 (
   ) where
 
 import           AOC.Common            (Point, Dir(..), floodFillCount, dirPoint)
-import           AOC.Common.Conduino   (stepPipe, PipeStep(..), squeezePipe)
 import           AOC.Common.Intcode    (Memory, VMErr, parseMem, stepForever, untilHalt)
 import           AOC.Common.Search     (bfs)
 import           AOC.Solver            ((:~>)(..))
 import           Control.Applicative   (empty)
 import           Control.DeepSeq       (NFData)
-import           Data.Conduino         (Pipe)
+import           Data.Conduino         (Pipe, squeezePipe)
 import           Data.Functor.Identity (Identity(..))
 import           Data.Semigroup        (Arg(..))
 import           Data.Set              (Set)
@@ -53,9 +52,9 @@ findOxygen mem = bfs
     (\(Arg (S _ t) _) -> t == Oxygen)
   where
     initBot :: Bot
-    initBot = c . Right
+    initBot = c
       where
-        PSWait c = runIdentity $ stepPipe (untilHalt (stepForever @VMErr mem))
+        Identity ([], Left c) = squeezePipe (untilHalt (stepForever @VMErr mem))
 
 stepAround :: BotState -> Set BotState
 stepAround (Arg S{..} bot) = S.fromList $ do
@@ -63,8 +62,8 @@ stepAround (Arg S{..} bot) = S.fromList $ do
     let p = sCoord + dirPoint dir
     (o:_, Left c) <- pure . runIdentity $ squeezePipe (bot (dNum dir))
     case o of
-      1 -> pure $ Arg (S p Floor ) (c . Right)
-      2 -> pure $ Arg (S p Oxygen) (c . Right)
+      1 -> pure $ Arg (S p Floor ) c
+      2 -> pure $ Arg (S p Oxygen) c
       _ -> empty
 
 dNum :: Dir -> Int

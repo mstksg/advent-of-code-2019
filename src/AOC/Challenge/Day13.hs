@@ -18,7 +18,6 @@ module AOC.Challenge.Day13 (
   ) where
 
 import           AOC.Common                (Point, displayAsciiMap)
-import           AOC.Common.Conduino       (iterM)
 import           AOC.Common.Intcode        (parseMem, Memory(..), VMErr, mRegLens, stepForever, untilHalt)
 import           AOC.Solver                ((:~>)(..))
 import           Control.Applicative       (empty)
@@ -107,7 +106,7 @@ ai m = flip evalState (Nothing, Nothing) . runPipe $
          C.repeatM controller
       .| untilHalt (stepForever @VMErr m)
       .| displayWith aggregator
-      .| iterM (\AI{..} -> put . coerce $ ( aiPaddle, aiBall ))
+      .| C.iterM (\AI{..} -> put . coerce $ ( aiPaddle, aiBall ))
       .| (fmap outScore <$> C.last)
   where
     controller = do
@@ -142,7 +141,7 @@ playDay13 str = do
             C.repeatM (inputter vty)
          .| untilHalt (stepForever @VMErr (m & mRegLens 0 .~ 2))
          .| displayWith aggregator
-         .| iterM (liftIO . V.update vty . V.picForImage . mkImage . render)
+         .| C.iterM (liftIO . V.update vty . V.picForImage . mkImage . render)
          .| C.last
     V.shutdown vty
     forM_ (dispScore =<< disp) $ \(Max s) ->

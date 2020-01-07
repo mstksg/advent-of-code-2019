@@ -12,13 +12,12 @@ module AOC.Challenge.Day02 (
   , day02b
   ) where
 
-import           AOC.Common.Conduino       ((|.))
 import           AOC.Common.Intcode        (Memory(..), IErr(..), parseMem, stepForever)
 import           AOC.Common.Search         (binaryMinSearch)
 import           AOC.Solver                ((:~>)(..), dyno_)
 import           AOC.Util                  (eitherToMaybe)
 import           Control.Monad.Except      (throwError)
-import           Data.Conduino             (runPipe, (.|))
+import           Data.Conduino             (runPipe, (.|), (|.))
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
 

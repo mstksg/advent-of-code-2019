@@ -15,7 +15,6 @@ module AOC.Challenge.Day17 (
   ) where
 
 import           AOC.Common          (Point, Dir(..), dirPoint', cardinalNeighbs, parseAsciiMap)
-import           AOC.Common.Conduino (feedPipe)
 import           AOC.Common.Intcode  (Memory, parseMem, IErr, stepForever, mRegLens)
 import           AOC.Solver          ((:~>)(..))
 import           AOC.Util            (eitherToMaybe)
@@ -24,6 +23,7 @@ import           Control.DeepSeq     (NFData)
 import           Control.Lens        (set)
 import           Control.Monad       (guard, (<=<))
 import           Data.Char           (chr, ord)
+import           Data.Conduino       (feedPipe)
 import           Data.Foldable       (asum)
 import           Data.List           (group, unfoldr, inits, stripPrefix, intercalate)
 import           Data.List.Split     (chunksOf, splitOn)

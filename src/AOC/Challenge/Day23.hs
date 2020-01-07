@@ -14,22 +14,22 @@ module AOC.Challenge.Day23 (
   , day23b
   ) where
 
-import           AOC.Common          (Point)
-import           AOC.Common.Conduino (feedPipe, squeezePipe)
-import           AOC.Common.Intcode  (Memory, parseMem, VM, stepForever, VMErr)
-import           AOC.Solver          ((:~>)(..))
-import           AOC.Util            (firstJust)
-import           Control.Lens        (view, (%%~), at)
-import           Control.Monad       (guard, ap)
-import           Data.Function       ((&))
-import           Data.List.Split     (chunksOf)
-import           Data.Map            (Map)
-import           Data.Sequence       (Seq(..))
-import           Data.Traversable    (for)
-import           Data.Witherable     (forMaybe, mapMaybe, catMaybes)
-import           Linear.V2           (V2(..), _y)
-import qualified Data.Map            as M
-import qualified Data.Sequence       as Seq
+import           AOC.Common         (Point)
+import           AOC.Common.Intcode (Memory, parseMem, VM, stepForever, VMErr)
+import           AOC.Solver         ((:~>)(..))
+import           AOC.Util           (firstJust)
+import           Control.Lens       (view, (%%~), at)
+import           Control.Monad      (guard, ap)
+import           Data.Conduino      (feedPipe, squeezePipe)
+import           Data.Function      ((&))
+import           Data.List.Split    (chunksOf)
+import           Data.Map           (Map)
+import           Data.Sequence      (Seq(..))
+import           Data.Traversable   (for)
+import           Data.Witherable    (forMaybe, mapMaybe, catMaybes)
+import           Linear.V2          (V2(..), _y)
+import qualified Data.Map           as M
+import qualified Data.Sequence      as Seq
 
 data Network = MM
     { nPipes :: !(Map Int (Int -> VM (Either VMErr) Memory))
@@ -59,10 +59,10 @@ stepNetwork mm@MM{..} = case nQueue of
       Nothing ->
         let (outList, pipes') = forMaybe nPipes $ \n ->
               case squeezePipe (n (-1)) of
-                Left  _ -> ([], Nothing)
+                Left  _       -> ([], Nothing)
                 Right (os, r) -> case r of
-                  Left n' -> (os, Just (n' . Right))
-                  Right _ -> (os, Nothing          )
+                  Left n' -> (os, Just n')
+                  Right _ -> (os, Nothing)
         in  mm { nPipes = pipes', nQueue = parseOuts outList }
     (i, p@(V2 x y)) :<| ps
       | i == 255  -> mm { nNAT = Just p, nQueue = ps }

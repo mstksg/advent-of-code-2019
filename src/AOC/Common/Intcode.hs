@@ -35,7 +35,6 @@ module AOC.Common.Intcode (
   ) where
 
 import           AOC.Common
-import           AOC.Common.Conduino
 import           AOC.Common.Intcode.Memory
 import           AOC.Util
 import           Control.DeepSeq
@@ -46,6 +45,7 @@ import           Control.Monad.Except
 import           Control.Monad.Primitive
 import           Data.Char
 import           Data.Conduino
+import           Data.Conduino.Lift
 import           Data.Generics.Labels      ()
 import           Data.List.Split
 import           Data.Map                  (Map)
@@ -223,7 +223,7 @@ untilHalt
     :: Monad m
     => Pipe i o u (ExceptT e m) a
     -> Pipe i o u m             ()
-untilHalt = void . runExceptP
+untilHalt = runExceptP_
 
 parseMem :: String -> Maybe Memory
 parseMem = fmap (Mem 0 0 . M.fromList . zip [0..])

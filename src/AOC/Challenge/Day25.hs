@@ -16,7 +16,6 @@ module AOC.Challenge.Day25 (
   ) where
 
 import           AOC.Common                         (Dir(..))
-import           AOC.Common.Conduino                (feedPipe, squeezePipe)
 import           AOC.Common.Intcode                 (Memory, AsciiVM, IErr, parseMem, interactAsciiVM, untilHalt, stepN, toAsciiVM, stepForever)
 import           AOC.Common.Search                  (aStar)
 import           AOC.Common.Subset                  (findSubset)
@@ -30,7 +29,7 @@ import           Control.Monad                      (join)
 import           Control.Monad.Combinators          (many, skipMany, between, choice, optional, manyTill)
 import           Control.Monad.Except               (throwError)
 import           Data.Char                          (isDigit)
-import           Data.Conduino.Internal             (hoistPipe)
+import           Data.Conduino                      (feedPipe, squeezePipe, hoistPipe)
 import           Data.Foldable                      (fold, toList)
 import           Data.Group                         (invert)
 import           Data.List.NonEmpty                 (NonEmpty(..))
@@ -107,7 +106,7 @@ explore m = do
       (out, goThere) <- case squeezePipe bot of
             Left e        -> error $ show e
             Right (os, r) -> case r of
-              Left  next -> pure (T.unlines os, next . Right)
+              Left  next -> pure (T.unlines os, next)
               Right _    -> Nothing
       room :| _ <- case runParser (NE.some parseRoomDesc) "" out of
         Left e -> error $ errorBundlePretty e
@@ -117,7 +116,7 @@ explore m = do
               Left e -> error $ show e
               Right (_ , Left next) ->
                 let (testDoor, _) = NEM.findMin (rDoors room)
-                in  case squeezePipe (next $ Right (dirCmd testDoor)) of
+                in  case squeezePipe (next (dirCmd testDoor)) of
                       Left e -> error $ show e
                       Right (os, Left  _) -> not $ "stuck" `T.isInfixOf` T.unlines os
                       Right (_ , Right _) -> False

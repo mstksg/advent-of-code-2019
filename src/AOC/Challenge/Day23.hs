@@ -15,7 +15,7 @@ module AOC.Challenge.Day23 (
   ) where
 
 import           AOC.Common          (Point)
-import           AOC.Common.Conduino (feedPipe)
+import           AOC.Common.Conduino (feedPipe, squeezePipe)
 import           AOC.Common.Intcode  (Memory, parseMem, VM, stepForever, VMErr)
 import           AOC.Solver          ((:~>)(..))
 import           AOC.Util            (firstJust)
@@ -58,11 +58,11 @@ stepNetwork mm@MM{..} = case nQueue of
       Just a  -> mm { nQueue = Seq.singleton (0, a) }
       Nothing ->
         let (outList, pipes') = forMaybe nPipes $ \n ->
-              case feedPipe [] (n (-1)) of
+              case squeezePipe (n (-1)) of
                 Left  _ -> ([], Nothing)
                 Right (os, r) -> case r of
-                  Left n' -> (os, Just n')
-                  Right _ -> (os, Nothing)
+                  Left n' -> (os, Just (n' . Right))
+                  Right _ -> (os, Nothing          )
         in  mm { nPipes = pipes', nQueue = parseOuts outList }
     (i, p@(V2 x y)) :<| ps
       | i == 255  -> mm { nNAT = Just p, nQueue = ps }

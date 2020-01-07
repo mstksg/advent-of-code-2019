@@ -44,7 +44,6 @@ default-extensions:
 - KindSignatures
 - LambdaCase
 - MonadComprehensions
-- MonoLocalBinds
 - MultiParamTypeClasses
 - MultiWayIf
 - NumDecimals
@@ -81,7 +80,7 @@ library:
   - bytestring
   - carray
   - comonad
-  - conduino
+  - conduino >= 0.2.1.0
   - conduit
   - containers
   - criterion

@@ -40,12 +40,12 @@ packages:
   original:
     hackage: nonempty-vector-0.2.0.1
 - completed:
-    hackage: conduino-0.2.0.0@sha256:eb08155b28b95088615b7ac59aefab20046cf332a30cfddf7957c5b137035714,1579
+    hackage: conduino-0.2.1.0@sha256:0c83b5b1add4182589484073a7461ce4d986b8d1c4ea697ec7f1d412580a500a,1621
     pantry-tree:
-      size: 459
-      sha256: 4db9ef27dc4930fc514b5e7f44ba53effe81efdd1f8fba3e98aa0d099919d887
+      size: 526
+      sha256: f528f11ccfb0e2663110e5fe348387f3e16cdad86844fdf3003e180155834339
   original:
-    hackage: conduino-0.2.0.0
+    hackage: conduino-0.2.1.0
 - completed:
     hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
     pantry-tree:

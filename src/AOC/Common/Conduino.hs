@@ -1,4 +1,4 @@
-{-# LANGUAGE NoDeriveAnyClass   #-}
+-- {-# LANGUAGE NoMonoLocalBinds   #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# OPTIONS_GHC -Wno-orphans    #-}
@@ -24,6 +24,7 @@ module AOC.Common.Conduino (
 import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Cont
 import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Free hiding        (iterM)
 import           Control.Monad.Trans.Free.Church hiding (iterM)
@@ -65,27 +66,48 @@ execStateP s = fmap snd . runStateP s
 evalStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m a
 evalStateP s = fmap fst . runStateP s
 
-runStateP :: Monad m => s -> Pipe i o u (StateT s m) a -> Pipe i o u m (a, s)
-runStateP s = fromRecPipe . runStateP_ s . toRecPipe
+runStateP
+    :: forall i o u s m a. Monad m
+    => s
+    -> Pipe i o u (StateT s m) a
+    -> Pipe i o u m (a, s)
+runStateP s0 (Pipe p) = Pipe $ FT $ \(return0 :: (a, s) -> m r) handle0 ->
+    let returnS x   = StateT $ \s -> (,s) <$> return0 (x, s)
+        handleS :: forall x. (x -> StateT s m r) -> PipeF i o u x -> StateT s m r
+        handleS k e = StateT $ \s -> (,s) <$> handle0 (\x -> evalStateT (k x) s) e
+    in  evalStateT (runFT p returnS handleS) s0
 
-runStateP_ :: Monad m => s -> RecPipe i o u (StateT s m) a -> RecPipe i o u m (a, s)
-runStateP_ s (FreeT p) = FreeT $ do
-    (q, s') <- runStateT p s
-    case q of
-      Pure x -> pure $ Pure (x, s')
-      Free l -> pure $ Free (fmap (runStateP_ s') l)
+-- runStateP_ :: Monad m => s -> RecPipe i o u (StateT s m) a -> RecPipe i o u m (a, s)
+-- runStateP_ s (FreeT p) = FreeT $ do
+--     (q, s') <- runStateT p s
+--     case q of
+--       Pure x -> pure $ Pure (x, s')
+--       Free l -> pure $ Free (fmap (runStateP_ s') l)
 
 runReaderP :: Monad m => r -> Pipe i o u (ReaderT r m) a -> Pipe i o u m a
 runReaderP r = hoistPipe (`runReaderT` r)
 
-runExceptP :: Monad m => Pipe i o u (ExceptT e m) a -> Pipe i o u m (Either e a)
-runExceptP = fromRecPipe . runExceptP_ . toRecPipe
+-- runExceptP
+--     :: forall i o u m e a. Monad m
+--     => Pipe i o u (ExceptT e m) a
+--     -> Pipe i o u m (Either e a)
+-- runExceptP = fromRecPipe . runExceptP_ . toRecPipe
 
-runExceptP_ :: Monad m => RecPipe i o u (ExceptT e m) a -> RecPipe i o u m (Either e a)
-runExceptP_ (FreeT p) = FreeT $ runExceptT p >>= \case
-    Left  e -> pure . Pure $ Left e
-    Right (Pure x) -> pure . Pure $ Right x
-    Right (Free l) -> pure $ Free (fmap runExceptP_ l)
+runExceptP
+    :: forall i o u m e a. Monad m
+    => Pipe i o u (ExceptT e m) a
+    -> Pipe i o u m (Either e a)
+runExceptP (Pipe p) = Pipe $ FT $ \return0 handle0 ->
+    let runE = (either (return0 . Left) pure =<<) . runExceptT
+        {-# INLINE runE #-}
+    in  runE $ runFT p (ExceptT . fmap Right . return0 . Right) $ \k x ->
+            ExceptT . fmap Right $ handle0 runE $ fmap k x
+
+-- runExceptP_ :: Monad m => RecPipe i o u (ExceptT e m) a -> RecPipe i o u m (Either e a)
+-- runExceptP_ (FreeT p) = FreeT $ runExceptT p >>= \case
+--     Left  e -> pure . Pure $ Left e
+--     Right (Pure x) -> pure . Pure $ Right x
+--     Right (Free l) -> pure $ Free (fmap runExceptP_ l)
 
 fuseBoth :: Monad m => Pipe a b u m v -> Pipe b c v m r -> Pipe a c u m (v, r)
 fuseBoth p q = p .| (q >>= exhaust)
@@ -153,24 +175,50 @@ iterM f = C.mapM (\x -> x <$ f x)
 --         Left  n -> n =<< awaitEither
 --         Right x -> pure x
 
-feedPipe
-    :: Monad m
-    => [i]
-    -> Pipe i o u m a
-    -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
-feedPipe xs = (fmap . second . first . fmap) fromRecPipe . feedPipe_ xs . toRecPipe
+-- feedPipe
+--     :: Monad m
+--     => [i]
+--     -> Pipe i o u m a
+--     -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
+-- feedPipe xs p = fmap (uncurry reshape)
+--               . flip runStateT (xs, [])
+--               . runExceptT
+--               . flip runContT pure
+--               . runPipe $ C.repeatM heyo
+--                        .| hoistPipe (lift . lift . lift) p
+--                        |. iterM (lift . lift . modify . second . (:))
+--                        |. C.sinkNull
+--   where
+--     reshape = \case
+--       Left  c -> \(ys, zs) -> (zs, Left c)
+--       Right z -> \(ys, zs) -> (zs, Right (ys, z))
+--     heyo = lift (lift (gets fst)) >>= \case
+--       []   -> throwError $ _
+--       y:ys -> do
+--         y <$ lift (lift ((modify . first) (const ys)))
+-- -- (ys, zs) <- gets fst
+-- --       case ys of
+--         -- flip runContT _ . runPipe . hoistPipe _
+--         -- (fmap . second . first . fmap) fromRecPipe . feedPipe_ xs . toRecPipe
 
-feedPipe_
-    :: Monad m
-    => [i]
-    -> RecPipe i o u m a
-    -> m ([o], Either (i -> RecPipe i o u m a) ([i], a))
-feedPipe_ xs (FreeT p) = p >>= \case
-    Pure y -> pure ([], Right (xs, y))
-    Free (PAwaitF _ g) -> case xs of
-      []   -> pure ([], Left g)
-      y:ys -> feedPipe_ ys (g y)
-    Free (PYieldF o q) -> first (o:) <$> feedPipe_ xs q
+-- feedPipe
+--     :: Monad m
+--     => [i]
+--     -> Pipe i o u m a
+--     -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
+-- feedPipe xs = (fmap . second . first . fmap) fromRecPipe . feedPipe_ xs . toRecPipe
+
+-- feedPipe_
+--     :: Monad m
+--     => [i]
+--     -> RecPipe i o u m a
+--     -> m ([o], Either (i -> RecPipe i o u m a) ([i], a))
+-- feedPipe_ xs (FreeT p) = p >>= \case
+--     Pure y -> pure ([], Right (xs, y))
+--     Free (PAwaitF _ g) -> case xs of
+--       []   -> pure ([], Left g)
+--       y:ys -> feedPipe_ ys (g y)
+--     Free (PYieldF o q) -> first (o:) <$> feedPipe_ xs q
 
 -- -- | For some reason this is much worse than the recPipe based feedPipe.
 -- -- it might be becasue of 'runFT' being used repeatedly/recursively at
@@ -186,6 +234,20 @@ feedPipe_ xs (FreeT p) = p >>= \case
 --       []   -> pure ([], Left (f . Right))
 --       y:ys -> feedPipe ys (f (Right y))
 --     PSOut o q -> first (o:) <$> feedPipe xs q
+
+feedPipe
+    :: Monad m
+    => [i]
+    -> Pipe i o u m a
+    -> m ([o], Either (i -> Pipe i o u m a) ([i], a))
+feedPipe xs p = do
+    (zs, r) <- squeezePipe p
+    case r of
+      Left n -> case xs of
+        []   -> pure (zs, Left (n . Right))
+        y:ys -> first (zs ++) <$> feedPipe ys (n (Right y))
+      Right z -> pure (zs, Right (xs, z))
+
 
 data PipeStep i o u m a =
       PSDone a

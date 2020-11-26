@@ -15,13 +15,16 @@ module AOC.Challenge.Day08 (
   ) where
 
 import           AOC.Common      (parseAsciiMap, countTrue)
-import           AOC.Common.OCR  (parseLettersSafe)
 import           AOC.Solver      ((:~>)(..), dyno_)
+import           Advent.OCR      (parseLettersWith)
 import           Control.Monad   (guard)
+import           Control.Lens    (view)
 import           Data.List       (transpose)
 import           Data.List.Split (chunksOf)
+import           Data.Maybe      (fromMaybe)
 import           Data.Maybe      (listToMaybe, fromJust)
 import           Data.Ord        (comparing)
+import           Linear          (_x, _y)
 import           Safe            (minimumByMay)
 import qualified Data.Map        as M
 
@@ -40,7 +43,7 @@ day08b :: [String] :~> String
 day08b = MkSol
     { sParse = Just . chunksOf 150
     -- , sShow  = unlines . chunksOf 25 . map (\case '0' -> ' '; _ -> '#')
-    , sShow  = fromJust . parseLettersSafe
+    , sShow  = fromMaybe "" . parseLettersWith (view _x) (view _y)
              . M.keysSet
              . parseAsciiMap (guard . (== '1'))
              . unlines

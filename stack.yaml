@@ -39,6 +39,7 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - advent-of-code-api-0.2.7.0
+- advent-of-code-ocr-0.1.0.0
 - megaparsec-8.0.0
 - parser-combinators-1.2.1
 - nonempty-containers-0.3.3.0

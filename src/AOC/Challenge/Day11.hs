@@ -14,16 +14,19 @@ module AOC.Challenge.Day11 (
 
 import           AOC.Common                (Dir(..), dirPoint, Point)
 import           AOC.Common.Intcode        (Memory, parseMem, stepForeverAndDie, untilHalt)
-import           AOC.Common.OCR            (parseLetters)
 import           AOC.Solver                ((:~>)(..))
+import           Advent.OCR                (parseLettersWith)
 import           Control.DeepSeq           (NFData)
+import           Control.Lens              (view)
 import           Control.Monad             (forever)
 import           Control.Monad.State       (MonadState, gets, execState, modify)
 import           Data.Conduino             (Pipe, (.|), runPipe, awaitSurely)
 import           Data.Functor              ((<&>))
 import           Data.Map                  (Map)
+import           Data.Maybe                (fromMaybe)
 import           Data.Void                 (Void)
 import           GHC.Generics              (Generic)
+import           Linear                    (_x, _y)
 import qualified Data.Conduino.Combinators as C
 import qualified Data.Map                  as M
 
@@ -97,7 +100,8 @@ day11a = MkSol
 day11b :: Memory :~> Map Point Color
 day11b = MkSol
     { sParse = parseMem
-    , sShow  = parseLetters . M.keysSet . M.filter (== White)
+    , sShow  = fromMaybe "" . parseLettersWith (view _x) (view _y)
+             . M.keysSet . M.filter (== White)
     , sSolve = \m -> Just . hMap
                    $ execState (runPipe (fullPipe m)) (singletonHull White)
     }

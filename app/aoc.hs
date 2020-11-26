@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase                     #-}
 {-# LANGUAGE OverloadedStrings              #-}
 {-# OPTIONS_GHC -Werror=incomplete-patterns #-}
 

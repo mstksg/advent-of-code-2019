@@ -66,7 +66,7 @@ import           Debug.Trace               as P
 import           GHC.Generics              as P (Generic)
 import           Linear                    as P (V1(..), V2(..), V3(..), V4(..))
 import           Numeric.Natural           as P
-import           Safe                      as P hiding (at, maximumDef, maximumNote, maximumMay, maximumByDef, maximumByNote, maximumByMay, minimumDef, minimumNote, minimumMay, minimumByDef, minimumByNote, minimumByMay, foldr1Def, foldr1May, foldr1Note, foldl1Def, foldl1May, foldl1Note, findJust, findJustDef, findJustNote)
+import           Safe                      as P hiding (at, maximumDef, maximumNote, maximumMay, maximumByDef, maximumByNote, maximumByMay, minimumDef, minimumNote, minimumMay, minimumByDef, minimumByNote, minimumByMay, foldr1Def, foldr1May, foldr1Note, foldl1Def, foldl1May, foldl1Note, findJust, findJustDef, findJustNote, minimumBound, maximumBounded, maximumBoundBy, minimumBoundBy, maximumBound, minimumBounded)
 import           Safe.Foldable             as P
 import           Text.Printf               as P
 import           Text.Read                 as P (readMaybe)

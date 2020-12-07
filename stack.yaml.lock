@@ -19,40 +19,12 @@ packages:
   original:
     hackage: advent-of-code-ocr-0.1.0.0
 - completed:
-    hackage: megaparsec-8.0.0@sha256:362f85e243ecbcb550e1de6e5c74ba5a50c09edaa1208c99bc5b9fd242227fc6,3808
+    hackage: constraints-extras-0.3.0.2@sha256:013b8d0392582c6ca068e226718a4fe8be8e22321cc0634f6115505bf377ad26,1853
     pantry-tree:
-      size: 1446
-      sha256: 955117c00a86970f2d0c215f33cf5293b16589c04678a0a790c03368ab6fd0aa
+      size: 594
+      sha256: 3ce1012bfb02e4d7def9df19ce80b8cd2b472c691b25b181d9960638673fecd1
   original:
-    hackage: megaparsec-8.0.0
-- completed:
-    hackage: parser-combinators-1.2.1@sha256:16c3490e007ec10b1255a2b36fb483d000156d555269107131241d9e0fa96412,1788
-    pantry-tree:
-      size: 725
-      sha256: 7b7cc6bb088f536691c4088ac6abe9f4dd0399feffc26bdb2cbec695f7259737
-  original:
-    hackage: parser-combinators-1.2.1
-- completed:
-    hackage: nonempty-containers-0.3.3.0@sha256:f306bdbb271fb43057e0205293915bbfafc92f9960d89c0ea457625aad752eca,2717
-    pantry-tree:
-      size: 1480
-      sha256: 36b68ccc26d582dfdcd363ee6e88f283274fbf344907c38de5b678ffe0a3888e
-  original:
-    hackage: nonempty-containers-0.3.3.0
-- completed:
-    hackage: nonempty-vector-0.2.0.1@sha256:332f8d48b5de02c1ab4e52c99973d4ca42dcbce21a073ffd1b5b2da1221e113f,1753
-    pantry-tree:
-      size: 460
-      sha256: 58c456615aa904f3513db86f5931f048b11a1b19e6c39ca77aef5b25195adb26
-  original:
-    hackage: nonempty-vector-0.2.0.1
-- completed:
-    hackage: conduino-0.2.1.0@sha256:0c83b5b1add4182589484073a7461ce4d986b8d1c4ea697ec7f1d412580a500a,1621
-    pantry-tree:
-      size: 526
-      sha256: f528f11ccfb0e2663110e5fe348387f3e16cdad86844fdf3003e180155834339
-  original:
-    hackage: conduino-0.2.1.0
+    hackage: constraints-extras-0.3.0.2
 - completed:
     hackage: astar-0.3.0.0@sha256:8bf6350542e9db9451490e8993560ee843dc48a61d46a206985430f9b62461c8,967
     pantry-tree:
@@ -61,15 +33,75 @@ packages:
   original:
     hackage: astar-0.3.0.0
 - completed:
+    hackage: conduino-0.2.2.0@sha256:1fe73859f8d518af7182c76248d0573bf69a6a6e12d79da85438a530f0227c9f,1621
+    pantry-tree:
+      size: 527
+      sha256: 45719113d47d7ce62da867f7d36f7518b925036867ab3a06db7b557a97c8fe43
+  original:
+    hackage: conduino-0.2.2.0
+- completed:
+    hackage: dependent-sum-0.7.1.0@sha256:5599aa89637db434431b1dd3fa7c34bc3d565ee44f0519bfbc877be1927c2531,2068
+    pantry-tree:
+      size: 290
+      sha256: 9cbfb32b5a8a782b7a1c941803fd517633cb699159b851c1d82267a9e9391b50
+  original:
+    hackage: dependent-sum-0.7.1.0
+- completed:
+    hackage: finitary-2.0.0.0@sha256:1044c9048ef920787fc9600634e6a66c890dada612cfda1d4820669306324c43,2373
+    pantry-tree:
+      size: 438
+      sha256: 8b6df70650871d989a55702619ee94ac6a646157d0ef294511fa7e6297b26c89
+  original:
+    hackage: finitary-2.0.0.0
+- completed:
+    hackage: lens-regex-pcre-1.1.0.0@sha256:a6053fefae59f6b53b4741e5a75c5fae350af80dbf62e8673b565e1c3f34f8b9,2209
+    pantry-tree:
+      size: 630
+      sha256: 84a02d84433d92c5e2a9a7bfd662244be607b4004c7d4d6fd1ba53adbc655022
+  original:
+    hackage: lens-regex-pcre-1.1.0.0
+- completed:
     hackage: list-transformer-1.0.6@sha256:e214728decb4844b1c6ea0e3243324cfc11ad6da5629d16f06b92f00b6a5bed0,1455
     pantry-tree:
       size: 280
       sha256: 7d2a46b5ade8b57a62888af490d6fb20b217e6fa92b5bf40d53c6e9fd7a3809c
   original:
     hackage: list-transformer-1.0.6
+- completed:
+    hackage: monoidal-containers-0.6.0.1@sha256:ffdfae0fde7a08e9e314667a78d86454d2d23137d85f226ec6e757c190fb28ad,2583
+    pantry-tree:
+      size: 569
+      sha256: 61d5a73cb768aa4d59db7365418a2fc1bb24b8c3e53ca496372656b6ba4d31ab
+  original:
+    hackage: monoidal-containers-0.6.0.1
+- completed:
+    hackage: typelits-witnesses-0.4.0.0@sha256:1d7092ba98fdc33f4b413e04144eb3ead7b105f74b2998e3c74a8a0feee685a9,1985
+    pantry-tree:
+      size: 403
+      sha256: 2ee741f6bb4dba710e6449da335fdcf8940adb767798b29fdb8ae2606d22e0cb
+  original:
+    hackage: typelits-witnesses-0.4.0.0
+- completed:
+    hackage: witherable-0.3.5@sha256:6590a15735b50ac14dcc138d4265ff1585d5f3e9d3047d5ebc5abf4cd5f50084,1476
+    pantry-tree:
+      size: 271
+      sha256: b99f21dbac28da031eb7c787fbffbe5e77e0aee42b64b5dda082470e907d5ab5
+  original:
+    hackage: witherable-0.3.5
+- completed:
+    size: 61645
+    url: https://github.com/mstksg/vector-sized/archive/4295e08076ab248bf0ba0924e4addbf6f19f6893.tar.gz
+    name: vector-sized
+    version: 1.4.2
+    sha256: 45242435b343ec6ec8b4da6ff1406c22ba718728c8fbacceeaf72e44da89f4ad
+    pantry-tree:
+      size: 1408
+      sha256: d36ddb46cf11d173e147dd3373ae27c34b53fcfbdee7bfb1c51a0ce786d1fdbd
+  original:
+    url: https://github.com/mstksg/vector-sized/archive/4295e08076ab248bf0ba0924e4addbf6f19f6893.tar.gz
 snapshots:
 - completed:
-    size: 524804
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/16.yaml
-    sha256: 4d1519a4372d051d47a5eae2241cf3fb54e113d7475f89707ddb6ec06add2888
-  original: lts-14.16
+    size: 532835
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/24.yaml
+    sha256: cf2b52420b2262fe9cf0f6744929120131abd6675b1c3fb2d8b155a47f80d103
+  original: lts-16.24

@@ -74,10 +74,12 @@ library:
   - adjunctions
   - advent-of-code-api >= 0.2.7
   - advent-of-code-ocr
+  - vector-sized
   - aeson
   - ansi-terminal
   - array
   - astar
+  - bitvec
   - bytestring
   - carray
   - comonad
@@ -92,6 +94,7 @@ library:
   - fft
   - fgl
   - filepath
+  - finitary
   - finite-typelits
   - foldl
   - free

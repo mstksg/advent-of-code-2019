@@ -3,16 +3,17 @@
 
 module AOC.Common.FinitarySet (
     FinitarySet(..)
-  , empty, singleton, fromList, toList
+  , empty, singleton, insert, delete, fromList, toList
   , intersection, union, difference, (\\)
   , isSubsetOf, isProperSubsetOf, disjoint
-  , size, member, notMember
+  , size, member, notMember, null
   , cartesianProduct, disjointUnion
   , foldr, foldr', foldl, foldl', map, foldMap, filter
   , alterF, generate, powerSet, mapMaybe
   , partition
   ) where
 
+import           Control.DeepSeq                    (NFData)
 import           Data.Bifunctor
 import           Data.Bit
 import           Data.Bits
@@ -21,7 +22,7 @@ import           Data.Finite
 import           Data.Functor
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
-import           Prelude hiding                     (null, foldr, map, filter, foldMap, foldl)
+import           Prelude (Bool(..), Maybe(..), Either(..), Int, Monoid, Eq(..), Ord, Show, (&&), ($), (.), otherwise, Semigroup(..), not, fromIntegral, id)
 import qualified Data.List                          as L
 import qualified Data.Maybe                         as M
 import qualified Data.Vector.Generic.Sized.Internal as VG
@@ -32,6 +33,7 @@ newtype FinitarySet a = FinitarySet (V.Vector (Cardinality a) Bit)
   deriving (Show, Generic, Eq, Ord)
 
 instance (Finitary a, KnownNat (2 ^ Cardinality a)) => Finitary (FinitarySet a)
+instance NFData (FinitarySet a)
 
 foldr :: Finitary a => (a -> b -> b) -> b -> FinitarySet a -> b
 foldr f z (FinitarySet xs) =
@@ -87,7 +89,7 @@ member :: Finitary a => a -> FinitarySet a -> Bool
 member x (FinitarySet xs) = unBit $ xs `V.index` toFinite x
 
 notMember :: Finitary a => a -> FinitarySet a -> Bool
-notMember x = not . notMember x
+notMember x = not . member x
 
 null :: FinitarySet a -> Bool
 null (FinitarySet (VG.Vector xs)) = popCount xs == 0

@@ -17,28 +17,30 @@ module AOC.Challenge.Day18 (
   ) where
 
 
-import           AOC.Common           (Point, charFinite, _CharFinite, Letter, parseAsciiMap, cardinalNeighbsSet)
-import           AOC.Common.Search    (aStar)
-import           AOC.Solver           ((:~>)(..))
-import           Control.DeepSeq      (NFData)
-import           Control.Lens         (preview, review, (?~), (^.))
-import           Data.Bifunctor       (second)
-import           Data.Foldable        (toList)
-import           Data.Function        ((&))
-import           Data.Functor         ((<&>))
-import           Data.Functor.Rep     as R
-import           Data.Generics.Labels ()
-import           Data.List            (intercalate)
-import           Data.Map             (Map)
-import           Data.Semigroup       (First(..))
-import           Data.Set             (Set)
-import           Data.Tuple           (swap)
-import           GHC.Generics         (Generic)
-import           Linear               (V1(..), V2(..), V4(..))
-import           Linear.Vector        (E(..))
-import           Text.Printf          (printf)
-import qualified Data.Map             as M
-import qualified Data.Set             as S
+import           AOC.Common             (Point, charFinite, _CharFinite, Letter, parseAsciiMap, cardinalNeighbsSet)
+import           AOC.Common.FinitarySet (FinitarySet)
+import           AOC.Common.Search      (aStar)
+import           AOC.Solver             ((:~>)(..))
+import           Control.DeepSeq        (NFData)
+import           Control.Lens           (preview, review, (?~), (^.))
+import           Data.Bifunctor         (second)
+import           Data.Foldable          (toList)
+import           Data.Function          ((&))
+import           Data.Functor           ((<&>))
+import           Data.Functor.Rep       as R
+import           Data.Generics.Labels   ()
+import           Data.List              (intercalate)
+import           Data.Map               (Map)
+import           Data.Semigroup         (First(..))
+import           Data.Set               (Set)
+import           Data.Tuple             (swap)
+import           GHC.Generics           (Generic)
+import           Linear                 (V1(..), V2(..), V4(..))
+import           Linear.Vector          (E(..))
+import           Text.Printf            (printf)
+import qualified AOC.Common.FinitarySet as FS
+import qualified Data.Map               as M
+import qualified Data.Set               as S
 
 data Maze f = Maze
     { mWalls  :: Set Point
@@ -55,11 +57,11 @@ instance NFData (f Point) => NFData (Maze f)
 
 -- | From a given point, a map to every visible key, with the distance and
 -- the set of keys and doors in the way.
-type KeyMap = Map Letter (Int, Set Letter)
+type KeyMap = Map Letter (Int, FinitarySet Letter)
 
 -- | Do a DFS to build the key map
 keysFrom :: Maze f -> Point -> KeyMap
-keysFrom Maze{..} = go 0 mWalls S.empty
+keysFrom Maze{..} = go 0 mWalls FS.empty
   where
     go !dist seen doors p = addKey
                           . M.unionsWith better
@@ -69,11 +71,11 @@ keysFrom Maze{..} = go 0 mWalls S.empty
         seen'    = S.insert p seen
         doors'   = addDoor $ case M.lookup p mDoors of
                      Nothing -> doors
-                     Just d  -> S.insert d doors
+                     Just d  -> FS.insert d doors
         keyHere  = M.lookup p mKeys
         addDoor  = case keyHere of
                      Nothing -> id
-                     Just c  -> S.insert c
+                     Just c  -> FS.insert c
         addKey   = case keyHere of
                      Nothing -> id
                      Just c  -> M.insertWith better c (dist, doors)
@@ -97,7 +99,7 @@ keyToKey mz@Maze{..} = K
     }
 
 data AState f = AS
-    { aKeys :: !(Set Letter)
+    { aKeys :: !(FinitarySet Letter)
     , aPos  :: !(f (Maybe Letter))
     }
   deriving (Generic)
@@ -106,7 +108,7 @@ deriving instance Ord (f (Maybe Letter)) => Ord (AState f)
 instance NFData (f (Maybe Letter)) => NFData (AState f)
 
 aHeuristic :: Maze f -> AState f -> Int
-aHeuristic Maze{..} AS{..} = M.size mKeyLoc - S.size aKeys
+aHeuristic Maze{..} AS{..} = M.size mKeyLoc - FS.size aKeys
 
 aStep
     :: forall f. (Foldable f, Representable f, Rep f ~ E f, Ord (AState f))
@@ -120,9 +122,9 @@ aStep K{..} AS{..} = M.fromList
     , (goal, (cost, doors)) <- M.toList $ case p of
         Nothing -> kStart ^. el e
         Just c  -> kKeys M.! c
-    , goal `S.notMember` aKeys
-    , S.null $ doors `S.difference` aKeys
-    , let aKeys' = S.insert goal aKeys
+    , goal `FS.notMember` aKeys
+    , FS.null $ doors `FS.difference` aKeys
+    , let aKeys' = FS.insert goal aKeys
           aPos'  = aPos & el e ?~ goal
     ]
 
@@ -134,7 +136,7 @@ day18a = MkSol
     , sSolve = \mz -> fst <$>
         aStar (aHeuristic mz)
               (aStep (keyToKey mz))
-              (AS S.empty (pure Nothing))
+              (AS FS.empty (pure Nothing))
               ((== 0) . aHeuristic mz)
     }
 
@@ -156,7 +158,7 @@ day18b = MkSol
     , sSolve = \mz -> fst <$>
         aStar (aHeuristic mz)
               (aStep (keyToKey mz))
-              (AS S.empty (pure Nothing))
+              (AS FS.empty (pure Nothing))
               ((== 0) . aHeuristic mz)
     }
 
@@ -166,7 +168,7 @@ day18b = MkSol
 instance Foldable f => Show (AState f) where
     showsPrec _ AS{..} =
             showString "AS<"
-          . showString (foldMap ((:[]) . dispKey) aKeys)
+          . showString (FS.foldMap ((:[]) . dispKey) aKeys)
           . showString ","
           . showString (foldMap ((:[]) . maybe '@' dispKey) aPos)
           . showString ">"
@@ -180,7 +182,7 @@ dispDoor = review _CharFinite . (True,)
 _dispKeyMap :: KeyMap -> String
 _dispKeyMap = intercalate ", " . map go . M.toList
   where
-    go (c, (d, xs)) = printf "%c:%d[%s]" (dispKey c) d (foldMap ((:[]).dispDoor) xs)
+    go (c, (d, xs)) = printf "%c:%d[%s]" (dispKey c) d (FS.foldMap ((:[]).dispDoor) xs)
 
 data Item = IKey    Letter
           | IDoor   Letter

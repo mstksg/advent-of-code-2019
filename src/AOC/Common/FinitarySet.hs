@@ -22,7 +22,7 @@ import           Data.Finite
 import           Data.Functor
 import           GHC.Generics                       (Generic)
 import           GHC.TypeNats
-import           Prelude (Bool(..), Maybe(..), Either(..), Int, Monoid, Eq(..), Ord, Show, (&&), ($), (.), otherwise, Semigroup(..), not, fromIntegral, id)
+import           Prelude                            (Bool(..), Maybe(..), Either(..), Int, Monoid, Eq(..), Ord, Show, (&&), ($), (.), otherwise, Semigroup(..), not, fromIntegral, id)
 import qualified Data.List                          as L
 import qualified Data.Maybe                         as M
 import qualified Data.Vector.Generic.Sized.Internal as VG
